@@ -1,0 +1,37 @@
+package com.paywallet.userservice.user.model;
+
+import java.util.Date;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+public class RequestIdDetails {
+   
+    private String requestId;
+    private Date createdTimeStamp;
+    private String clientName;
+    private String employer;
+    private String employerPWId;
+    private String provider;
+    private String identifyStatus;
+    private String depositStatus;
+    private String submitPD;
+    private String allocationStatus;
+    private String affordability;
+    private String employmentStatus;
+    private String incomeValidation;
+    private String userId;
+    private String clientTransactionId;
+    private String taskid;
+    private String payrollid;
+    private String vitualAccountNumber;
+
+}

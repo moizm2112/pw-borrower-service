@@ -1,0 +1,55 @@
+@startuml
+title Get Customer Account Details
+participant User
+User -> CustomerController : getAccountDetails
+activate CustomerController
+CustomerController -> CustomerService : getAccountDetails
+activate CustomerService
+CustomerService -> AccountDetails : new
+activate AccountDetails
+AccountDetails --> CustomerService
+deactivate AccountDetails
+CustomerService -> CustomerRepository : findByPersonalProfileMobileNo
+activate CustomerRepository
+CustomerRepository --> CustomerService
+deactivate CustomerRepository
+CustomerService -> CustomerServiceUtil : doesObjectContainField
+activate CustomerServiceUtil
+CustomerServiceUtil --> CustomerService
+deactivate CustomerServiceUtil
+CustomerService -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerService
+deactivate GeneralCustomException
+CustomerService -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerService
+deactivate GeneralCustomException
+CustomerService -> CustomerServiceUtil : doesObjectContainField
+activate CustomerServiceUtil
+CustomerServiceUtil --> CustomerService
+deactivate CustomerServiceUtil
+CustomerService -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerService
+deactivate GeneralCustomException
+CustomerService -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerService
+deactivate GeneralCustomException
+CustomerService -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerService
+deactivate GeneralCustomException
+CustomerService -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerService
+deactivate GeneralCustomException
+CustomerService --> CustomerController
+deactivate CustomerService
+CustomerController -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerController
+deactivate GeneralCustomException
+return
+@enduml

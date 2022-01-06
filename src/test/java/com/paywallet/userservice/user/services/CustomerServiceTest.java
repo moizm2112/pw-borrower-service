@@ -1,0 +1,91 @@
+package com.paywallet.userservice.user.services;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.Test;
+
+import com.paywallet.userservice.user.helper.CustomerDataTest;
+import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
+import com.paywallet.userservice.user.model.CustomerResponseDTO;
+
+class CustomerServiceTest {
+
+    @Test
+    void getAccountDetails() {
+
+        CustomerDataTest customerDataTest = new CustomerDataTest();
+        CustomerAccountResponseDTO accDetails = customerDataTest.getAccDetails();
+        String mobileNo="+919980024111";
+        CustomerService mockCustomerService = mock(CustomerService.class);
+        when(mockCustomerService.getAccountDetails(mobileNo)).thenReturn(accDetails.getData());
+
+        assertEquals("89455",accDetails.getData().getSalaryAccountNumber());
+        assertEquals("122199983",accDetails.getData().getAbaOfSalaryAccount());
+    }
+
+    @Test
+    void createCustomer() {
+        CustomerDataTest customerDataTest = new CustomerDataTest();
+        CustomerResponseDTO customerResponse = customerDataTest.createCustomerResponse();
+        CustomerService mockCustomerService = mock(CustomerService.class);
+        when(mockCustomerService.createCustomer(customerDataTest.createCustomerRequest(),""))
+        		.thenReturn(customerResponse.getData());
+
+        assertEquals("61822f23019cba309dd5b070",customerResponse.getData().getCustomerId());
+        assertEquals("+919980024111",customerResponse.getData().getPersonalProfile().getMobileNo());
+    }
+    
+    @Test
+    void getCustomer() {
+        CustomerDataTest customerDataTest = new CustomerDataTest();
+        CustomerResponseDTO customerResponse = customerDataTest.createCustomerResponse();
+        String customerId="61822f23019cba309dd5b070";
+        CustomerService mockCustomerService = mock(CustomerService.class);
+        when(mockCustomerService.getCustomer(customerId))
+        		.thenReturn(customerResponse.getData());
+
+        assertEquals("61822f23019cba309dd5b070",customerResponse.getData().getCustomerId());
+        assertEquals("+919980024111",customerResponse.getData().getPersonalProfile().getMobileNo());
+    }
+    
+    @Test
+    void getCustomerByMobileNo() {
+        CustomerDataTest customerDataTest = new CustomerDataTest();
+        CustomerResponseDTO customerResponse = customerDataTest.createCustomerResponse();
+        String mobileNo="+919980024111";
+        CustomerService mockCustomerService = mock(CustomerService.class);
+        when(mockCustomerService.getCustomerByMobileNo(mobileNo))
+        		.thenReturn(customerResponse.getData());
+
+        assertEquals("61822f23019cba309dd5b070",customerResponse.getData().getCustomerId());
+        assertEquals("+919980024111",customerResponse.getData().getPersonalProfile().getMobileNo());
+    }
+
+    @Test
+    void updateCustomerDetails() {
+        CustomerDataTest customerDataTest = new CustomerDataTest();
+        CustomerResponseDTO customerResponse = customerDataTest.updateCustomerResponse();
+        CustomerService mockCustomerService = mock(CustomerService.class);
+        when(mockCustomerService.updateCustomerDetails(customerDataTest.updateCustomerRequest())).thenReturn(customerResponse.getData());
+
+        assertEquals("Accept",customerResponse.getData().getStatus());
+        assertEquals("89455",customerResponse.getData().getSalaryAccountNumber());
+        assertEquals("122199983",customerResponse.getData().getAbaOfSalaryAccount());
+    }
+
+    @Test
+    void validateAccountRequest() {
+
+        CustomerDataTest customerDataTest = new CustomerDataTest();
+        CustomerResponseDTO customerResponse = customerDataTest.validateAccountResponse();
+        
+        CustomerService mockCustomerService = mock(CustomerService.class);
+        when(mockCustomerService.validateAccountRequest(customerDataTest.validateAccountRequest())).thenReturn(customerResponse.getData());
+
+        assertEquals("Accept",customerResponse.getData().getStatus());
+        assertEquals("89455",customerResponse.getData().getSalaryAccountNumber());
+        assertEquals("122199983",customerResponse.getData().getAbaOfSalaryAccount());
+    }
+}

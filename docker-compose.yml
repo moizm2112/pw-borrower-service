@@ -1,0 +1,24 @@
+version: "3.6"
+
+networks:
+  backend-net:
+volumes:
+  backend-service-logs:
+
+services:
+
+  user-management-service:
+    image: user-management-service
+    container_name: user-management-service_container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9060:9060"
+    environment:
+            MONGO_INITDB_DATABASE: luthersales
+            MONGO_INITDB_ROOT_USERNAME: user
+    networks:
+    - backend-net
+    volumes:
+      - /data/backend-service-logs:/log

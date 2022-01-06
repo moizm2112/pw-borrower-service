@@ -1,0 +1,107 @@
+@startuml
+title Validate Customer Account Details
+participant User
+User -> CustomerController : validateAccount
+activate CustomerController
+CustomerController -> CustomerService : validateAccountRequest
+activate CustomerService
+CustomerService -> CustomerRepository : findByPersonalProfileMobileNo
+activate CustomerRepository
+CustomerRepository --> CustomerService
+deactivate CustomerRepository
+CustomerService -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerService
+deactivate GeneralCustomException
+CustomerService -> LyonsAPIRequestDTO : builder
+activate LyonsAPIRequestDTO
+LyonsAPIRequestDTO -> LyonsAPIRequestDTOBuilder : new
+activate LyonsAPIRequestDTOBuilder
+LyonsAPIRequestDTOBuilder --> LyonsAPIRequestDTO
+deactivate LyonsAPIRequestDTOBuilder
+LyonsAPIRequestDTO --> CustomerService
+deactivate LyonsAPIRequestDTO
+CustomerService -> LyonsAPIRequestDTOBuilder : firstName
+activate LyonsAPIRequestDTOBuilder
+LyonsAPIRequestDTOBuilder --> CustomerService
+deactivate LyonsAPIRequestDTOBuilder
+CustomerService -> LyonsAPIRequestDTOBuilder : lastName
+activate LyonsAPIRequestDTOBuilder
+LyonsAPIRequestDTOBuilder --> CustomerService
+deactivate LyonsAPIRequestDTOBuilder
+CustomerService -> LyonsAPIRequestDTOBuilder : accountNumber
+activate LyonsAPIRequestDTOBuilder
+LyonsAPIRequestDTOBuilder --> CustomerService
+deactivate LyonsAPIRequestDTOBuilder
+CustomerService -> LyonsAPIRequestDTOBuilder : abaNumber
+activate LyonsAPIRequestDTOBuilder
+LyonsAPIRequestDTOBuilder --> CustomerService
+deactivate LyonsAPIRequestDTOBuilder
+CustomerService -> LyonsAPIRequestDTOBuilder : build
+activate LyonsAPIRequestDTOBuilder
+LyonsAPIRequestDTOBuilder -> LyonsAPIRequestDTO : new
+activate LyonsAPIRequestDTO
+LyonsAPIRequestDTO --> LyonsAPIRequestDTOBuilder
+deactivate LyonsAPIRequestDTO
+LyonsAPIRequestDTOBuilder --> CustomerService
+deactivate LyonsAPIRequestDTOBuilder
+CustomerService -> LyonsService : checkAccountOwnership
+activate LyonsService
+LyonsService -> LyonsService : createAccountVerificationRequest
+activate LyonsService
+LyonsService -> LyonsAPIRequestDTO : initRequest
+activate LyonsAPIRequestDTO
+LyonsAPIRequestDTO -> AccountStatusRequest : new
+activate AccountStatusRequest
+AccountStatusRequest --> LyonsAPIRequestDTO
+deactivate AccountStatusRequest
+LyonsAPIRequestDTO --> LyonsService
+deactivate LyonsAPIRequestDTO
+LyonsService --> LyonsService
+deactivate LyonsService
+LyonsService -> LyonsService : lyonsPostApi
+activate LyonsService
+LyonsService --> LyonsService
+deactivate LyonsService
+LyonsService --> CustomerService
+deactivate LyonsService
+CustomerService -> ValidateAccountResponse : builder
+activate ValidateAccountResponse
+ValidateAccountResponse -> ValidateAccountResponseBuilder : new
+activate ValidateAccountResponseBuilder
+ValidateAccountResponseBuilder --> ValidateAccountResponse
+deactivate ValidateAccountResponseBuilder
+ValidateAccountResponse --> CustomerService
+deactivate ValidateAccountResponse
+CustomerService -> ValidateAccountResponseBuilder : status
+activate ValidateAccountResponseBuilder
+ValidateAccountResponseBuilder --> CustomerService
+deactivate ValidateAccountResponseBuilder
+CustomerService -> ValidateAccountResponseBuilder : updatedsalaryAcctNo
+activate ValidateAccountResponseBuilder
+ValidateAccountResponseBuilder --> CustomerService
+deactivate ValidateAccountResponseBuilder
+CustomerService -> ValidateAccountResponseBuilder : updatedabaOfSalaryAcct
+activate ValidateAccountResponseBuilder
+ValidateAccountResponseBuilder --> CustomerService
+deactivate ValidateAccountResponseBuilder
+CustomerService -> ValidateAccountResponseBuilder : build
+activate ValidateAccountResponseBuilder
+ValidateAccountResponseBuilder -> ValidateAccountResponse : new
+activate ValidateAccountResponse
+ValidateAccountResponse --> ValidateAccountResponseBuilder
+deactivate ValidateAccountResponse
+ValidateAccountResponseBuilder --> CustomerService
+deactivate ValidateAccountResponseBuilder
+CustomerService -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerService
+deactivate GeneralCustomException
+CustomerService --> CustomerController
+deactivate CustomerService
+CustomerController -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerController
+deactivate GeneralCustomException
+return
+@enduml

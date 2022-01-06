@@ -1,0 +1,95 @@
+@startuml
+title Create Customer
+participant User
+User -> CustomerController : createCustomer
+activate CustomerController
+CustomerController -> CustomerService : createCustomer
+activate CustomerService
+CustomerService -> CustomerRepository : findByPersonalProfileMobileNo
+activate CustomerRepository
+CustomerRepository --> CustomerService
+deactivate CustomerRepository
+CustomerService -> PersonalProfile : builder
+activate PersonalProfile
+PersonalProfile -> PersonalProfileBuilder : new
+activate PersonalProfileBuilder
+PersonalProfileBuilder --> PersonalProfile
+deactivate PersonalProfileBuilder
+PersonalProfile --> CustomerService
+deactivate PersonalProfile
+CustomerService -> PersonalProfileBuilder : firstName
+activate PersonalProfileBuilder
+PersonalProfileBuilder --> CustomerService
+deactivate PersonalProfileBuilder
+CustomerService -> PersonalProfileBuilder : lastName
+activate PersonalProfileBuilder
+PersonalProfileBuilder --> CustomerService
+deactivate PersonalProfileBuilder
+CustomerService -> PersonalProfileBuilder : emailId
+activate PersonalProfileBuilder
+PersonalProfileBuilder --> CustomerService
+deactivate PersonalProfileBuilder
+CustomerService -> PersonalProfileBuilder : mobileNo
+activate PersonalProfileBuilder
+PersonalProfileBuilder --> CustomerService
+deactivate PersonalProfileBuilder
+CustomerService -> PersonalProfileBuilder : build
+activate PersonalProfileBuilder
+PersonalProfileBuilder -> PersonalProfile : new
+activate PersonalProfile
+PersonalProfile --> PersonalProfileBuilder
+deactivate PersonalProfile
+PersonalProfileBuilder --> CustomerService
+deactivate PersonalProfileBuilder
+CustomerService -> UpdateCustomer : builder
+activate UpdateCustomer
+UpdateCustomer -> UpdateCustomerBuilder : new
+activate UpdateCustomerBuilder
+UpdateCustomerBuilder --> UpdateCustomer
+deactivate UpdateCustomerBuilder
+UpdateCustomer --> CustomerService
+deactivate UpdateCustomer
+CustomerService -> UpdateCustomerBuilder : personalProfile
+activate UpdateCustomerBuilder
+UpdateCustomerBuilder --> CustomerService
+deactivate UpdateCustomerBuilder
+CustomerService -> UpdateCustomerBuilder : financedAmount
+activate UpdateCustomerBuilder
+UpdateCustomerBuilder --> CustomerService
+deactivate UpdateCustomerBuilder
+CustomerService -> UpdateCustomerBuilder : build
+activate UpdateCustomerBuilder
+UpdateCustomerBuilder -> UpdateCustomer : new
+activate UpdateCustomer
+UpdateCustomer --> UpdateCustomerBuilder
+deactivate UpdateCustomer
+UpdateCustomerBuilder --> CustomerService
+deactivate UpdateCustomerBuilder
+CustomerService -> CreateCustomerResponse : builder
+activate CreateCustomerResponse
+CreateCustomerResponse -> CreateCustomerResponseBuilder : new
+activate CreateCustomerResponseBuilder
+CreateCustomerResponseBuilder --> CreateCustomerResponse
+deactivate CreateCustomerResponseBuilder
+CreateCustomerResponse --> CustomerService
+deactivate CreateCustomerResponse
+CustomerService -> CreateCustomerResponseBuilder : customerId
+activate CreateCustomerResponseBuilder
+CreateCustomerResponseBuilder --> CustomerService
+deactivate CreateCustomerResponseBuilder
+CustomerService -> CreateCustomerResponseBuilder : mobileNo
+activate CreateCustomerResponseBuilder
+CreateCustomerResponseBuilder --> CustomerService
+deactivate CreateCustomerResponseBuilder
+CustomerService -> CreateCustomerResponseBuilder : build
+activate CreateCustomerResponseBuilder
+CreateCustomerResponseBuilder -> CreateCustomerResponse : new
+activate CreateCustomerResponse
+CreateCustomerResponse --> CreateCustomerResponseBuilder
+deactivate CreateCustomerResponse
+CreateCustomerResponseBuilder --> CustomerService
+deactivate CreateCustomerResponseBuilder
+CustomerService --> CustomerController
+deactivate CustomerService
+return
+@enduml

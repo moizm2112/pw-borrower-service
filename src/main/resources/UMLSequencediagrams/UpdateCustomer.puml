@@ -1,0 +1,23 @@
+@startuml
+title Update Customer Salary Account Details
+participant User
+User -> CustomerController : updateCustomer
+activate CustomerController
+CustomerController -> CustomerService : updateCustomerDetails
+activate CustomerService
+CustomerService -> CustomerRepository : findByPersonalProfileMobileNo
+activate CustomerRepository
+CustomerRepository --> CustomerService
+deactivate CustomerRepository
+CustomerService -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerService
+deactivate GeneralCustomException
+CustomerService --> CustomerController
+deactivate CustomerService
+CustomerController -> GeneralCustomException : new
+activate GeneralCustomException
+GeneralCustomException --> CustomerController
+deactivate GeneralCustomException
+return
+@enduml
