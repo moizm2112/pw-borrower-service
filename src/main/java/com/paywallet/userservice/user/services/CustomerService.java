@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import com.paywallet.userservice.user.util.RequestIdUtil;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
@@ -80,6 +81,9 @@ public class CustomerService {
     @Autowired
     LyonsService lyonsService;
 
+    @Autowired
+    RequestIdUtil requestIdUtil;
+
     @Value("${lyons.api.baseURL}")
     private String lyonsBaseURL;
 
@@ -94,14 +98,7 @@ public class CustomerService {
 
     @Value("${lyons.api.returnDetails}")
     private int returnDetails;
-    
-    /**
-     * This attribute holds the URI path of the Account service provider 
-     * Microservice to create fineract account
-     */
-    @Value("${createVirtualAccount.eureka.uri}")
-    private String createVirtualAccountUri;
-    
+
     /**
      * This attribute holds the URI path of the Identity service provider Microservice
      */
@@ -116,7 +113,7 @@ public class CustomerService {
     
     /**
      * Method fetches customer details by mobileNo
-     * @param mobileNo
+     * @param customerId
      * @return
      * @throws CustomerNotFoundException
      */
@@ -153,7 +150,7 @@ public class CustomerService {
     /** 
      * Method create a customer with fineract virtual savings account.
      * @param customer
-     * @param requestId
+     * @param apiKey
      * @return
      * @throws CreateCustomerException
      * @throws GeneralCustomException
@@ -169,7 +166,7 @@ public class CustomerService {
         try 
         {
         	/* GENERATE REQUEST ID DETAILS */
-        	RequestIdResponseDTO  requestResponseDTO = generateRequestIdDetails(apiKey);
+        	RequestIdResponseDTO  requestResponseDTO = requestIdUtil.generateRequestIdDetails(apiKey);
         	log.info("Response from generateRequestID : " + requestResponseDTO);
     		if(requestResponseDTO != null && requestResponseDTO.getData() != null) {
     			requestIdDtls = requestResponseDTO.getData();
@@ -187,7 +184,7 @@ public class CustomerService {
 	            saveCustomer.setExistingCustomer(true);
 	            
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
-	            updateRequestIdDetails(requestIdDtls.getRequestId(), saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
+	            requestIdUtil.updateRequestIdDetails(requestIdDtls.getRequestId(), saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
 	            
 	            /*   CODE TO UPDATE CUSTOMER IF MOBILE NUMBER EXIST */
 	            
@@ -201,7 +198,7 @@ public class CustomerService {
 	
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
-	            CustomerDetails customerEntity = createFineractVirtualAccount(customer);
+	            CustomerDetails customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customer);
 	            log.info("Virtual fineract account created successfully ");
 	            
 	            if( requestIdDtls.getClientName() != null) 
@@ -211,7 +208,7 @@ public class CustomerService {
 	            saveCustomer.setExistingCustomer(false);
 	            
 	            /* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
-	            updateRequestIdDetails(requestIdDtls.getRequestId(), saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
+                requestIdUtil.updateRequestIdDetails(requestIdDtls.getRequestId(), saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            //createAndSendSMSAndEmailNotification(requestIdDtls.getRequestId());
@@ -248,47 +245,6 @@ public class CustomerService {
         }
         return saveCustomer;
     }
-    
-	/**
-	 * Methods that communicates with the account microservice to create a client and savings account for the customer.
-	 * @param fineractCreateAccountDTO
-	 * @return
-	 * @throws GeneralCustomException
-	 */
-	public CustomerDetails createFineractVirtualAccount(CreateCustomerRequest customer) 
-			throws ResourceAccessException, ServiceNotAvailableException, FineractAPIException, HttpClientErrorException {
-		try {
-			/* SET DATA FOR FINERACT API CALL*/
-			CustomerDetails customerEntity = customerServiceHelper.buildCustomerDetails(customer);
-			FineractCreateLenderDTO fineractCreateAccountDTO = customerServiceHelper.setFineractDataToCreateAccount(customerEntity);
-			
-			/* POST CALL TO ACCOUNT SERVICE TO ACCESS FINERACT API*/
-			ObjectMapper objMapper= new ObjectMapper();
-			HttpEntity<String> requestEnty = new HttpEntity(fineractCreateAccountDTO);
-			ResponseEntity<Object> response = (ResponseEntity<Object>) restTemplate.postForEntity(createVirtualAccountUri, requestEnty, Object.class);
-			FineractLenderCreationResponseDTO fineractAccountCreationresponse = objMapper.convertValue(response.getBody(), FineractLenderCreationResponseDTO.class);
-			if(fineractAccountCreationresponse != null && fineractAccountCreationresponse.getSavingsId() != null) 
-			{
-				customerEntity.setVirtualAccount(String.valueOf(fineractAccountCreationresponse.getSavingsId().intValue()));
-				return customerEntity;
-			}
-			else 
-				throw new FineractAPIException("Error while creating virtual savings account for the customer");
-		}
-		catch(GeneralCustomException e) {
-			throw new FineractAPIException("Error while creating virtual savings account for the customer");
-		}
-		catch(ResourceAccessException e) {
-			throw new ServiceNotAvailableException(ERROR, e.getMessage());
-		}
-		catch(HttpClientErrorException e) {
-			throw new FineractAPIException("Error while creating virtual account with fineract API. Please provide a different Last4TIN as it exist in database");
-		}
-		catch(Exception e) {
-			throw new FineractAPIException(e.getMessage());
-		}
-	}
-	 
 
     /**
      * Methods gets customer account details by mobileNo.
@@ -519,81 +475,7 @@ public class CustomerService {
                 .path(path)
                 .build();
     }
-    
-    /**
-     * Method communicates with the identity service provider to generate request details by request ID.
-     * @param requestId
-     * @return
-     * @throws ResourceAccessException
-     * @throws GeneralCustomException
-     */
-    private RequestIdResponseDTO generateRequestIdDetails(String apiKey) throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
-    	log.info("Inside generateRequestIdDetails");
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.add("x-api-key", apiKey);
-		HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-		RequestIdResponseDTO requestIdResponse = new RequestIdResponseDTO();
-		try {
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder
-					.fromHttpUrl(identifyProviderServiceUri);
 
-			requestIdResponse = restTemplate
-					.exchange(uriBuilder.toUriString(), HttpMethod.POST, requestEntity, RequestIdResponseDTO.class)
-					.getBody();
-
-		} catch (ResourceAccessException resourceException) {
-			throw new ServiceNotAvailableException( HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
-		} catch (Exception ex) {
-			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
-		}
-		log.info("respons from  generateRequestIdDetails : " + requestIdResponse);
-		return requestIdResponse;
-	}
-    
-    /**
-     * Method communicates with the identity service provider to update request details by request ID.
-     * @param requestId
-     * @return
-     * @throws ResourceAccessException
-     * @throws GeneralCustomException
-     */
-    private RequestIdResponseDTO updateRequestIdDetails(String requestId, String customerId, String virtualAccountNumber) 
-    		throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
-    	log.info("Inside updateRequestIdDetails");
-    	
-    	/* SET INPUT (REQUESTIDDTO) TO ACCESS THE IDENTITY PROVIDER SERVICE*/
-    	RequestIdDTO requestIdDTO = new RequestIdDTO();
-    	requestIdDTO.setUserId(customerId);
-    	requestIdDTO.setVirtualAccountNumber(virtualAccountNumber);
-    	
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.add("x-request-id", requestId);
-		HttpEntity<String> requestEntity = new HttpEntity(requestIdDTO, headers);
-		
-		RequestIdResponseDTO requestIdResponse = new RequestIdResponseDTO();
-		try {
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder
-					.fromHttpUrl(identifyProviderServiceUri);
-			
-			HttpClient httpClient = HttpClientBuilder.create().build();
-			restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
-			
-			requestIdResponse = restTemplate
-					.exchange(uriBuilder.toUriString(), HttpMethod.PATCH, requestEntity, RequestIdResponseDTO.class)
-					.getBody();
-
-		} catch (ResourceAccessException resourceException) {
-			throw new ServiceNotAvailableException( HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
-		} catch (Exception ex) {
-			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
-		}
-		log.info("response from  updateRequestIdDetails : " + requestIdResponse);
-		return requestIdResponse;
-	}
-    
-    
    public Response createAndSendSMSAndEmailNotification(String requestId) 
 		   throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException, SMSAndEmailNotificationException {
 	   log.info("Inside createAndSendSMSAndEmailNotification");

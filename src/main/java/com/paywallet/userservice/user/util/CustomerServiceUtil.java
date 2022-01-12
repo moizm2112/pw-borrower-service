@@ -1,10 +1,12 @@
 package com.paywallet.userservice.user.util;
 
+import com.paywallet.userservice.user.dto.EventDTO;
 import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import com.paywallet.userservice.user.enums.StateEnum;
@@ -28,5 +30,16 @@ public class CustomerServiceUtil {
     	if(stateList.contains(state))
     		return true;
     	return false;
+    }
+
+    public EventDTO prepareEvent(String requestId, String code, String source, String message, String level){
+        return EventDTO.builder()
+                .requestId(requestId)
+                .code(code)
+                .source(source)
+                .message(message)
+                .level(level)
+                .time(new Date())
+                .build();
     }
 }

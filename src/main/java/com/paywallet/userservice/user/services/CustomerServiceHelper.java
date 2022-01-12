@@ -7,6 +7,15 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.paywallet.userservice.user.exception.FineractAPIException;
+import com.paywallet.userservice.user.exception.GeneralCustomException;
+import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
+import com.paywallet.userservice.user.model.FineractLenderCreationResponseDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.paywallet.userservice.user.entities.CustomerDetails;
@@ -15,9 +24,25 @@ import com.paywallet.userservice.user.entities.SalaryProfile;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
 import com.paywallet.userservice.user.model.FineractLenderAddressDTO;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 @Component
 public class CustomerServiceHelper {
+
+	private static final String ERROR = "Error";
+
+	/**
+	 * This attribute holds the URI path of the Account service provider
+	 * Microservice to create fineract account
+	 */
+	@Value("${createVirtualAccount.eureka.uri}")
+	private String createVirtualAccountUri;
+
+	@Autowired
+	RestTemplate restTemplate;
+
 	
 	public void setCustomerDetails(CreateCustomerRequest customer, CustomerDetails custDtls) {
         PersonalProfile personalProfileToUpdate = custDtls.getPersonalProfile();
@@ -86,5 +111,45 @@ public class CustomerServiceHelper {
     	return fineractCreateAccountDTO;
     	
     }
+
+	/**
+	 * Methods that communicates with the account microservice to create a client and savings account for the customer.
+	 * @param customer
+	 * @return
+	 * @throws GeneralCustomException
+	 */
+	public CustomerDetails createFineractVirtualAccount(String requestId, CreateCustomerRequest customer)
+			throws ResourceAccessException, ServiceNotAvailableException, FineractAPIException, HttpClientErrorException {
+		try {
+			/* SET DATA FOR FINERACT API CALL*/
+			CustomerDetails customerEntity = buildCustomerDetails(customer);
+			FineractCreateLenderDTO fineractCreateAccountDTO = setFineractDataToCreateAccount(customerEntity);
+
+			/* POST CALL TO ACCOUNT SERVICE TO ACCESS FINERACT API*/
+			ObjectMapper objMapper= new ObjectMapper();
+			HttpEntity<String> requestEnty = new HttpEntity(fineractCreateAccountDTO);
+			ResponseEntity<Object> response = (ResponseEntity<Object>) restTemplate.postForEntity(createVirtualAccountUri, requestEnty, Object.class);
+			FineractLenderCreationResponseDTO fineractAccountCreationresponse = objMapper.convertValue(response.getBody(), FineractLenderCreationResponseDTO.class);
+			if(fineractAccountCreationresponse != null && fineractAccountCreationresponse.getSavingsId() != null)
+			{
+				customerEntity.setVirtualAccount(String.valueOf(fineractAccountCreationresponse.getSavingsId().intValue()));
+				return customerEntity;
+			}
+			else
+				throw new FineractAPIException("Error while creating virtual savings account for the customer");
+		}
+		catch(GeneralCustomException e) {
+			throw new FineractAPIException("Error while creating virtual savings account for the customer");
+		}
+		catch(ResourceAccessException e) {
+			throw new ServiceNotAvailableException(ERROR, e.getMessage());
+		}
+		catch(HttpClientErrorException e) {
+			throw new FineractAPIException("Error while creating virtual account with fineract API. Please provide a different Last4TIN as it exist in database");
+		}
+		catch(Exception e) {
+			throw new FineractAPIException(e.getMessage());
+		}
+	}
 
 }
