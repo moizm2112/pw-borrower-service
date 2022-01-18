@@ -31,9 +31,9 @@ public class CustomerServiceHelper {
         personalProfileToUpdate.setAddressLine1(customer.getAddressLine1());
         personalProfileToUpdate.setAddressLine2(customer.getAddressLine2());
         personalProfileToUpdate.setMiddleName(customer.getMiddleName());
-        custDtls.setFinancedAmount(customer.getFinancedAmount());
-        custDtls.setAbaOfSalaryAccount(customer.getBankABA());
-        custDtls.setSalaryAccountNumber(customer.getBankAccountNumber());
+//        custDtls.setFinancedAmount(customer.getFinancedAmount());
+//        custDtls.setAbaOfSalaryAccount(customer.getBankABA());
+//        custDtls.setSalaryAccountNumber(customer.getBankAccountNumber());
     }
 	
 	public CustomerDetails buildCustomerDetails(CreateCustomerRequest customer) {
@@ -43,9 +43,9 @@ public class CustomerServiceHelper {
                  .addressLine2(customer.getAddressLine2()).zip(customer.getZip()).city(customer.getCity()).state(customer.getState())
                  .last4TIN(customer.getLast4TIN()).dateOfBirth(customer.getDateOfBirth()).build();
 		 
-         CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile)
-         		.financedAmount(customer.getFinancedAmount()).financedAmount(customer.getFinancedAmount())
-         		.abaOfSalaryAccount(customer.getBankABA()).salaryAccountNumber(customer.getBankAccountNumber()).build();
+         CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile).build();
+//         		.financedAmount(customer.getFinancedAmount()).financedAmount(customer.getFinancedAmount())
+//         		.abaOfSalaryAccount(customer.getBankABA()).salaryAccountNumber(customer.getBankAccountNumber()).build();
          
          return customerEntity;
 	}

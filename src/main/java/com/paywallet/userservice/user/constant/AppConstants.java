@@ -28,7 +28,8 @@ public final class AppConstants {
 	public static final String FINANCEDAMOUNT_LENGTH_VALIDATION_MESSAGE="Financed Amount must be atleast 1 digits long";
 	public static final String BANKABA_VALIDATION_MESSAGE="Bank ABA should contain only numberic";
 	public static final String BANKABA_LENGTH_VALIDATION_MESSAGE="Bank ABA should be of 9 digits only";
-	public static final String MOBILENO_LENGTH_VALIDATION_MESSAGE ="MobileNo supported only these formats (IND - +911234567890(13 digits) or US - +11234567890(12 digits) format)";
+//	public static final String MOBILENO_LENGTH_VALIDATION_MESSAGE ="MobileNo supported only these formats (IND - +911234567890(13 digits) or US - +11234567890(12 digits) format)";
+	public static final String MOBILENO_LENGTH_VALIDATION_MESSAGE ="MobileNo supported only these formats (US - +11234567890(12 digits including country code) format)";
 	public static final String DOB_FORMAT_VALIDATION_MESSAGE="DOB should be in YYYY-MM-DD format only";
 
 	public static final String FIRST_NAME_NULL_VALIDATION_MESSAGE="First Name Can't be null.";
@@ -40,7 +41,7 @@ public final class AppConstants {
 	public static final String SSN_NULL_VALIDATION_MESSAGE="SSN can't be null.";
 	public static final String DOB_NULL_VALIDATION_MESSAGE="DOB can't be null.";
 	public static final String LAST4TIN_NULL_VALIDATION_MESSAGE="Last 4 TIN can't be null.";
-	public static final String ZIP_NULL_VALIDATION_MESSAGE="SSN can't be null.";
+	public static final String ZIP_NULL_VALIDATION_MESSAGE="Zip can't be null.";
 	public static final String STATE_NULL_VALIDATION_MESSAGE="State can't be null.";
 	public static final String CITY_NULL_VALIDATION_MESSAGE="City can't be null.";
 	public static final String ADDRESS_NULL_VALIDATION_MESSAGE="Address can't be null.";

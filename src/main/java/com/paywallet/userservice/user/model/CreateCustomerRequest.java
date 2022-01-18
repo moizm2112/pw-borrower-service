@@ -43,7 +43,7 @@ public class CreateCustomerRequest {
     private String addressLine2;
     
     @NotBlank(message = CITY_NULL_VALIDATION_MESSAGE)
-    @Pattern(regexp = "[a-zA-Z]+",message = CITY_VALIDATION_MESSAGE)
+    @Pattern(regexp = "^[a-zA-Z\\u0080-\\u024F\\s\\/\\-\\)\\(\\`\\.\\\"\\']+$",message = CITY_VALIDATION_MESSAGE)
     private String city;
     
     @NotBlank(message = STATE_NULL_VALIDATION_MESSAGE)
@@ -52,13 +52,14 @@ public class CreateCustomerRequest {
     private String state;
     
     @NotBlank(message = ZIP_NULL_VALIDATION_MESSAGE)
-    @Size(min = 5, max = 5, message = ZIP_VALIDATION_MESSAGE)
-    @Pattern(regexp = "[0-9]+",message = ZIP_LENGTH_VALIDATION_MESSAGE)
+    @Size(min = 5, max = 5, message = ZIP_LENGTH_VALIDATION_MESSAGE)
+    @Pattern(regexp = "[0-9]+",message = ZIP_VALIDATION_MESSAGE)
     private String zip;
+
     
-//    @NotBlank(message = LAST4TIN_NULL_VALIDATION_MESSAGE)
-//    @Pattern(regexp = "[0-9]+",message = LAST4TIN_VALIDATION_MESSAGE)
-//    @Size(min = 4, max = 4, message = LAST4TIN_LENGTH_VALIDATION_MESSAGE)
+    @NotBlank(message = LAST4TIN_NULL_VALIDATION_MESSAGE)
+    @Pattern(regexp = "[0-9]+",message = LAST4TIN_VALIDATION_MESSAGE)
+    @Size(min = 4, max = 4, message = LAST4TIN_LENGTH_VALIDATION_MESSAGE)
     private String last4TIN;
     
     @NotBlank(message = DOB_NULL_VALIDATION_MESSAGE)
@@ -72,15 +73,17 @@ public class CreateCustomerRequest {
     @NotBlank (message = EMAIL_NULL_VALIDATION_MESSAGE)
     private String emailId;
 
-    @Pattern(regexp = "^(\\+9?1[0-9]{10})$", message = MOBILENO_FORMAT_VALIDATION_MESSAGE)
-    @Size(min = 12, max = 13, message = MOBILENO_LENGTH_VALIDATION_MESSAGE)
+//    @Pattern(regexp = "^(\\+9?1[0-9]{10})$", message = MOBILENO_FORMAT_VALIDATION_MESSAGE)
+    @Pattern(regexp = "^(\\+\\d{1,2})?\\(?\\d{3}\\)?\\d{3}?\\d{4}$", message = MOBILENO_FORMAT_VALIDATION_MESSAGE)
+//    @Size(min = 12, max = 13, message = MOBILENO_LENGTH_VALIDATION_MESSAGE)
+    @Size(min = 10, max = 13, message = MOBILENO_LENGTH_VALIDATION_MESSAGE)
     @NotBlank  (message = MOBILENO_NULL_VALIDATION_MESSAGE)
     private String mobileNo;
     
 //    @NotBlank(message = FINANCEDAMOUNT_NULL_VALIDATION_MESSAGE)
 //    @Pattern(regexp = "[0-9]+",message = FINANCEDAMOUNT_VALIDATION_MESSAGE)
 //    @Size(min = 1, message = FINANCEDAMOUNT_LENGTH_VALIDATION_MESSAGE)
-    private String financedAmount;
+//    private String financedAmount;
     
 	/*
 	 * @NotBlank(message = EMPLOYER_NULL_VALIDATION_MESSAGE) private String
@@ -92,9 +95,9 @@ public class CreateCustomerRequest {
 //    @NotBlank(message = BANKABA_NULL_VALIDATION_MESSAGE)
 //    @Pattern(regexp = "[0-9]+",message = BANKABA_VALIDATION_MESSAGE)
 //    @Size(min = 9, max = 9, message = BANKABA_LENGTH_VALIDATION_MESSAGE)
-    private String bankABA;
+//    private String bankABA;
     
 //    @NotBlank(message = BANKACCOUNTNUMBER_NULL_VALIDATION_MESSAGE)
-    private String bankAccountNumber;
+//    private String bankAccountNumber;
 
 }
