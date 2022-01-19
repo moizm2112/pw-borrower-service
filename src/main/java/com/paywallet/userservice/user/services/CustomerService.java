@@ -71,7 +71,7 @@ public class CustomerService {
     private static final String STATUS_DESC = "statusDescription";
     private static final String VALID_RTN = "validRtn";
     private static final String ACCEPT = "Accept";
-    private static final String LINK_REQUEST_ID = "requestId";
+    
 
     @Autowired
     CustomerRepository customerRepository;
@@ -122,7 +122,6 @@ public class CustomerService {
     @Value("${create.link.uri}")
 	private String createLinkUri;
     
-    private static final String BORROWER_VERIFICATION_OTP = "borrowerVerificationOtp";
     
     /**
      * Method fetches customer details by mobileNo
@@ -181,7 +180,7 @@ public class CustomerService {
         RequestIdDetails requestIdDtls = null;
         try 
         {
-        	RequestIdResponseDTO  requestIdResponseDTO = fetchrequestIdDetails(requestId);
+        	RequestIdResponseDTO  requestIdResponseDTO = customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate);
         	requestIdDtls = requestIdResponseDTO.getData();
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
@@ -191,7 +190,7 @@ public class CustomerService {
 	            saveCustomer.setExistingCustomer(true);
 	            
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
-	            updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
+	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount(), identifyProviderServiceUri, restTemplate);
 	            
 	            /*   CODE TO UPDATE CUSTOMER IF MOBILE NUMBER EXIST */
 	            
@@ -215,7 +214,7 @@ public class CustomerService {
 	            saveCustomer.setExistingCustomer(false);
 	            
 	            /* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
-	            updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
+	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount(),identifyProviderServiceUri, restTemplate);
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
@@ -524,135 +523,13 @@ public class CustomerService {
                 .build();
     }
     
-    /**
-     * Method communicates with the identity service provider to generate request details by request ID.
-     * @param requestId
-     * @return
-     * @throws ResourceAccessException
-     * @throws GeneralCustomException
-     */
-    private RequestIdResponseDTO generateRequestIdDetails(String apiKey) throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
-    	log.info("Inside generateRequestIdDetails");
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.add("x-api-key", apiKey);
-		HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-		RequestIdResponseDTO requestIdResponse = new RequestIdResponseDTO();
-		try {
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder
-					.fromHttpUrl(identifyProviderServiceUri);
-
-			requestIdResponse = restTemplate
-					.exchange(uriBuilder.toUriString(), HttpMethod.POST, requestEntity, RequestIdResponseDTO.class)
-					.getBody();
-
-		} catch (ResourceAccessException resourceException) {
-			throw new ServiceNotAvailableException( HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
-		} catch (Exception ex) {
-			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
-		}
-		log.info("respons from  generateRequestIdDetails : " + requestIdResponse);
-		return requestIdResponse;
-	}
-    
-    public RequestIdResponseDTO fetchrequestIdDetails(String requestId) {
-		log.info("request id :: " + requestId);
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.add(REQUEST_ID, requestId);
-		HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-		RequestIdResponseDTO requestIdResponse = new RequestIdResponseDTO();
-		try {
-			log.info("identifyProviderServiceUri:: " + identifyProviderServiceUri);
-
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(identifyProviderServiceUri);
-			log.info("uriBuilder url formed:: " + uriBuilder.toUriString());
-			requestIdResponse = restTemplate
-					.exchange(uriBuilder.toUriString(), HttpMethod.GET, requestEntity, RequestIdResponseDTO.class)
-					.getBody();
-
-		} catch (ResourceAccessException resourceException) {
-			throw new ServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
-		} catch (Exception ex) {
-			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
-		}
-		return requestIdResponse;
-	}
-    
-    /**
-     * Method communicates with the identity service provider to update request details by request ID.
-     * @param requestId
-     * @return
-     * @throws ResourceAccessException
-     * @throws GeneralCustomException
-     */
-    private RequestIdResponseDTO updateRequestIdDetails(String requestId, String customerId, String virtualAccountNumber) 
-    		throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
-    	log.info("Inside updateRequestIdDetails");
-    	
-    	/* SET INPUT (REQUESTIDDTO) TO ACCESS THE IDENTITY PROVIDER SERVICE*/
-    	RequestIdDTO requestIdDTO = new RequestIdDTO();
-    	requestIdDTO.setUserId(customerId);
-    	requestIdDTO.setVirtualAccountNumber(virtualAccountNumber);
-    	
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.add("x-request-id", requestId);
-		HttpEntity<String> requestEntity = new HttpEntity(requestIdDTO, headers);
-		
-		RequestIdResponseDTO requestIdResponse = new RequestIdResponseDTO();
-		try {
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder
-					.fromHttpUrl(identifyProviderServiceUri);
-			
-			HttpClient httpClient = HttpClientBuilder.create().build();
-			restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
-			
-			requestIdResponse = restTemplate
-					.exchange(uriBuilder.toUriString(), HttpMethod.PATCH, requestEntity, RequestIdResponseDTO.class)
-					.getBody();
-
-		} catch (ResourceAccessException resourceException) {
-			throw new ServiceNotAvailableException( HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
-		} catch (Exception ex) {
-			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
-		}
-		log.info("response from  updateRequestIdDetails : " + requestIdResponse);
-		return requestIdResponse;
-	}
-    
-    
-    public String getLinkFromLinkVerificationService(String requestId) {
-    	log.info("Inside getLinkFromLinkVerificationService");
-		RestTemplate restTemplate = new RestTemplate();
-		LinkRequestProductDTO linkeRequest = new LinkRequestProductDTO();
-		linkeRequest.setDomain(domainNameForLink);
-		linkeRequest.setLinkType(BORROWER_VERIFICATION_OTP);
-		String linkResponse = "";
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.add(LINK_REQUEST_ID, requestId);
-
-		HttpEntity<LinkRequestProductDTO> request = new HttpEntity<>(linkeRequest, headers);
-
-		try {
-			linkResponse = restTemplate.postForObject(createLinkUri, request, String.class);
-			log.info(" Response from getLinkFromLinkVerificationService : " + linkResponse);
-		} catch (Exception ex) {
-			log.error("link creation failed " + ex.getMessage());
-			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
-		}
-		log.info("getLinkFromLinkVerificationService response : " + linkResponse);
-		return linkResponse;
-	}
     
    public String createAndSendLinkSMSAndEmailNotification(String requestId, RequestIdDetails requestIdDetails, CustomerDetails customerDetails) 
 		   throws SMSAndEmailNotificationException, GeneralCustomException {
 	   log.info("Inside createAndSendSMSAndEmailNotification");
 	   String notificationResponse = "FAIL";
 	   try {
-		   String linkResponse  = getLinkFromLinkVerificationService(requestId);
+		   String linkResponse  = customerServiceHelper.getLinkFromLinkVerificationService(requestId, domainNameForLink, restTemplate, createLinkUri);
 		   notificationResponse = notificationUtil.callNotificationService(requestIdDetails, customerDetails, linkResponse);
 	   }
 	   catch(GeneralCustomException e) {
