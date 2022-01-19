@@ -71,6 +71,7 @@ public class CustomerService {
     private static final String STATUS_DESC = "statusDescription";
     private static final String VALID_RTN = "validRtn";
     private static final String ACCEPT = "Accept";
+    private static final String LINK_REQUEST_ID = "requestId";
 
     @Autowired
     CustomerRepository customerRepository;
@@ -631,7 +632,7 @@ public class CustomerService {
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.add(REQUEST_ID, requestId);
+		headers.add(LINK_REQUEST_ID, requestId);
 
 		HttpEntity<LinkRequestProductDTO> request = new HttpEntity<>(linkeRequest, headers);
 
