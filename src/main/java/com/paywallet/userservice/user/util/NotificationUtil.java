@@ -49,7 +49,7 @@ public class NotificationUtil {
 	
 
 	public String callNotificationService(RequestIdDetails requestIdDetails, CustomerDetails customerDetail, String linkForCustomer) {
-		
+		log.info("inside callNotificationService");
 		SmsRequestDTO smsRequest = new SmsRequestDTO();
 		EmailRequestDTO emailRequest = new EmailRequestDTO();
 		String smsResponse = null;
@@ -125,7 +125,7 @@ public class NotificationUtil {
 	}
 
 	private EmailTemplateDTO createEmailRequest(String emailAddress, String linkForCustomer, RequestIdDetails requestIdDetails) {
-
+		log.info("Inside create Email Request ");
 		EmailTemplateDTO emailTemplate = new EmailTemplateDTO();
 		HashMap<String, String> eMailBodyMap = new HashMap<>();
 
@@ -143,11 +143,13 @@ public class NotificationUtil {
 	}
 	
 	private SmsRequestDTO creatSmsRequest(String phoneNumber, String linkForCustomer, RequestIdDetails requestIdDetails) {
+		log.info("Inside create SMS Request ");
 		String messageBody = null;
 		 messageBody = String.format(smsLinkTemplate, linkForCustomer,requestIdDetails.getProvider(),
 				 requestIdDetails.getEmployer(),requestIdDetails.getClientName());
 		SmsRequestDTO smsRequest = SmsRequestDTO.builder().to(phoneNumber).requestor(REQUESTOR).requestId(REQUESTOR_ID)
 				.body(messageBody).build();
+		log.info("create SMS Request : " + smsRequest);
 		return smsRequest;
 	}
 

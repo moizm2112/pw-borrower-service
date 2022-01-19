@@ -182,7 +182,7 @@ public class CustomerService {
         try 
         {
         	RequestIdResponseDTO  requestIdResponseDTO = fetchrequestIdDetails(requestId);
-    		
+        	requestIdDtls = requestIdResponseDTO.getData();
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
 	        	log.info("Exsiting customer with new requestID : " + requestId);
@@ -623,6 +623,7 @@ public class CustomerService {
     
     
     public String getLinkFromLinkVerificationService(String requestId) {
+    	log.info("Inside getLinkFromLinkVerificationService");
 		RestTemplate restTemplate = new RestTemplate();
 		LinkRequestProductDTO linkeRequest = new LinkRequestProductDTO();
 		linkeRequest.setDomain(domainNameForLink);
@@ -637,11 +638,12 @@ public class CustomerService {
 
 		try {
 			linkResponse = restTemplate.postForObject(createLinkUri, request, String.class);
+			log.info(" Response from getLinkFromLinkVerificationService : " + linkResponse);
 		} catch (Exception ex) {
 			log.error("link creation failed " + ex.getMessage());
 			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
 		}
-
+		log.info("getLinkFromLinkVerificationService response : " + linkResponse);
 		return linkResponse;
 	}
     
@@ -661,6 +663,7 @@ public class CustomerService {
 		   log.error("Create and send link exception " + e.getMessage());
 			throw new SMSAndEmailNotificationException(e.getMessage());
 	   }
+	   log.info("createAndSendSMSAndEmailNotification response : " + notificationResponse);
 	   return notificationResponse;
    }
 
