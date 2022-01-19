@@ -34,11 +34,11 @@ public class CustomerDataTest {
         createCustomerRequestTest.setState("OK");
         createCustomerRequestTest.setLast4TIN("1512");
         createCustomerRequestTest.setDateOfBirth("2002-10-10");
-        createCustomerRequestTest.setFinancedAmount("15");
+//        createCustomerRequestTest.setFinancedAmount("15");
 //        createCustomerRequestTest.setEmployer("15");
 //        createCustomerRequestTest.setLender("15");
-        createCustomerRequestTest.setBankABA("122199983");
-        createCustomerRequestTest.setBankAccountNumber("15");
+//        createCustomerRequestTest.setBankABA("122199983");
+//        createCustomerRequestTest.setBankAccountNumber("15");
 
         return createCustomerRequestTest;
     }

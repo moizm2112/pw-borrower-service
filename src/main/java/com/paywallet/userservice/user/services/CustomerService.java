@@ -163,6 +163,9 @@ public class CustomerService {
     public CustomerDetails createCustomer(CreateCustomerRequest customer, String apiKey) 
     		throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, SMSAndEmailNotificationException {
         log.info("Inside createCustomer of CustomerService class");
+        if (!customer.getMobileNo().startsWith("+1") && customer.getMobileNo().length()==10)
+            customer.setMobileNo("+1".concat(customer.getMobileNo()));
+
         int virtualAccount = -1;
         CustomerDetails saveCustomer = new CustomerDetails();
         RequestIdDetails requestIdDtls = null;
