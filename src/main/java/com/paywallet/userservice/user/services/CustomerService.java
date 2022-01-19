@@ -122,7 +122,6 @@ public class CustomerService {
 	private String createLinkUri;
     
     private static final String BORROWER_VERIFICATION_OTP = "borrowerVerificationOtp";
-    private static final String REQUEST = "request";
     
     /**
      * Method fetches customer details by mobileNo
@@ -565,7 +564,7 @@ public class CustomerService {
 		try {
 			log.info("identifyProviderServiceUri:: " + identifyProviderServiceUri);
 
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(identifyProviderServiceUri + REQUEST);
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(identifyProviderServiceUri);
 			log.info("uriBuilder url formed:: " + uriBuilder.toUriString());
 			requestIdResponse = restTemplate
 					.exchange(uriBuilder.toUriString(), HttpMethod.GET, requestEntity, RequestIdResponseDTO.class)
