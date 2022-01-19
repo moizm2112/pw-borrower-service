@@ -5,7 +5,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static com.paywallet.userservice.user.constant.AppConstants.API_KEY;
+import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -73,7 +73,7 @@ class CustomerControllerTest {
         CustomerDataTest customerDataTest = new CustomerDataTest();
         CreateCustomerRequest customerRequest = customerDataTest.createCustomerRequest();
         String apiKey = "123456";
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.post(CREATE_CUSTOMER_TEST).header(API_KEY, apiKey)
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.post(CREATE_CUSTOMER_TEST).header(REQUEST_ID, apiKey)
                 .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .content(this.mapper.writeValueAsString(customerRequest));
 

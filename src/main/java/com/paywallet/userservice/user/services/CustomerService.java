@@ -1,5 +1,7 @@
 package com.paywallet.userservice.user.services;
 
+import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
+
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -41,6 +43,7 @@ import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
 import com.paywallet.userservice.user.model.CustomerResponseDTO;
 import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
 import com.paywallet.userservice.user.model.FineractLenderCreationResponseDTO;
+import com.paywallet.userservice.user.model.LinkRequestProductDTO;
 import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
 import com.paywallet.userservice.user.model.OtpProduct;
 import com.paywallet.userservice.user.model.RequestIdDTO;
@@ -51,6 +54,7 @@ import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
 import com.paywallet.userservice.user.model.ValidateAccountRequest;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.util.CustomerServiceUtil;
+import com.paywallet.userservice.user.util.NotificationUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -79,6 +83,9 @@ public class CustomerService {
 
     @Autowired
     LyonsService lyonsService;
+    
+    @Autowired
+    NotificationUtil notificationUtil;
 
     @Value("${lyons.api.baseURL}")
     private String lyonsBaseURL;
@@ -108,11 +115,14 @@ public class CustomerService {
     @Value("${identifyProviderService.eureka.uri}")
 	private String identifyProviderServiceUri;
     
-    @Value("${otpService.eureka.uri}")
-	private String otpServiceUri;
+    @Value("${link.login.domainname}")
+	private String domainNameForLink;
     
-    @Value("${expiryTimeInMinutes}")
-	private String expiryTimeInMinutes;
+    @Value("${create.link.uri}")
+	private String createLinkUri;
+    
+    private static final String BORROWER_VERIFICATION_OTP = "borrowerVerificationOtp";
+    private static final String REQUEST = "request";
     
     /**
      * Method fetches customer details by mobileNo
@@ -160,7 +170,7 @@ public class CustomerService {
      * @throws ServiceNotAvailableException
      * @throws RequestIdNotFoundException
      */
-    public CustomerDetails createCustomer(CreateCustomerRequest customer, String apiKey) 
+    public CustomerDetails createCustomer(CreateCustomerRequest customer, String requestId) 
     		throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, SMSAndEmailNotificationException {
         log.info("Inside createCustomer of CustomerService class");
         if (!customer.getMobileNo().startsWith("+1") && customer.getMobileNo().length()==10)
@@ -171,26 +181,17 @@ public class CustomerService {
         RequestIdDetails requestIdDtls = null;
         try 
         {
-        	/* GENERATE REQUEST ID DETAILS */
-        	RequestIdResponseDTO  requestResponseDTO = generateRequestIdDetails(apiKey);
-        	log.info("Response from generateRequestID : " + requestResponseDTO);
-    		if(requestResponseDTO != null && requestResponseDTO.getData() != null) {
-    			requestIdDtls = requestResponseDTO.getData();
-    		}
-    		else {
-    			log.info("No request ID found from generateRequestID");
-    			throw new RequestIdNotFoundException("Request Id not found");
-    		}
+        	RequestIdResponseDTO  requestIdResponseDTO = fetchrequestIdDetails(requestId);
     		
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
-	        	log.info("Exsiting customer with new requestID : " + requestIdDtls.getRequestId());
+	        	log.info("Exsiting customer with new requestID : " + requestId);
 	            saveCustomer = byMobileNo.get();
-	            saveCustomer.setRequestId(requestIdDtls.getRequestId());
+	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(true);
 	            
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
-	            updateRequestIdDetails(requestIdDtls.getRequestId(), saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
+	            updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
 	            
 	            /*   CODE TO UPDATE CUSTOMER IF MOBILE NUMBER EXIST */
 	            
@@ -210,14 +211,14 @@ public class CustomerService {
 	            if( requestIdDtls.getClientName() != null) 
 	            	customerEntity.setLender(requestIdDtls.getClientName());
 	            saveCustomer = customerRepository.save(customerEntity);
-	            saveCustomer.setRequestId(requestIdDtls.getRequestId());
+	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(false);
 	            
 	            /* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
-	            updateRequestIdDetails(requestIdDtls.getRequestId(), saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
+	            updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
-	            //createAndSendSMSAndEmailNotification(requestIdDtls.getRequestId());
+	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
 	            log.info("Customer got created successfully");
 	        }
     	}
@@ -554,6 +555,30 @@ public class CustomerService {
 		return requestIdResponse;
 	}
     
+    public RequestIdResponseDTO fetchrequestIdDetails(String requestId) {
+		log.info("request id :: " + requestId);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.add(REQUEST_ID, requestId);
+		HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+		RequestIdResponseDTO requestIdResponse = new RequestIdResponseDTO();
+		try {
+			log.info("identifyProviderServiceUri:: " + identifyProviderServiceUri);
+
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(identifyProviderServiceUri + REQUEST);
+			log.info("uriBuilder url formed:: " + uriBuilder.toUriString());
+			requestIdResponse = restTemplate
+					.exchange(uriBuilder.toUriString(), HttpMethod.GET, requestEntity, RequestIdResponseDTO.class)
+					.getBody();
+
+		} catch (ResourceAccessException resourceException) {
+			throw new ServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
+		} catch (Exception ex) {
+			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
+		}
+		return requestIdResponse;
+	}
+    
     /**
      * Method communicates with the identity service provider to update request details by request ID.
      * @param requestId
@@ -597,45 +622,46 @@ public class CustomerService {
 	}
     
     
-   public Response createAndSendSMSAndEmailNotification(String requestId) 
-		   throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException, SMSAndEmailNotificationException {
-	   log.info("Inside createAndSendSMSAndEmailNotification");
-	   
-	   /* SET OTP REQUEST */
-	   OtpProduct otpProduct =  new OtpProduct();
-	   otpProduct.setRequestId(requestId);
-	   otpProduct.setExpiryTimeInMinutes(Integer.valueOf(expiryTimeInMinutes));
-	   
-	   HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		HttpEntity<String> requestEntity = new HttpEntity(otpProduct, headers);
-		
-		Response responseFromSMSAndEmailNotification =  null;
-		try {
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder
-					.fromHttpUrl(otpServiceUri);
-			
-			responseFromSMSAndEmailNotification = restTemplate
-					.exchange(uriBuilder.toUriString(), HttpMethod.POST, requestEntity, Response.class)
-					.getBody();
-			
-			if(responseFromSMSAndEmailNotification != null) 
-				if(responseFromSMSAndEmailNotification.getCode().equalsIgnoreCase("201"))
-					return responseFromSMSAndEmailNotification;
-				else
-					throw new SMSAndEmailNotificationException("Error Code: " + responseFromSMSAndEmailNotification.getCode() 
-					+ "\n  Error Message : " + responseFromSMSAndEmailNotification.getMessage());
-			else	
-				throw new SMSAndEmailNotificationException("Exception occured while creating and sending SMS and Email Notification");
+    public String getLinkFromLinkVerificationService(String requestId) {
+		RestTemplate restTemplate = new RestTemplate();
+		LinkRequestProductDTO linkeRequest = new LinkRequestProductDTO();
+		linkeRequest.setDomain(domainNameForLink);
+		linkeRequest.setLinkType(BORROWER_VERIFICATION_OTP);
+		String linkResponse = "";
 
-		} catch (ResourceAccessException resourceException) {
-			throw new ServiceNotAvailableException( HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
-		} catch(SMSAndEmailNotificationException e) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.add(REQUEST_ID, requestId);
+
+		HttpEntity<LinkRequestProductDTO> request = new HttpEntity<>(linkeRequest, headers);
+
+		try {
+			linkResponse = restTemplate.postForObject(createLinkUri, request, String.class);
+		} catch (Exception ex) {
+			log.error("link creation failed " + ex.getMessage());
+			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
+		}
+
+		return linkResponse;
+	}
+    
+   public String createAndSendLinkSMSAndEmailNotification(String requestId, RequestIdDetails requestIdDetails, CustomerDetails customerDetails) 
+		   throws SMSAndEmailNotificationException, GeneralCustomException {
+	   log.info("Inside createAndSendSMSAndEmailNotification");
+	   String notificationResponse = "FAIL";
+	   try {
+		   String linkResponse  = getLinkFromLinkVerificationService(requestId);
+		   notificationResponse = notificationUtil.callNotificationService(requestIdDetails, customerDetails, linkResponse);
+	   }
+	   catch(GeneralCustomException e) {
+		   log.error("Create and send link exception " + e.getMessage());
 			throw new SMSAndEmailNotificationException(e.getMessage());
-		}
-		catch (Exception ex) {
-			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
-		}
+	   }
+	   catch(Exception e) {
+		   log.error("Create and send link exception " + e.getMessage());
+			throw new SMSAndEmailNotificationException(e.getMessage());
+	   }
+	   return notificationResponse;
    }
 
 }

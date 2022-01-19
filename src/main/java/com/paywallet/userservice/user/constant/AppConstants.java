@@ -53,7 +53,7 @@ public final class AppConstants {
 	public static final String VIRTUALACCOUNT_NULL_VALIDATION_MESSAGE="Virtual Account can't be blank.";
 	
 	
-	public static final String API_KEY="x-api-key";
+	public static final String REQUEST_ID="x-request-id";
 	
 //===========Till Here--------------------------------------------
 
