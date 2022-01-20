@@ -188,9 +188,13 @@ public class CustomerService {
 	            saveCustomer = byMobileNo.get();
 	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(true);
-	            
+	            if(requestIdDtls.getClientName() != null) 
+	            	saveCustomer.setLender(requestIdDtls.getClientName());
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
 	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount(), identifyProviderServiceUri, restTemplate);
+	            
+	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
+	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
 	            
 	            /*   CODE TO UPDATE CUSTOMER IF MOBILE NUMBER EXIST */
 	            
