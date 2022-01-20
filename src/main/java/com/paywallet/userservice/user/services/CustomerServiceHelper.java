@@ -103,7 +103,7 @@ public class CustomerServiceHelper {
 		fineractCreateAccountDTO.setActivationDate(requiredDate);
 		fineractCreateAccountDTO.setSubmittedOnDate(requiredDate);
 		fineractCreateAccountDTO.setOfficeId(Long.valueOf("1"));
-		fineractCreateAccountDTO.setClientTypeId(Long.valueOf("18"));
+		fineractCreateAccountDTO.setClientTypeId(Long.valueOf("17"));
 		fineractCreateAccountDTO.setLegalFormId(Long.valueOf("2"));
 		fineractCreateAccountDTO.setSavingsProductId(Long.valueOf("2"));
 		fineractCreateAccountDTO.setAddress(sFineractLenderAddress);
