@@ -122,6 +122,9 @@ public class CustomerService {
     @Value("${create.link.uri}")
 	private String createLinkUri;
     
+    @Value("${fineract.clienttype}")
+	private String fineractClientType;
+    
     
     /**
      * Method fetches customer details by mobileNo
@@ -267,7 +270,7 @@ public class CustomerService {
 		try {
 			/* SET DATA FOR FINERACT API CALL*/
 			CustomerDetails customerEntity = customerServiceHelper.buildCustomerDetails(customer);
-			FineractCreateLenderDTO fineractCreateAccountDTO = customerServiceHelper.setFineractDataToCreateAccount(customerEntity);
+			FineractCreateLenderDTO fineractCreateAccountDTO = customerServiceHelper.setFineractDataToCreateAccount(customerEntity, fineractClientType);
 			
 			/* POST CALL TO ACCOUNT SERVICE TO ACCESS FINERACT API*/
 			ObjectMapper objMapper= new ObjectMapper();

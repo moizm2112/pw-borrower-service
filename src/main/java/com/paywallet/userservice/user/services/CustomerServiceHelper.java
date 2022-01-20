@@ -74,7 +74,7 @@ public class CustomerServiceHelper {
 		return customerEntity;
 	}
 
-	public FineractCreateLenderDTO setFineractDataToCreateAccount(CustomerDetails customerEntity) throws ParseException {
+	public FineractCreateLenderDTO setFineractDataToCreateAccount(CustomerDetails customerEntity, String fineractClientType) throws ParseException {
 		FineractCreateLenderDTO fineractCreateAccountDTO = new FineractCreateLenderDTO();
 		FineractLenderAddressDTO fineractLenderAddressDTO = new FineractLenderAddressDTO();
 		Set<FineractLenderAddressDTO> sFineractLenderAddress = new HashSet<FineractLenderAddressDTO>();
@@ -103,7 +103,7 @@ public class CustomerServiceHelper {
 		fineractCreateAccountDTO.setActivationDate(requiredDate);
 		fineractCreateAccountDTO.setSubmittedOnDate(requiredDate);
 		fineractCreateAccountDTO.setOfficeId(Long.valueOf("1"));
-		fineractCreateAccountDTO.setClientTypeId(Long.valueOf("17"));
+		fineractCreateAccountDTO.setClientTypeId(Long.valueOf(fineractClientType));
 		fineractCreateAccountDTO.setLegalFormId(Long.valueOf("2"));
 		fineractCreateAccountDTO.setSavingsProductId(Long.valueOf("2"));
 		fineractCreateAccountDTO.setAddress(sFineractLenderAddress);
