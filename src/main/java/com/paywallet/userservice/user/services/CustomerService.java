@@ -285,7 +285,7 @@ public class CustomerService {
 			throw new ServiceNotAvailableException(ERROR, e.getMessage());
 		}
 		catch(HttpClientErrorException e) {
-			throw new FineractAPIException("Error while creating virtual account with fineract API. Please provide a different Last4TIN as it exist in database");
+			throw new FineractAPIException("Error while creating virtual account with fineract API.");
 		}
 		catch(Exception e) {
 			throw new FineractAPIException(e.getMessage());
