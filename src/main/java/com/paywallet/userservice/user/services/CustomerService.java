@@ -186,6 +186,10 @@ public class CustomerService {
         	RequestIdResponseDTO  requestIdResponseDTO = customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate);
         	requestIdDtls = requestIdResponseDTO.getData();
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
+	        if(requestIdDtls.getUserId() != null && requestIdDtls.getUserId().length() > 0) {
+	        	log.info("Customerservice createcustomer generalCustomException Create customer failed as request id and customer id already exist in database.");
+	        	throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
+	        }
 	        if (byMobileNo.isPresent()) {
 	        	log.info("Exsiting customer with new requestID : " + requestId);
 	            saveCustomer = byMobileNo.get();
