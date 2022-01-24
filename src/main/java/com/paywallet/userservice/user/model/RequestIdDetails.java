@@ -1,6 +1,7 @@
 package com.paywallet.userservice.user.model;
 
 import java.util.Date;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,5 +34,10 @@ public class RequestIdDetails {
     private String taskid;
     private String payrollid;
     private String vitualAccountNumber;
+    private List<String> identityCallbackUrls;
+    private List<String> employmentCallbackUrls;
+    private List<String> incomeCallbackUrls;
+    private List<String> allocationCallbackUrls;
+    private List<String> insufficientFundCallbackUrls;
 
 }

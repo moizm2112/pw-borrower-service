@@ -17,6 +17,10 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.paywallet.userservice.user.util.RepaymentFrequencyMode;
 import com.paywallet.userservice.user.util.StateCheck;
 
 import lombok.Data;
@@ -79,6 +83,22 @@ public class CreateCustomerRequest {
     @Size(min = 10, max = 13, message = MOBILENO_LENGTH_VALIDATION_MESSAGE)
     @NotBlank  (message = MOBILENO_NULL_VALIDATION_MESSAGE)
     private String mobileNo;
+    
+    private CallbackURL callbackURLs;
+    
+    @JsonInclude(JsonInclude.Include. NON_NULL)
+    @Pattern(regexp = "^(19|20)\\d{2}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$", message = FIRSTDATEOFPAYMENT_FORMAT_VALIDATION_MESSAGE)
+    private String firstDateOfPayment;
+    
+    @RepaymentFrequencyMode(message = REPAYMENT_FREQUENCY_MODE_FORMAT_VALIDATION_MESSAGE)
+    @JsonInclude(JsonInclude.Include. NON_NULL)
+    private String repaymentFrequency;
+    
+    @JsonInclude(JsonInclude.Include. NON_NULL)
+    private String totalNoOfRepayment;
+    
+    @JsonInclude(JsonInclude.Include. NON_NULL)
+    private String installmentAmount;
     
 //    @NotBlank(message = FINANCEDAMOUNT_NULL_VALIDATION_MESSAGE)
 //    @Pattern(regexp = "[0-9]+",message = FINANCEDAMOUNT_VALIDATION_MESSAGE)

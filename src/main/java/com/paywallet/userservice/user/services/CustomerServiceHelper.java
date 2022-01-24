@@ -27,6 +27,7 @@ import com.paywallet.userservice.user.entities.PersonalProfile;
 import com.paywallet.userservice.user.entities.SalaryProfile;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
+import com.paywallet.userservice.user.model.CallbackURL;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
 import com.paywallet.userservice.user.model.FineractLenderAddressDTO;
@@ -67,7 +68,9 @@ public class CustomerServiceHelper {
 				.addressLine2(customer.getAddressLine2()).zip(customer.getZip()).city(customer.getCity()).state(customer.getState())
 				.last4TIN(customer.getLast4TIN()).dateOfBirth(customer.getDateOfBirth()).build();
 
-		CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile).build();
+		CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile).firstDateOfPayment(customer.getFirstDateOfPayment()).
+				repaymentFrequency(customer.getRepaymentFrequency()).totalNoOfRepayment(customer.getTotalNoOfRepayment()).installmentAmount(customer.getInstallmentAmount())
+				.build();
 //         		.financedAmount(customer.getFinancedAmount()).financedAmount(customer.getFinancedAmount())
 //         		.abaOfSalaryAccount(customer.getBankABA()).salaryAccountNumber(customer.getBankAccountNumber()).build();
 
@@ -149,8 +152,8 @@ public class CustomerServiceHelper {
      * @throws ResourceAccessException
      * @throws GeneralCustomException
      */
-    public RequestIdResponseDTO updateRequestIdDetails(String requestId, String customerId, String virtualAccountNumber,String identifyProviderServiceUri,
-    		RestTemplate restTemplate)  throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
+    public RequestIdResponseDTO updateRequestIdDetails(String requestId, String customerId, String virtualAccountNumber,
+    		String identifyProviderServiceUri, RestTemplate restTemplate, CreateCustomerRequest customerRequest)  throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
     	log.info("Inside updateRequestIdDetails");
     	
     	/* SET INPUT (REQUESTIDDTO) TO ACCESS THE IDENTITY PROVIDER SERVICE*/
@@ -158,6 +161,15 @@ public class CustomerServiceHelper {
     	requestIdDTO.setUserId(customerId);
     	requestIdDTO.setVirtualAccountNumber(virtualAccountNumber);
     	
+    	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
+    	CallbackURL callbackURL =  customerRequest.getCallbackURLs();
+    	if(callbackURL != null) {
+	    	requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
+	    	requestIdDTO.setEmploymentCallbackUrls(callbackURL.getEmploymentCallbackUrls());
+	    	requestIdDTO.setIncomeCallbackUrls(callbackURL.getIncomeCallbackUrls());
+	    	requestIdDTO.setAllocationCallbackUrls(callbackURL.getAllocationCallbackUrls());
+	    	requestIdDTO.setInsufficientFundCallbackUrls(callbackURL.getInsufficientFundCallbackUrls());
+    	}
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.add("x-request-id", requestId);

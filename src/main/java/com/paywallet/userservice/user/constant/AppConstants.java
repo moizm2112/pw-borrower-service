@@ -31,6 +31,8 @@ public final class AppConstants {
 //	public static final String MOBILENO_LENGTH_VALIDATION_MESSAGE ="MobileNo supported only these formats (IND - +911234567890(13 digits) or US - +11234567890(12 digits) format)";
 	public static final String MOBILENO_LENGTH_VALIDATION_MESSAGE ="Mobile number supported only these formats (US - +11234567890(12 digits including country code) format)";
 	public static final String DOB_FORMAT_VALIDATION_MESSAGE="DOB should be in YYYY-MM-DD format only";
+	public static final String FIRSTDATEOFPAYMENT_FORMAT_VALIDATION_MESSAGE="First date of payment should be in YYYY-MM-DD format only";
+	public static final String REPAYMENT_FREQUENCY_MODE_FORMAT_VALIDATION_MESSAGE="Please enter valid repayment frequency mode";
 
 	public static final String FIRST_NAME_NULL_VALIDATION_MESSAGE="First Name Can't be blank.";
 	public static final String LAST_NAME_NULL_VALIDATION_MESSAGE="Last Name Can't be blank.";
