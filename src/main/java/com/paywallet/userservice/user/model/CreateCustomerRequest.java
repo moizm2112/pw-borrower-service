@@ -80,6 +80,8 @@ public class CreateCustomerRequest {
     @NotBlank  (message = MOBILENO_NULL_VALIDATION_MESSAGE)
     private String mobileNo;
     
+    private CallbackURL callbackURLs;
+    
 //    @NotBlank(message = FINANCEDAMOUNT_NULL_VALIDATION_MESSAGE)
 //    @Pattern(regexp = "[0-9]+",message = FINANCEDAMOUNT_VALIDATION_MESSAGE)
 //    @Size(min = 1, message = FINANCEDAMOUNT_LENGTH_VALIDATION_MESSAGE)

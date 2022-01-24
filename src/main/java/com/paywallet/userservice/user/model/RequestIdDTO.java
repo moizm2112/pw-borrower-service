@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,4 +34,9 @@ public class RequestIdDTO {
     private String virtualAccountNumber;
     private String argyleAccountId;
     private String argyleUserId;
+    private List<String> identityCallbackUrl;
+    private List<String> employmentCallbackUrl;
+    private List<String> incomeCallbackUrl;
+    private List<String> allocationCallbackUrl;
+    private List<String> insufficientFundCallbackUrl;
 }

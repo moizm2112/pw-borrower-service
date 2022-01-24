@@ -198,7 +198,8 @@ public class CustomerService {
 	            if(requestIdDtls.getClientName() != null) 
 	            	saveCustomer.setLender(requestIdDtls.getClientName());
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
-	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount(), identifyProviderServiceUri, restTemplate);
+	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
+	            		saveCustomer.getVirtualAccount(), identifyProviderServiceUri, restTemplate, customer);
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
@@ -218,14 +219,15 @@ public class CustomerService {
 	            CustomerDetails customerEntity = createFineractVirtualAccount(customer);
 	            log.info("Virtual fineract account created successfully ");
 	            
-	            if( requestIdDtls.getClientName() != null) 
+	            if(requestIdDtls.getClientName() != null) 
 	            	customerEntity.setLender(requestIdDtls.getClientName());
 	            saveCustomer = customerRepository.save(customerEntity);
 	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(false);
 	            
 	            /* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
-	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount(),identifyProviderServiceUri, restTemplate);
+	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
+	            		saveCustomer.getVirtualAccount(),identifyProviderServiceUri, restTemplate, customer);
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
