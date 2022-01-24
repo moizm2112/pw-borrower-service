@@ -10,10 +10,10 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include. NON_NULL)
 public class CallbackURL {
 	
-	private List<String> identityCallbackUrl;
-	private List<String> employmentCallbackUrl;
-	private List<String> incomeCallbackUrl;
-	private List<String> allocationCallbackUrl;
-	private List<String> insufficientFundCallbackUrl;
+	private List<String> identityCallbackUrls;
+	private List<String> employmentCallbackUrls;
+	private List<String> incomeCallbackUrls;
+	private List<String> allocationCallbackUrls;
+	private List<String> insufficientFundCallbackUrls;
 
 }

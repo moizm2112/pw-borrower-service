@@ -68,7 +68,9 @@ public class CustomerServiceHelper {
 				.addressLine2(customer.getAddressLine2()).zip(customer.getZip()).city(customer.getCity()).state(customer.getState())
 				.last4TIN(customer.getLast4TIN()).dateOfBirth(customer.getDateOfBirth()).build();
 
-		CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile).build();
+		CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile).firstDateOfPayment(customer.getFirstDateOfPayment()).
+				repaymentFrequency(customer.getRepaymentFrequency()).totalNoOfRepayment(customer.getTotalNoOfRepayment()).installmentAmount(customer.getInstallmentAmount())
+				.build();
 //         		.financedAmount(customer.getFinancedAmount()).financedAmount(customer.getFinancedAmount())
 //         		.abaOfSalaryAccount(customer.getBankABA()).salaryAccountNumber(customer.getBankAccountNumber()).build();
 
@@ -162,11 +164,11 @@ public class CustomerServiceHelper {
     	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
     	CallbackURL callbackURL =  customerRequest.getCallbackURLs();
     	if(callbackURL != null) {
-	    	requestIdDTO.setIdentityCallbackUrl(callbackURL.getIdentityCallbackUrl());
-	    	requestIdDTO.setEmploymentCallbackUrl(callbackURL.getEmploymentCallbackUrl());
-	    	requestIdDTO.setIncomeCallbackUrl(callbackURL.getIncomeCallbackUrl());
-	    	requestIdDTO.setAllocationCallbackUrl(callbackURL.getAllocationCallbackUrl());
-	    	requestIdDTO.setInsufficientFundCallbackUrl(callbackURL.getInsufficientFundCallbackUrl());
+	    	requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
+	    	requestIdDTO.setEmploymentCallbackUrls(callbackURL.getEmploymentCallbackUrls());
+	    	requestIdDTO.setIncomeCallbackUrls(callbackURL.getIncomeCallbackUrls());
+	    	requestIdDTO.setAllocationCallbackUrls(callbackURL.getAllocationCallbackUrls());
+	    	requestIdDTO.setInsufficientFundCallbackUrls(callbackURL.getInsufficientFundCallbackUrls());
     	}
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
