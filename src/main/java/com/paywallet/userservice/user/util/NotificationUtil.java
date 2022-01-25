@@ -50,24 +50,40 @@ public class NotificationUtil {
 
 	public String callNotificationService(RequestIdDetails requestIdDetails, CustomerDetails customerDetail, String linkForCustomer) {
 		log.info("inside callNotificationService");
-		SmsRequestDTO smsRequest = new SmsRequestDTO();
-		EmailRequestDTO emailRequest = new EmailRequestDTO();
 		String smsResponse = null;
 		String emailResponse = null;
 		String smsEmailResponseValidator = null;
-		String phoneNumber = customerDetail.getPersonalProfile().getMobileNo();
-		String emailAddress = customerDetail.getPersonalProfile().getEmailId();
-		smsRequest = creatSmsRequest(phoneNumber, linkForCustomer,requestIdDetails);
-		emailRequest = createEmailRequestForCustomer(emailAddress, linkForCustomer, requestIdDetails);
-		final String smsUrl = basePath + SMS_URI;
-		final String emailUrl = basePath + EMAIL_URI;
-		emailResponse = callEmailNotificationApi(emailRequest, emailUrl);
-		smsResponse = callSmsNotificationApi(smsRequest, smsUrl);
-		smsEmailResponseValidator = validateSmsEmailResponse(smsResponse, emailResponse);
-		if (FAIL.equalsIgnoreCase(smsEmailResponseValidator)) {
-			throw new GeneralCustomException("SMS and Email notification to customer failed",
-					HttpStatus.INTERNAL_SERVER_ERROR.toString());
+		try {
+			SmsRequestDTO smsRequest = new SmsRequestDTO();
+			EmailRequestDTO emailRequest = new EmailRequestDTO();
+			String phoneNumber = customerDetail.getPersonalProfile().getMobileNo();
+			String emailAddress = customerDetail.getPersonalProfile().getEmailId();
+			smsRequest = creatSmsRequest(phoneNumber, linkForCustomer,requestIdDetails);
+			emailRequest = createEmailRequestForCustomer(emailAddress, linkForCustomer, requestIdDetails);
+			final String smsUrl = basePath + SMS_URI;
+			final String emailUrl = basePath + EMAIL_URI;
+			emailResponse = callEmailNotificationApi(emailRequest, emailUrl);
+			smsResponse = callSmsNotificationApi(smsRequest, smsUrl);
+			smsEmailResponseValidator = validateSmsEmailResponse(smsResponse, emailResponse);
+			if (FAIL.equalsIgnoreCase(smsEmailResponseValidator)) {
+				throw new GeneralCustomException("SMS and Email notification to customer failed",
+						HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			}
 		}
+		catch(Exception e) {
+			log.error("callNotificationService Exception : " + e.getMessage());
+			if(emailResponse != null || smsResponse != null) {
+				smsEmailResponseValidator = validateSmsEmailResponse(smsResponse, emailResponse);
+				if (FAIL.equalsIgnoreCase(smsEmailResponseValidator)) {
+					throw new GeneralCustomException("SMS and Email notification to customer failed",
+							HttpStatus.INTERNAL_SERVER_ERROR.toString());
+				}
+				else {
+					return smsEmailResponseValidator;
+				}
+			}
+		}
+		
 		return smsEmailResponseValidator;
 
 	}
