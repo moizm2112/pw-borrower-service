@@ -95,10 +95,10 @@ public class CreateCustomerRequest {
     private String repaymentFrequency;
     
     @JsonInclude(JsonInclude.Include. NON_NULL)
-    private String totalNoOfRepayment;
+    private int totalNoOfRepayment;
     
     @JsonInclude(JsonInclude.Include. NON_NULL)
-    private String installmentAmount;
+    private int installmentAmount;
     
 //    @NotBlank(message = FINANCEDAMOUNT_NULL_VALIDATION_MESSAGE)
 //    @Pattern(regexp = "[0-9]+",message = FINANCEDAMOUNT_VALIDATION_MESSAGE)

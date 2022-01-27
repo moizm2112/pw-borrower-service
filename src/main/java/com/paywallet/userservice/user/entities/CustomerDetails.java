@@ -41,7 +41,7 @@ public class CustomerDetails {
     private boolean existingCustomer;
     private String firstDateOfPayment;
     private String repaymentFrequency;
-    private String totalNoOfRepayment;
-    private String installmentAmount;
+    private int totalNoOfRepayment;
+    private int installmentAmount;
 
 }
