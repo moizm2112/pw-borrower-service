@@ -16,7 +16,7 @@ import javax.validation.Payload;
 public @interface StateCheck {
 
 	String message() default
-    "Enter valid US state";
+    "Enter valid US state. Eg: Arizona - AZ";
 
     Class<?>[] groups() default {};
 
