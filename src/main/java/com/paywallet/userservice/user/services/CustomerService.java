@@ -187,7 +187,7 @@ public class CustomerService {
         	requestIdDtls = requestIdResponseDTO.getData();
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if(requestIdDtls.getUserId() != null && requestIdDtls.getUserId().length() > 0) {
-	        	log.info("Customerservice createcustomer generalCustomException Create customer failed as request id and customer id already exist in database.");
+	        	log.error("Customerservice createcustomer generalCustomException Create customer failed as request id and customer id already exist in database.");
 	        	throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
 	        }
 	        if (byMobileNo.isPresent()) {
@@ -235,31 +235,31 @@ public class CustomerService {
 	        }
     	}
         catch(GeneralCustomException e) {
-        	log.info("Customerservice createcustomer generalCustomException");
+        	log.error("Customerservice createcustomer generalCustomException");
         	throw new GeneralCustomException(ERROR ,e.getMessage());
         }catch(CreateCustomerException e1) {
-        	log.info("Customerservice createcustomer createCustomerException");
+        	log.error("Customerservice createcustomer createCustomerException");
         	if(virtualAccount != -1)
         		throw new CreateCustomerException(e1.getMessage());
         }
         catch(RequestIdNotFoundException e) {
-        	log.info("Customerservice createcustomer RequestIdNotFoundException");
+        	log.error("Customerservice createcustomer RequestIdNotFoundException");
         	throw new RequestIdNotFoundException(e.getMessage());
         }
         catch(ServiceNotAvailableException e) {
-        	log.info("Customerservice createcustomer ServiceNotAvailableException");
+        	log.error("Customerservice createcustomer ServiceNotAvailableException");
         	throw new ServiceNotAvailableException(ERROR, e.getMessage());
         }
         catch(FineractAPIException e) {
-        	log.info("Customerservice createcustomer FineractAPIException");
+        	log.error("Customerservice createcustomer FineractAPIException");
         	throw new FineractAPIException(e.getMessage());
         }
         catch(SMSAndEmailNotificationException e) {
-        	log.info("Customerservice createcustomer SMSAndEmailNotificationException");
+        	log.error("Customerservice createcustomer SMSAndEmailNotificationException");
         	throw new SMSAndEmailNotificationException(e.getMessage());
         }
         catch(Exception e) {
-        	log.info("Customerservice createcustomer Exception");
+        	log.error("Customerservice createcustomer Exception");
         	throw new GeneralCustomException(ERROR ,e.getMessage());
         }
         return saveCustomer;
@@ -379,7 +379,7 @@ public class CustomerService {
         Optional<CustomerDetails> customerDetails= customerRepository.findByPersonalProfileMobileNo(validateAccountRequest.getMobileNo());
         if(customerDetails.isPresent()) {
             if (customerDetails.get().getUpdateCounter().equals(maxAllowedUpdates)) {
-                log.info("Customer validation update attempts reached maximum allowed");
+                log.error("Customer validation update attempts reached maximum allowed");
                 throw new GeneralCustomException(ERROR, "Customer validation update attempts reached maximum allowed");
             } else {
                 if (customerDetails.get().getSalaryProfile().getProvider().equalsIgnoreCase(ProviderTypeEnum.ARGYLE.toString())) {
@@ -390,7 +390,7 @@ public class CustomerService {
                         log.info("provided customer account details are validated with the existing data from the DB");
                         accntAndabaVerification = true;
                     } else {
-                        log.info("provided customer account details ,either Salary AccNo or abaOfSalaryAccNo or not matching with existing details");
+                        log.warn("provided customer account details ,either Salary AccNo or abaOfSalaryAccNo or not matching with existing details");
                         incrementCounter = true;
                     }
 
@@ -401,7 +401,7 @@ public class CustomerService {
                         log.info("provided customer account details are validated with the existing data from the DB");
                         accntAndabaVerification = true;
                     } else {
-                        log.info("provided customer account details ,either Salary AccNo or abaOfSalaryAccNo or not matching with existing details");
+                        log.warn("provided customer account details ,either Salary AccNo or abaOfSalaryAccNo or not matching with existing details");
                         incrementCounter = true;
                     }
                 }
@@ -419,12 +419,12 @@ public class CustomerService {
                             log.info("Customer Account details are validated successfully with Lyons");
                             customerDetails.get().setStatus(resultObj.getString(STATUS_DESC));
                         } else {
-                            log.info("Customer Account details are validation FAILED with Lyons");
+                            log.error("Customer Account details are validation FAILED with Lyons");
                             incrementCounter = true;
                         }
 
                     } else {
-                        log.info("error in getting the response from Lyons call");
+                        log.error("error in getting the response from Lyons call");
                         incrementCounter = true;
                     }
                 }
@@ -470,7 +470,7 @@ public class CustomerService {
             log.info("Customer details are updated successfully");
             return customerRepository.save(customerDetailsByMobileNo.get());
         } else {
-            log.debug("Customer do not exists with the mobileNo: "+updateCustomerRequest.getMobileNo()+" to update");
+            log.error("Customer do not exists with the mobileNo: "+updateCustomerRequest.getMobileNo()+" to update");
             throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerRequest.getMobileNo()+" to update");
         }
     }
