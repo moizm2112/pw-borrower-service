@@ -66,9 +66,6 @@ public class CustomerController {
     		throws MethodArgumentNotValidException, CreateCustomerException, RequestIdNotFoundException {
         log.debug("Inside Create Customer controller " + customer);
         CustomerDetails customerDetails = customerService.createCustomer(customer, requestId);
-        if(customerDetails != null && customerDetails.isExistingCustomer())
-        		return customerService.prepareResponse(customerDetails, CommonEnum.CUSTOMER_CREATED_SUCCESS_MSG.getMessage(),
-        				HttpStatus.OK.value(), request.getRequestURI());
         return customerService.prepareResponse(customerDetails, CommonEnum.CUSTOMER_CREATED_SUCCESS_MSG.getMessage(),
 				HttpStatus.CREATED.value(), request.getRequestURI());		
     }
