@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -207,4 +208,21 @@ public class ControllerAdvisor {
         body.put("timestamp", new Date());
         return new ResponseEntity<Object> (body, HttpStatus.BAD_REQUEST);
     }
+	
+	
+	 /* Method handles method argument not valid exception
+	 * @param MethodArgumentNotValidException
+	 * @return
+	 */
+	@ExceptionHandler(value = HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+
+        log.info("Method argument validation exception HttpMessageNotReadableException ", ex);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("code", HttpStatus.BAD_REQUEST.toString());
+        body.put("message", "Method argument validation failed - " + " : " + ex.getMessage());
+        body.put("timestamp", new Date());
+        return new ResponseEntity<Object> (body, HttpStatus.BAD_REQUEST);
+    }
+	
 }
