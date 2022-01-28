@@ -519,11 +519,11 @@ public class CustomerService {
         if(customerDetails.isEmailNotificationSuccess())
         	body.put("Email Notification", EMAIL_NOTIFICATION_SUCCESS);
         else
-        	body.put("Email Notification", customerDetails.getPersonalProfile().getEmailId() + " " + EMAIL_NOTIFICATION_FAILED);
+        	body.put("Email Notification", customerDetails.getPersonalProfile().getEmailId() + " - " + EMAIL_NOTIFICATION_FAILED);
         if(customerDetails.isSmsNotificationSuccess())
         	body.put("SMS Notification", SMS_NOTIFICATION_SUCCESS);
         else
-        	body.put("SMS Notification", customerDetails.getPersonalProfile().getMobileNo() + " " + SMS_NOTIFICATION_FAILED);
+        	body.put("SMS Notification", customerDetails.getPersonalProfile().getMobileNo() + " - " + SMS_NOTIFICATION_FAILED);
         
         if(status == 201) {
         	return new ResponseEntity<>(body, HttpStatus.CREATED);

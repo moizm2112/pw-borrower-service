@@ -56,10 +56,10 @@ public final class AppConstants {
 	
 	
 	public static final String REQUEST_ID="x-request-id";
-	public static final String EMAIL_NOTIFICATION_SUCCESS="Email sent successfully to the registered emailId";
-	public static final String EMAIL_NOTIFICATION_FAILED="is not a valid emailId";
-	public static final String SMS_NOTIFICATION_SUCCESS="SMS sent successfully to the registered mobileNo";
-	public static final String SMS_NOTIFICATION_FAILED="is not a valid MobileNo";
+	public static final String EMAIL_NOTIFICATION_SUCCESS="Email sent successfully to the provided emailId";
+	public static final String EMAIL_NOTIFICATION_FAILED="Provided emailId is not valid";
+	public static final String SMS_NOTIFICATION_SUCCESS="SMS sent successfully to the provided mobileNo";
+	public static final String SMS_NOTIFICATION_FAILED="Provided mobileNo is not valid";
 	
 //===========Till Here--------------------------------------------
 
