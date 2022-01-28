@@ -1,25 +1,40 @@
 package com.paywallet.userservice.user.model;
 
-import static com.paywallet.userservice.user.constant.AppConstants.*;
-/*import static com.paywallet.userservice.user.constant.AppConstants.CITY_NULL_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.ADDRESS_NULL_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.ADDRESS_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.CITY_NULL_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.CITY_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.DOB_FORMAT_VALIDATION_MESSAGE;
 import static com.paywallet.userservice.user.constant.AppConstants.DOB_NULL_VALIDATION_MESSAGE;
 import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_FORMAT_VALIDATION_MESSAGE;
 import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NULL_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.FIRSTDATEOFPAYMENT_FORMAT_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.FIRST_NAME_LENGTH_VALIDATION_MESSAGE;
 import static com.paywallet.userservice.user.constant.AppConstants.FIRST_NAME_NULL_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.FIRST_NAME_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.LAST4TIN_LENGTH_VALIDATION_MESSAGE;
 import static com.paywallet.userservice.user.constant.AppConstants.LAST4TIN_NULL_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.LAST4TIN_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.LAST_NAME_LENGTH_VALIDATION_MESSAGE;
 import static com.paywallet.userservice.user.constant.AppConstants.LAST_NAME_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.PHONE_NULL_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.LAST_NAME_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_FORMAT_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_LENGTH_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_NULL_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.REPAYMENT_FREQUENCY_MODE_FORMAT_VALIDATION_MESSAGE;
 import static com.paywallet.userservice.user.constant.AppConstants.STATE_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ZIP_NULL_VALIDATION_MESSAGE;*/
+import static com.paywallet.userservice.user.constant.AppConstants.STATE_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.ZIP_LENGTH_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.ZIP_NULL_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.ZIP_VALIDATION_MESSAGE;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.paywallet.userservice.user.util.DateCheck;
 import com.paywallet.userservice.user.util.RepaymentFrequencyMode;
 import com.paywallet.userservice.user.util.StateCheck;
 
@@ -88,6 +103,7 @@ public class CreateCustomerRequest {
     
     @JsonInclude(JsonInclude.Include. NON_NULL)
     @Pattern(regexp = "^(19|20)\\d{2}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$", message = FIRSTDATEOFPAYMENT_FORMAT_VALIDATION_MESSAGE)
+    @DateCheck
     private String firstDateOfPayment;
     
     @RepaymentFrequencyMode(message = REPAYMENT_FREQUENCY_MODE_FORMAT_VALIDATION_MESSAGE)
