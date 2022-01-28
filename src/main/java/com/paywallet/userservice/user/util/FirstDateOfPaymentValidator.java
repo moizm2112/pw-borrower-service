@@ -22,7 +22,7 @@ public class FirstDateOfPaymentValidator implements ConstraintValidator<FirstDat
         	    // First Date Of Payment
         		Date firstDateOfPayment = new SimpleDateFormat("yyyy-MM-dd").parse(date);
         		// Current Date
-    			Date currentDateFormated = new SimpleDateFormat("yyyy-MM-dd").parse(currentDate.toString());
+    			Date currentDateFormated = new SimpleDateFormat("yyyy-MM-dd").parse(new SimpleDateFormat("yyyy-MM-dd").format(currentDate));
     			
     			if(firstDateOfPayment.after(currentDateFormated))
     				valid = true;
