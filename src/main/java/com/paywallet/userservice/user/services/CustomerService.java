@@ -1,6 +1,11 @@
 package com.paywallet.userservice.user.services;
 
 import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
+import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NOTIFICATION_SUCCESS;
+import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NOTIFICATION_FAILED;
+import static com.paywallet.userservice.user.constant.AppConstants.SMS_NOTIFICATION_FAILED;
+import static com.paywallet.userservice.user.constant.AppConstants.SMS_NOTIFICATION_SUCCESS;
+
 
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -511,6 +516,15 @@ public class CustomerService {
         body.put("timestamp", new Date());
         body.put("path", path);
         body.put("requestId", customerDetails.getRequestId());
+        if(customerDetails.isEmailNotificationSuccess())
+        	body.put("Email Notification", EMAIL_NOTIFICATION_SUCCESS);
+        else
+        	body.put("Email Notification", customerDetails.getPersonalProfile().getEmailId() + " " + EMAIL_NOTIFICATION_FAILED);
+        if(customerDetails.isSmsNotificationSuccess())
+        	body.put("Email Notification", SMS_NOTIFICATION_SUCCESS);
+        else
+        	body.put("Email Notification", customerDetails.getPersonalProfile().getMobileNo() + " " + SMS_NOTIFICATION_FAILED);
+        
         if(status == 201) {
         	return new ResponseEntity<>(body, HttpStatus.CREATED);
         }
