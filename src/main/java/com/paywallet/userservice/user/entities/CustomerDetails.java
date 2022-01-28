@@ -43,5 +43,9 @@ public class CustomerDetails {
     private String repaymentFrequency;
     private int totalNoOfRepayment;
     private int installmentAmount;
+    @JsonIgnore
+    private boolean emailNotificationSuccess;
+    @JsonIgnore
+    private boolean smsNotificationSuccess;
 
 }

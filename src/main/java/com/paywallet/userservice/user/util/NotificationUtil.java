@@ -64,6 +64,16 @@ public class NotificationUtil {
 			final String emailUrl = basePath + EMAIL_URI;
 			emailResponse = callEmailNotificationApi(emailRequest, emailUrl);
 			smsResponse = callSmsNotificationApi(smsRequest, smsUrl);
+			
+			if(emailResponse != null && emailResponse.equalsIgnoreCase(STATUS_OK))
+				customerDetail.setEmailNotificationSuccess(true);
+			else
+				customerDetail.setEmailNotificationSuccess(false);
+			if(smsResponse != null && smsResponse.equalsIgnoreCase(STATUS_OK))
+				customerDetail.setSmsNotificationSuccess(true);
+			else
+				customerDetail.setSmsNotificationSuccess(false);
+			
 			smsEmailResponseValidator = validateSmsEmailResponse(smsResponse, emailResponse);
 			if (FAIL.equalsIgnoreCase(smsEmailResponseValidator)) {
 				throw new GeneralCustomException("SMS and Email notification to customer failed",

@@ -35,6 +35,7 @@ import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.paywallet.userservice.user.util.DateCheck;
+import com.paywallet.userservice.user.util.FirstDateOfPaymentCheck;
 import com.paywallet.userservice.user.util.RepaymentFrequencyMode;
 import com.paywallet.userservice.user.util.StateCheck;
 
@@ -84,6 +85,7 @@ public class CreateCustomerRequest {
     @NotBlank(message = DOB_NULL_VALIDATION_MESSAGE)
 //    @Pattern(regexp = "^(0?[1-9]|1[0-2])\\/(0?[1-9]|1\\d|2\\d|3[01])\\/(19|20)\\d{2}$", message = DOB_FORMAT_VALIDATION_MESSAGE)
     @Pattern(regexp = "^(19|20)\\d{2}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$", message = DOB_FORMAT_VALIDATION_MESSAGE)
+    @DateCheck
     private String dateOfBirth;
     
     @Email(message = EMAIL_FORMAT_VALIDATION_MESSAGE)
@@ -104,6 +106,7 @@ public class CreateCustomerRequest {
     @JsonInclude(JsonInclude.Include. NON_NULL)
     @Pattern(regexp = "^(19|20)\\d{2}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$", message = FIRSTDATEOFPAYMENT_FORMAT_VALIDATION_MESSAGE)
     @DateCheck
+    @FirstDateOfPaymentCheck
     private String firstDateOfPayment;
     
     @RepaymentFrequencyMode(message = REPAYMENT_FREQUENCY_MODE_FORMAT_VALIDATION_MESSAGE)

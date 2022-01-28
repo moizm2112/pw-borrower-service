@@ -1,11 +1,11 @@
 package com.paywallet.userservice.user.controller;
 
+import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
