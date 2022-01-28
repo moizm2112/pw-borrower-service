@@ -521,9 +521,9 @@ public class CustomerService {
         else
         	body.put("Email Notification", customerDetails.getPersonalProfile().getEmailId() + " " + EMAIL_NOTIFICATION_FAILED);
         if(customerDetails.isSmsNotificationSuccess())
-        	body.put("Email Notification", SMS_NOTIFICATION_SUCCESS);
+        	body.put("SMS Notification", SMS_NOTIFICATION_SUCCESS);
         else
-        	body.put("Email Notification", customerDetails.getPersonalProfile().getMobileNo() + " " + SMS_NOTIFICATION_FAILED);
+        	body.put("SMS Notification", customerDetails.getPersonalProfile().getMobileNo() + " " + SMS_NOTIFICATION_FAILED);
         
         if(status == 201) {
         	return new ResponseEntity<>(body, HttpStatus.CREATED);
