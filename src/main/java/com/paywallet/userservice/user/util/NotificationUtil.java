@@ -65,16 +65,7 @@ public class NotificationUtil {
 			emailResponse = callEmailNotificationApi(emailRequest, emailUrl);
 			smsResponse = callSmsNotificationApi(smsRequest, smsUrl);
 			
-			if(emailResponse != null && emailResponse.equalsIgnoreCase(STATUS_OK))
-				customerDetail.setEmailNotificationSuccess(true);
-			else
-				customerDetail.setEmailNotificationSuccess(false);
-			if(smsResponse != null && smsResponse.equalsIgnoreCase(STATUS_OK))
-				customerDetail.setSmsNotificationSuccess(true);
-			else
-				customerDetail.setSmsNotificationSuccess(false);
-			
-			smsEmailResponseValidator = validateSmsEmailResponse(smsResponse, emailResponse);
+			smsEmailResponseValidator = validateSmsEmailResponse(smsResponse, emailResponse, customerDetail);
 			if (FAIL.equalsIgnoreCase(smsEmailResponseValidator)) {
 				throw new GeneralCustomException("SMS and Email notification to customer failed",
 						HttpStatus.INTERNAL_SERVER_ERROR.toString());
@@ -83,7 +74,7 @@ public class NotificationUtil {
 		catch(Exception e) {
 			log.error("callNotificationService Exception : " + e.getMessage());
 			if(emailResponse != null || smsResponse != null) {
-				smsEmailResponseValidator = validateSmsEmailResponse(smsResponse, emailResponse);
+				smsEmailResponseValidator = validateSmsEmailResponse(smsResponse, emailResponse, customerDetail);
 				if (FAIL.equalsIgnoreCase(smsEmailResponseValidator)) {
 					throw new GeneralCustomException("SMS and Email notification to customer failed",
 							HttpStatus.INTERNAL_SERVER_ERROR.toString());
@@ -98,9 +89,20 @@ public class NotificationUtil {
 
 	}
 
-	private String validateSmsEmailResponse(String smsResponse, String emailResponse) {
+	private String validateSmsEmailResponse(String smsResponse, String emailResponse, CustomerDetails customerDetail) {
+		
+		if(emailResponse != null && emailResponse.equalsIgnoreCase(STATUS_OK))
+			customerDetail.setEmailNotificationSuccess(true);
+		else
+			customerDetail.setEmailNotificationSuccess(false);
+		if(smsResponse != null && smsResponse.equalsIgnoreCase(STATUS_OK))
+			customerDetail.setSmsNotificationSuccess(true);
+		else
+			customerDetail.setSmsNotificationSuccess(false);
+		
 		if (STATUS_OK.equalsIgnoreCase(smsResponse) || STATUS_OK.equalsIgnoreCase(emailResponse))
 			return SUCCESS;
+		
 		return FAIL;
 	}
 
