@@ -16,7 +16,7 @@ import javax.validation.Payload;
 public @interface DateCheck {
 	
 	String message() default
-	"Please enter a valid date";
+	"Please enter a valid date. You cannot enter a date in the future";
 
     Class<?>[] groups() default {};
 
