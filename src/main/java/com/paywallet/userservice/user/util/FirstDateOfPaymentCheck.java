@@ -16,7 +16,7 @@ import javax.validation.Payload;
 public @interface FirstDateOfPaymentCheck {
 	
 	String message() default
-	"First Date Of Payment should be greater than the current date";
+	"Please enter a valid date. You cannot enter a date in the past.";
 	
     Class<?>[] groups() default {};
 
