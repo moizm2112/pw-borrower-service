@@ -11,15 +11,15 @@ import javax.validation.Payload;
 
 @Target( { ElementType.METHOD, ElementType.FIELD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = StateCheckValidator.class)
+@Constraint(validatedBy = FirstDateOfPaymentValidator.class)
 @Documented
-public @interface StateCheck {
-
+public @interface FirstDateOfPaymentCheck {
+	
 	String message() default
-    "Enter valid US state. Eg: Arizona - AZ";
+	"First Date Of Payment should be greater than the current date";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
-    
+
 }

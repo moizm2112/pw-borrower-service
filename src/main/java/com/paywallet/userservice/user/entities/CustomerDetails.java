@@ -19,6 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
+@JsonInclude(JsonInclude.Include. NON_NULL)
 public class CustomerDetails {
     @Id
     private String customerId;
@@ -38,5 +39,13 @@ public class CustomerDetails {
     private String requestId;
     @JsonIgnore
     private boolean existingCustomer;
+    private String firstDateOfPayment;
+    private String repaymentFrequency;
+    private int totalNoOfRepayment;
+    private int installmentAmount;
+    @JsonIgnore
+    private boolean emailNotificationSuccess;
+    @JsonIgnore
+    private boolean smsNotificationSuccess;
 
 }

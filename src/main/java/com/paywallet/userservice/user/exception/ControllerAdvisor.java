@@ -10,12 +10,16 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import com.fasterxml.jackson.databind.JsonMappingException.Reference;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +37,7 @@ public class ControllerAdvisor {
 	public ResponseEntity<Object> handleServiceNotAvailableException(ServiceNotAvailableException serviceNotAvailableException, HttpServletRequest request) {
 
 		String path = request.getRequestURI();
-        log.info("General Custom exception ", serviceNotAvailableException);
+        log.error("General Custom exception ", serviceNotAvailableException);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", HttpStatus.SERVICE_UNAVAILABLE.toString());
         body.put("message", serviceNotAvailableException.getMessage());
@@ -53,7 +57,7 @@ public class ControllerAdvisor {
 	public ResponseEntity<Object> handleRequestIdNotFoundException(RequestIdNotFoundException requestIdNotFoundException, HttpServletRequest request) {
 
 		String path = request.getRequestURI();
-        log.info("Request Id not found ", requestIdNotFoundException);
+        log.error("Request Id not found ", requestIdNotFoundException);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", HttpStatus.BAD_REQUEST.toString());
         body.put("message", "RequestId not found in the database");
@@ -73,7 +77,7 @@ public class ControllerAdvisor {
 	public ResponseEntity<Object> handleSMSAndEmailNotificationException(SMSAndEmailNotificationException smsEmailNotificationException, HttpServletRequest request) {
 
 		String path = request.getRequestURI();
-        log.info("SMS and EMail Notification failed ", smsEmailNotificationException);
+        log.error("SMS and EMail Notification failed ", smsEmailNotificationException);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("message", "Exception occured while creating and sending SMS and Email Notification");
         body.put("timestamp", new Date());
@@ -100,7 +104,7 @@ public class ControllerAdvisor {
 	@ExceptionHandler(GeneralCustomException.class)
 	public ResponseEntity<Object> handleGeneralCustomException(GeneralCustomException generalCustomException, HttpServletRequest request) {
 		String path = request.getRequestURI();
-        log.info("General Custom exception ", generalCustomException);
+        log.error("General Custom exception ", generalCustomException);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", HttpStatus.BAD_REQUEST.toString());
         body.put("message", generalCustomException.getMessage());
@@ -118,7 +122,7 @@ public class ControllerAdvisor {
 	@ExceptionHandler(FineractAPIException.class)
 	public ResponseEntity<Object> handleGeneralCustomException(FineractAPIException fineractAPIException, HttpServletRequest request) {
 		String path = request.getRequestURI();
-        log.info("Fineract API exception : ", fineractAPIException);
+        log.error("Fineract API exception : ", fineractAPIException);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", HttpStatus.BAD_REQUEST.toString());
         body.put("message", fineractAPIException.getMessage());
@@ -137,7 +141,7 @@ public class ControllerAdvisor {
 	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	public ResponseEntity<Object> handleCustomerNotFoundException(CustomerNotFoundException customerNotFoundException, HttpServletRequest request) {
 		String path = request.getRequestURI();
-        log.info("Customer with given mobile number does not exist in the Database ", customerNotFoundException);
+        log.error("Customer with given mobile number does not exist in the Database ", customerNotFoundException);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", HttpStatus.BAD_REQUEST.toString());
         body.put("message", "Customer does not exist");
@@ -156,7 +160,7 @@ public class ControllerAdvisor {
 	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	public ResponseEntity<Object> handleCustomerAccountException(CustomerAccountException customerAccountException, HttpServletRequest request) {
 		String path = request.getRequestURI();
-        log.info(customerAccountException.getMessage());
+        log.error(customerAccountException.getMessage());
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", HttpStatus.BAD_REQUEST.toString());
         body.put("message", "Customer Account does not exists");
@@ -176,7 +180,7 @@ public class ControllerAdvisor {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> handleCreateCustomerException(CreateCustomerException ex, HttpServletRequest request) {
         String path = request.getRequestURI();
-        log.info("Error while creating customer", ex);
+        log.error("Error while creating customer", ex);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", HttpStatus.BAD_REQUEST.toString());
         body.put("message", "Create Customer Failed : " + ex.getMessage());
@@ -200,11 +204,36 @@ public class ControllerAdvisor {
             list.add(fieldName + " : " + errorMessage);
 
         });
-        log.info("Method argument validation exception while creating customer ", ex);
+        log.error("Method argument validation exception while creating customer ", ex);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", HttpStatus.BAD_REQUEST.toString());
         body.put("message", "Method argument validation failed " + " : " + list);
         body.put("timestamp", new Date());
         return new ResponseEntity<Object> (body, HttpStatus.BAD_REQUEST);
     }
+	
+	
+	 /* Method handles method argument not valid exception
+	 * @param MethodArgumentNotValidException
+	 * @return
+	 */
+	@ExceptionHandler(value = HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+
+        log.error("Method argument validation exception HttpMessageNotReadableException ", ex);
+        List<String> list = new ArrayList<String>();
+        List<Reference> errorField = ((InvalidFormatException) (ex.getCause())).getPath();
+        errorField.forEach((error) -> {
+            String source = error.getDescription();
+            String fieldName = error.getFieldName();
+            list.add(source + " : " + ((InvalidFormatException) (ex.getCause())).getOriginalMessage());
+
+        });
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("code", HttpStatus.BAD_REQUEST.toString());
+        body.put("message", "Method argument validation failed - " + " : " + list);
+        body.put("timestamp", new Date());
+        return new ResponseEntity<Object> (body, HttpStatus.BAD_REQUEST);
+    }
+	
 }

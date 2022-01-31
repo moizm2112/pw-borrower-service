@@ -11,15 +11,15 @@ import javax.validation.Payload;
 
 @Target( { ElementType.METHOD, ElementType.FIELD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = StateCheckValidator.class)
+@Constraint(validatedBy = DateCheckValidator.class)
 @Documented
-public @interface StateCheck {
-
+public @interface DateCheck {
+	
 	String message() default
-    "Enter valid US state. Eg: Arizona - AZ";
+	"Please enter a valid date";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
-    
+
 }

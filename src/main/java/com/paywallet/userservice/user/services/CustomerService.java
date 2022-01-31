@@ -1,59 +1,33 @@
 package com.paywallet.userservice.user.services;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.enums.ProviderTypeEnum;
+import com.paywallet.userservice.user.exception.*;
+import com.paywallet.userservice.user.model.*;
+import com.paywallet.userservice.user.repository.CustomerRepository;
+import com.paywallet.userservice.user.util.CustomerServiceUtil;
+import com.paywallet.userservice.user.util.NotificationUtil;
 import com.paywallet.userservice.user.util.RequestIdUtil;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.paywallet.userservice.user.entities.CustomerDetails;
-import com.paywallet.userservice.user.enums.ProviderTypeEnum;
-import com.paywallet.userservice.user.exception.CreateCustomerException;
-import com.paywallet.userservice.user.exception.CustomerAccountException;
-import com.paywallet.userservice.user.exception.CustomerNotFoundException;
-import com.paywallet.userservice.user.exception.FineractAPIException;
-import com.paywallet.userservice.user.exception.GeneralCustomException;
-import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
-import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
-import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
-import com.paywallet.userservice.user.model.AccountDetails;
-import com.paywallet.userservice.user.model.CreateCustomerRequest;
-import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
-import com.paywallet.userservice.user.model.CustomerResponseDTO;
-import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
-import com.paywallet.userservice.user.model.FineractLenderCreationResponseDTO;
-import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
-import com.paywallet.userservice.user.model.OtpProduct;
-import com.paywallet.userservice.user.model.RequestIdDTO;
-import com.paywallet.userservice.user.model.RequestIdDetails;
-import com.paywallet.userservice.user.model.RequestIdResponseDTO;
-import com.paywallet.userservice.user.model.Response;
-import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
-import com.paywallet.userservice.user.model.ValidateAccountRequest;
-import com.paywallet.userservice.user.repository.CustomerRepository;
-import com.paywallet.userservice.user.util.CustomerServiceUtil;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
+import static com.paywallet.userservice.user.constant.AppConstants.*;
 
 
 @Component
@@ -68,6 +42,7 @@ public class CustomerService {
     private static final String STATUS_DESC = "statusDescription";
     private static final String VALID_RTN = "validRtn";
     private static final String ACCEPT = "Accept";
+    
 
     @Autowired
     CustomerRepository customerRepository;
@@ -80,6 +55,9 @@ public class CustomerService {
 
     @Autowired
     LyonsService lyonsService;
+    
+    @Autowired
+    NotificationUtil notificationUtil;
 
     @Autowired
     RequestIdUtil requestIdUtil;
@@ -105,12 +83,18 @@ public class CustomerService {
     @Value("${identifyProviderService.eureka.uri}")
 	private String identifyProviderServiceUri;
     
-    @Value("${otpService.eureka.uri}")
-	private String otpServiceUri;
+    @Value("${link.login.domainname}")
+	private String domainNameForLink;
     
-    @Value("${expiryTimeInMinutes}")
-	private String expiryTimeInMinutes;
+    @Value("${create.link.uri}")
+	private String createLinkUri;
     
+    @Value("${fineract.clienttype}")
+	private String fineractClientType;
+    
+    @Value("${createVirtualAccount.eureka.uri}")
+    private String createVirtualAccountUri;
+
     /**
      * Method fetches customer details by mobileNo
      * @param customerId
@@ -150,42 +134,44 @@ public class CustomerService {
     /** 
      * Method create a customer with fineract virtual savings account.
      * @param customer
-     * @param apiKey
+     * @param requestId
      * @return
      * @throws CreateCustomerException
      * @throws GeneralCustomException
      * @throws ServiceNotAvailableException
      * @throws RequestIdNotFoundException
      */
-    public CustomerDetails createCustomer(CreateCustomerRequest customer, String apiKey) 
+    public CustomerDetails createCustomer(CreateCustomerRequest customer, String requestId) 
     		throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, SMSAndEmailNotificationException {
         log.info("Inside createCustomer of CustomerService class");
+        if (!customer.getMobileNo().startsWith("+1") && customer.getMobileNo().length()==10)
+            customer.setMobileNo("+1".concat(customer.getMobileNo()));
+
         int virtualAccount = -1;
         CustomerDetails saveCustomer = new CustomerDetails();
         RequestIdDetails requestIdDtls = null;
         try 
         {
-        	/* GENERATE REQUEST ID DETAILS */
-        	RequestIdResponseDTO  requestResponseDTO = requestIdUtil.generateRequestIdDetails(apiKey);
-        	log.info("Response from generateRequestID : " + requestResponseDTO);
-    		if(requestResponseDTO != null && requestResponseDTO.getData() != null) {
-    			requestIdDtls = requestResponseDTO.getData();
-    		}
-    		else {
-    			log.info("No request ID found from generateRequestID");
-    			throw new RequestIdNotFoundException("Request Id not found");
-    		}
-    		
+        	RequestIdResponseDTO  requestIdResponseDTO = customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate);
+        	requestIdDtls = requestIdResponseDTO.getData();
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
+	        if(requestIdDtls.getUserId() != null && requestIdDtls.getUserId().length() > 0) {
+	        	log.error("Customerservice createcustomer generalCustomException Create customer failed as request id and customer id already exist in database.");
+	        	throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
+	        }
 	        if (byMobileNo.isPresent()) {
-	        	log.info("Exsiting customer with new requestID : " + requestIdDtls.getRequestId());
+	        	log.info("Exsiting customer with new requestID : " + requestId);
 	            saveCustomer = byMobileNo.get();
-	            saveCustomer.setRequestId(requestIdDtls.getRequestId());
+	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(true);
-	            
+	            if(requestIdDtls.getClientName() != null) 
+	            	saveCustomer.setLender(requestIdDtls.getClientName());
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
-	            requestIdUtil.updateRequestIdDetails(requestIdDtls.getRequestId(), saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
+	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
+	            		saveCustomer.getVirtualAccount(), identifyProviderServiceUri, restTemplate, customer);
 	            
+	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
+	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
 	            /*   CODE TO UPDATE CUSTOMER IF MOBILE NUMBER EXIST */
 	            
 	            /*log.info("Customer personal profile is getting updated...");
@@ -201,50 +187,90 @@ public class CustomerService {
 	            CustomerDetails customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customer);
 	            log.info("Virtual fineract account created successfully ");
 	            
-	            if( requestIdDtls.getClientName() != null) 
+	            if(requestIdDtls.getClientName() != null) 
 	            	customerEntity.setLender(requestIdDtls.getClientName());
 	            saveCustomer = customerRepository.save(customerEntity);
-	            saveCustomer.setRequestId(requestIdDtls.getRequestId());
+	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(false);
 	            
 	            /* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
-                requestIdUtil.updateRequestIdDetails(requestIdDtls.getRequestId(), saveCustomer.getCustomerId(), saveCustomer.getVirtualAccount());
-	            
+	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
+	            		saveCustomer.getVirtualAccount(),identifyProviderServiceUri, restTemplate, customer);
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
-	            //createAndSendSMSAndEmailNotification(requestIdDtls.getRequestId());
+	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
 	            log.info("Customer got created successfully");
 	        }
     	}
         catch(GeneralCustomException e) {
-        	log.info("Customerservice createcustomer generalCustomException");
+        	log.error("Customerservice createcustomer generalCustomException");
         	throw new GeneralCustomException(ERROR ,e.getMessage());
         }catch(CreateCustomerException e1) {
-        	log.info("Customerservice createcustomer createCustomerException");
+        	log.error("Customerservice createcustomer createCustomerException");
         	if(virtualAccount != -1)
         		throw new CreateCustomerException(e1.getMessage());
         }
         catch(RequestIdNotFoundException e) {
-        	log.info("Customerservice createcustomer RequestIdNotFoundException");
+        	log.error("Customerservice createcustomer RequestIdNotFoundException");
         	throw new RequestIdNotFoundException(e.getMessage());
         }
         catch(ServiceNotAvailableException e) {
-        	log.info("Customerservice createcustomer ServiceNotAvailableException");
+        	log.error("Customerservice createcustomer ServiceNotAvailableException");
         	throw new ServiceNotAvailableException(ERROR, e.getMessage());
         }
         catch(FineractAPIException e) {
-        	log.info("Customerservice createcustomer FineractAPIException");
+        	log.error("Customerservice createcustomer FineractAPIException");
         	throw new FineractAPIException(e.getMessage());
         }
         catch(SMSAndEmailNotificationException e) {
-        	log.info("Customerservice createcustomer SMSAndEmailNotificationException");
+        	log.error("Customerservice createcustomer SMSAndEmailNotificationException");
         	throw new SMSAndEmailNotificationException(e.getMessage());
         }
         catch(Exception e) {
-        	log.info("Customerservice createcustomer Exception");
+        	log.error("Customerservice createcustomer Exception");
         	throw new GeneralCustomException(ERROR ,e.getMessage());
         }
         return saveCustomer;
     }
+
+	/**
+	 * Methods that communicates with the account microservice to create a client and savings account for the customer.
+	 * @param customer
+	 * @return
+	 * @throws GeneralCustomException
+	 */
+	public CustomerDetails createFineractVirtualAccount(CreateCustomerRequest customer) 
+			throws ResourceAccessException, ServiceNotAvailableException, FineractAPIException, HttpClientErrorException {
+		try {
+			/* SET DATA FOR FINERACT API CALL*/
+			CustomerDetails customerEntity = customerServiceHelper.buildCustomerDetails(customer);
+			FineractCreateLenderDTO fineractCreateAccountDTO = customerServiceHelper.setFineractDataToCreateAccount(customerEntity, fineractClientType);
+			
+			/* POST CALL TO ACCOUNT SERVICE TO ACCESS FINERACT API*/
+			ObjectMapper objMapper= new ObjectMapper();
+			HttpEntity<String> requestEnty = new HttpEntity(fineractCreateAccountDTO);
+			ResponseEntity<Object> response = (ResponseEntity<Object>) restTemplate.postForEntity(createVirtualAccountUri, requestEnty, Object.class);
+			FineractLenderCreationResponseDTO fineractAccountCreationresponse = objMapper.convertValue(response.getBody(), FineractLenderCreationResponseDTO.class);
+			if(fineractAccountCreationresponse != null && fineractAccountCreationresponse.getSavingsId() != null) 
+			{
+				customerEntity.setVirtualAccount(String.valueOf(fineractAccountCreationresponse.getSavingsId().intValue()));
+				return customerEntity;
+			}
+			else 
+				throw new FineractAPIException("Error while creating virtual savings account for the customer");
+		}
+		catch(GeneralCustomException e) {
+			throw new FineractAPIException("Error while creating virtual savings account for the customer");
+		}
+		catch(ResourceAccessException e) {
+			throw new ServiceNotAvailableException(ERROR, e.getMessage());
+		}
+		catch(HttpClientErrorException e) {
+			throw new FineractAPIException("Error while creating virtual account with fineract API.");
+		}
+		catch(Exception e) {
+			throw new FineractAPIException(e.getMessage());
+		}
+	}
 
     /**
      * Methods gets customer account details by mobileNo.
@@ -319,7 +345,7 @@ public class CustomerService {
         Optional<CustomerDetails> customerDetails= customerRepository.findByPersonalProfileMobileNo(validateAccountRequest.getMobileNo());
         if(customerDetails.isPresent()) {
             if (customerDetails.get().getUpdateCounter().equals(maxAllowedUpdates)) {
-                log.info("Customer validation update attempts reached maximum allowed");
+                log.error("Customer validation update attempts reached maximum allowed");
                 throw new GeneralCustomException(ERROR, "Customer validation update attempts reached maximum allowed");
             } else {
                 if (customerDetails.get().getSalaryProfile().getProvider().equalsIgnoreCase(ProviderTypeEnum.ARGYLE.toString())) {
@@ -330,7 +356,7 @@ public class CustomerService {
                         log.info("provided customer account details are validated with the existing data from the DB");
                         accntAndabaVerification = true;
                     } else {
-                        log.info("provided customer account details ,either Salary AccNo or abaOfSalaryAccNo or not matching with existing details");
+                        log.warn("provided customer account details ,either Salary AccNo or abaOfSalaryAccNo or not matching with existing details");
                         incrementCounter = true;
                     }
 
@@ -341,7 +367,7 @@ public class CustomerService {
                         log.info("provided customer account details are validated with the existing data from the DB");
                         accntAndabaVerification = true;
                     } else {
-                        log.info("provided customer account details ,either Salary AccNo or abaOfSalaryAccNo or not matching with existing details");
+                        log.warn("provided customer account details ,either Salary AccNo or abaOfSalaryAccNo or not matching with existing details");
                         incrementCounter = true;
                     }
                 }
@@ -359,12 +385,12 @@ public class CustomerService {
                             log.info("Customer Account details are validated successfully with Lyons");
                             customerDetails.get().setStatus(resultObj.getString(STATUS_DESC));
                         } else {
-                            log.info("Customer Account details are validation FAILED with Lyons");
+                            log.error("Customer Account details are validation FAILED with Lyons");
                             incrementCounter = true;
                         }
 
                     } else {
-                        log.info("error in getting the response from Lyons call");
+                        log.error("error in getting the response from Lyons call");
                         incrementCounter = true;
                     }
                 }
@@ -410,7 +436,7 @@ public class CustomerService {
             log.info("Customer details are updated successfully");
             return customerRepository.save(customerDetailsByMobileNo.get());
         } else {
-            log.debug("Customer do not exists with the mobileNo: "+updateCustomerRequest.getMobileNo()+" to update");
+            log.error("Customer do not exists with the mobileNo: "+updateCustomerRequest.getMobileNo()+" to update");
             throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerRequest.getMobileNo()+" to update");
         }
     }
@@ -451,6 +477,15 @@ public class CustomerService {
         body.put("timestamp", new Date());
         body.put("path", path);
         body.put("requestId", customerDetails.getRequestId());
+        if(customerDetails.isEmailNotificationSuccess())
+        	body.put("Email Notification", EMAIL_NOTIFICATION_SUCCESS);
+        else
+        	body.put("Email Notification", customerDetails.getPersonalProfile().getEmailId() + " - " + EMAIL_NOTIFICATION_FAILED);
+        if(customerDetails.isSmsNotificationSuccess())
+        	body.put("SMS Notification", SMS_NOTIFICATION_SUCCESS);
+        else
+        	body.put("SMS Notification", customerDetails.getPersonalProfile().getMobileNo() + " - " + SMS_NOTIFICATION_FAILED);
+        
         if(status == 201) {
         	return new ResponseEntity<>(body, HttpStatus.CREATED);
         }
@@ -476,45 +511,24 @@ public class CustomerService {
                 .build();
     }
 
-   public Response createAndSendSMSAndEmailNotification(String requestId) 
-		   throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException, SMSAndEmailNotificationException {
+   public String createAndSendLinkSMSAndEmailNotification(String requestId, RequestIdDetails requestIdDetails, CustomerDetails customerDetails) 
+		   throws SMSAndEmailNotificationException, GeneralCustomException {
 	   log.info("Inside createAndSendSMSAndEmailNotification");
-	   
-	   /* SET OTP REQUEST */
-	   OtpProduct otpProduct =  new OtpProduct();
-	   otpProduct.setRequestId(requestId);
-	   otpProduct.setExpiryTimeInMinutes(Integer.valueOf(expiryTimeInMinutes));
-	   
-	   HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		HttpEntity<String> requestEntity = new HttpEntity(otpProduct, headers);
-		
-		Response responseFromSMSAndEmailNotification =  null;
-		try {
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder
-					.fromHttpUrl(otpServiceUri);
-			
-			responseFromSMSAndEmailNotification = restTemplate
-					.exchange(uriBuilder.toUriString(), HttpMethod.POST, requestEntity, Response.class)
-					.getBody();
-			
-			if(responseFromSMSAndEmailNotification != null) 
-				if(responseFromSMSAndEmailNotification.getCode().equalsIgnoreCase("201"))
-					return responseFromSMSAndEmailNotification;
-				else
-					throw new SMSAndEmailNotificationException("Error Code: " + responseFromSMSAndEmailNotification.getCode() 
-					+ "\n  Error Message : " + responseFromSMSAndEmailNotification.getMessage());
-			else	
-				throw new SMSAndEmailNotificationException("Exception occured while creating and sending SMS and Email Notification");
-
-		} catch (ResourceAccessException resourceException) {
-			throw new ServiceNotAvailableException( HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
-		} catch(SMSAndEmailNotificationException e) {
+	   String notificationResponse = "FAIL";
+	   try {
+		   String linkResponse  = customerServiceHelper.getLinkFromLinkVerificationService(requestId, domainNameForLink, restTemplate, createLinkUri);
+		   notificationResponse = notificationUtil.callNotificationService(requestIdDetails, customerDetails, linkResponse);
+	   }
+	   catch(GeneralCustomException e) {
+		   log.error("Create and send link exception " + e.getMessage());
 			throw new SMSAndEmailNotificationException(e.getMessage());
-		}
-		catch (Exception ex) {
-			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
-		}
+	   }
+	   catch(Exception e) {
+		   log.error("Create and send link exception " + e.getMessage());
+			throw new SMSAndEmailNotificationException(e.getMessage());
+	   }
+	   log.info("createAndSendSMSAndEmailNotification response : " + notificationResponse);
+	   return notificationResponse;
    }
 
 }

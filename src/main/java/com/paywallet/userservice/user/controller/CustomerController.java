@@ -7,7 +7,7 @@ import static com.paywallet.userservice.user.constant.AppConstants.GET_CUSTOMER;
 import static com.paywallet.userservice.user.constant.AppConstants.GET_CUSTOMER_BY_MOBILENO;
 import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER;
 import static com.paywallet.userservice.user.constant.AppConstants.VALIDATE_CUSTOMER_ACCOUNT;
-import static com.paywallet.userservice.user.constant.AppConstants.API_KEY;
+import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -61,14 +61,11 @@ public class CustomerController {
      * @throws RequestIdNotFoundException
      */
     @PostMapping(CREATE_CUSTOMER)
-    public ResponseEntity<Object> createCustomer(@Valid @RequestBody CreateCustomerRequest customer, @RequestHeader(API_KEY) String apiKey,
+    public ResponseEntity<Object> createCustomer(@Valid @RequestBody CreateCustomerRequest customer, @RequestHeader(REQUEST_ID) String requestId,
     		HttpServletRequest request)
     		throws MethodArgumentNotValidException, CreateCustomerException, RequestIdNotFoundException {
         log.debug("Inside Create Customer controller " + customer);
-        CustomerDetails customerDetails = customerService.createCustomer(customer, apiKey);
-        if(customerDetails != null && customerDetails.isExistingCustomer())
-        		return customerService.prepareResponse(customerDetails, CommonEnum.CUSTOMER_EXIST_SUCCESS_MSG.getMessage(),
-        				HttpStatus.OK.value(), request.getRequestURI());
+        CustomerDetails customerDetails = customerService.createCustomer(customer, requestId);
         return customerService.prepareResponse(customerDetails, CommonEnum.CUSTOMER_CREATED_SUCCESS_MSG.getMessage(),
 				HttpStatus.CREATED.value(), request.getRequestURI());		
     }
