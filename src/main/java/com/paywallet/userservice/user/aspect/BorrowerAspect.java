@@ -14,6 +14,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -63,10 +64,9 @@ public class BorrowerAspect {
         }
     }
 
-    @Before("execution(* com.paywallet.userservice.user.util.RequestIdUtil.generateRequestIdDetails(..)) && args(apiKey)")
-    public void requestIdCreateInProgress(String apiKey) {
+    @Before("execution(* com.paywallet.userservice.user.services.CustomerServiceHelper.fetchrequestIdDetails(..)) && args(requestId,identifyProviderServiceUri,restTemplate)")
+    public void requestIdCreateInProgress(String requestId, String identifyProviderServiceUri, RestTemplate restTemplate) {
         try{
-            String requestId = apiKey;
             String code = BorrowerEventEnum.UMS_GET_REQ_DETAIL_INPROG.getMessage();
             String message = "Request id details create INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
@@ -75,10 +75,9 @@ public class BorrowerAspect {
         }
     }
 
-    @AfterThrowing("execution(* com.paywallet.userservice.user.util.RequestIdUtil.generateRequestIdDetails(..)) && args(apiKey)")
-    public void requestIdCreateFailed(String apiKey) {
+    @AfterThrowing("execution(* com.paywallet.userservice.user.services.CustomerServiceHelper.fetchrequestIdDetails(..)) && args(requestId,identifyProviderServiceUri,restTemplate)")
+    public void requestIdCreateFailed(String requestId, String identifyProviderServiceUri, RestTemplate restTemplate) {
         try{
-            String requestId = apiKey;
             String code = BorrowerEventEnum.UMS_GET_REQ_DETAIL_FAIL.getMessage();
             String message = "Request id details create FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
@@ -87,10 +86,9 @@ public class BorrowerAspect {
         }
     }
 
-    @AfterReturning("execution(* com.paywallet.userservice.user.util.RequestIdUtil.generateRequestIdDetails(..)) && args(apiKey)")
-    public void requestIdCreateSuccess(String apiKey) {
+    @AfterReturning("execution(* com.paywallet.userservice.user.services.CustomerServiceHelper.fetchrequestIdDetails(..)) && args(requestId,identifyProviderServiceUri,restTemplate)")
+    public void requestIdCreateSuccess(String requestId, String identifyProviderServiceUri, RestTemplate restTemplate) {
         try{
-            String requestId = apiKey;
             String code = BorrowerEventEnum.UMS_GET_REQ_DETAIL_SUCC.getMessage();
             String message = "Request id details create SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
@@ -99,8 +97,9 @@ public class BorrowerAspect {
         }
     }
 
-    @Before("execution(* com.paywallet.userservice.user.util.RequestIdUtil.updateRequestIdDetails(..)) && args(requestId,customerId,virtualAccountNumber)")
-    public void requestIdUpdateInProgress(String requestId, String customerId, String virtualAccountNumber) {
+    @Before("execution(* com.paywallet.userservice.user.services.CustomerServiceHelper.updateRequestIdDetails(..)) && args(requestId,customerId,virtualAccountNumber,identifyProviderServiceUri,restTemplate,customerRequest)")
+    public void requestIdUpdateInProgress(String requestId, String customerId, String virtualAccountNumber,
+                                          String identifyProviderServiceUri, RestTemplate restTemplate, CreateCustomerRequest customerRequest) {
         try{
             String code = BorrowerEventEnum.UMS_UPD_REQ_DETAIL_INPROG.getMessage();
             String message = "Request id details update INPROGRESS";
@@ -110,8 +109,9 @@ public class BorrowerAspect {
         }
     }
 
-    @AfterThrowing("execution(* com.paywallet.userservice.user.util.RequestIdUtil.updateRequestIdDetails(..)) && args(requestId,customerId,virtualAccountNumber)")
-    public void requestIdUpdateFailed(String requestId, String customerId, String virtualAccountNumber) {
+    @AfterThrowing("execution(* com.paywallet.userservice.user.services.CustomerServiceHelper.updateRequestIdDetails(..)) && args(requestId,customerId,virtualAccountNumber,identifyProviderServiceUri,restTemplate,customerRequest)")
+    public void requestIdUpdateFailed(String requestId, String customerId, String virtualAccountNumber,
+                                      String identifyProviderServiceUri, RestTemplate restTemplate, CreateCustomerRequest customerRequest) {
         try{
             String code = BorrowerEventEnum.UMS_UPD_REQ_DETAIL_FAIL.getMessage();
             String message = "Request id details update FAILED";
@@ -121,8 +121,9 @@ public class BorrowerAspect {
         }
     }
 
-    @AfterReturning("execution(* com.paywallet.userservice.user.util.RequestIdUtil.updateRequestIdDetails(..)) && args(requestId,customerId,virtualAccountNumber)")
-    public void requestIdUpdateSuccess(String requestId, String customerId, String virtualAccountNumber) {
+    @AfterReturning("execution(* com.paywallet.userservice.user.services.CustomerServiceHelper.updateRequestIdDetails(..)) && args(requestId,customerId,virtualAccountNumber,identifyProviderServiceUri,restTemplate,customerRequest)")
+    public void requestIdUpdateSuccess(String requestId, String customerId, String virtualAccountNumber,
+                                       String identifyProviderServiceUri, RestTemplate restTemplate, CreateCustomerRequest customerRequest) {
         try{
             String code = BorrowerEventEnum.UMS_UPD_REQ_DETAIL_SUCC.getMessage();
             String message = "Request id update details SUCCESS";
