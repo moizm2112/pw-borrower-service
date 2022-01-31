@@ -7,6 +7,7 @@ import javax.validation.constraints.Pattern;
 
 import com.paywallet.userservice.user.entities.SalaryProfile;
 
+import com.paywallet.userservice.user.util.CustomerServiceUtil;
 import lombok.Data;
 
 @Data
@@ -16,5 +17,12 @@ public class UpdateCustomerRequestDTO  {
     @NotBlank(message =MOBILENO_NULL_VALIDATION_MESSAGE)
     private String mobileNo;
     private SalaryProfile salaryProfile;
+    @Override
+    public String toString(){
+        return new StringBuilder("{")
+                .append("mobileNo").append(CustomerServiceUtil.mask(mobileNo)).append(",")
+                .append("salaryProfile").append(salaryProfile).append("}")
+                .toString();
+    }
 
 }
