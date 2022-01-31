@@ -105,7 +105,6 @@ public class CreateCustomerRequest {
     
     @JsonInclude(JsonInclude.Include. NON_NULL)
     @Pattern(regexp = "^(19|20)\\d{2}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$", message = FIRSTDATEOFPAYMENT_FORMAT_VALIDATION_MESSAGE)
-    @DateCheck
     @FirstDateOfPaymentCheck
     private String firstDateOfPayment;
     
