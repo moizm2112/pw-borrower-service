@@ -12,6 +12,7 @@ import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.paywallet.userservice.user.util.CustomerServiceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,7 +81,7 @@ public class CustomerController {
     @GetMapping(GET_CUSTOMER_BY_MOBILENO)
     public CustomerResponseDTO getCustomerByMobile(@PathVariable (required = true) String mobileNo, HttpServletRequest request)
     		throws CustomerNotFoundException {
-        log.debug("Get Customer details for the given mobileNo: " + mobileNo);
+        log.debug("Get Customer details for the given mobileNo: " + CustomerServiceUtil.mask(mobileNo));
         CustomerDetails customerDetails = customerService.getCustomerByMobileNo(mobileNo);
         return customerService.prepareResponseDTO(customerDetails, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
         		HttpStatus.OK.value(), request.getRequestURI());
@@ -88,7 +89,7 @@ public class CustomerController {
     
     /**
      * This method returns customer details by mobile number
-     * @param mobileNo
+     * @param customerId
      * @param request
      * @return
      * @throws CustomerNotFoundException
@@ -112,7 +113,7 @@ public class CustomerController {
     @GetMapping(GET_ACCOUNT_DETAILS)
     public CustomerAccountResponseDTO getAccountDetails(@PathVariable (required = true) String mobileNo, HttpServletRequest request)
     		throws CustomerAccountException, CustomerNotFoundException{
-        log.debug("Get Account details for the customer with mobileNo: " + mobileNo);
+        log.debug("Get Account details for the customer with mobileNo: " + CustomerServiceUtil.mask(mobileNo));
         AccountDetails accountDetails = customerService.getAccountDetails(mobileNo);
         return customerService.prepareAccountDetailsResponseDTO(accountDetails, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
         		HttpStatus.OK.value(), request.getRequestURI());

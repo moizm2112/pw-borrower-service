@@ -4,14 +4,17 @@ import com.paywallet.userservice.user.dto.EventDTO;
 import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 import com.paywallet.userservice.user.enums.StateEnum;
+import org.apache.commons.lang3.StringUtils;
+
 @UtilityClass
 public class CustomerServiceUtil {
+    private final String SHA256 = "SHA-256";
 
     public static boolean doesObjectContainField(Object object, String fieldName) {
         Class<?> objectClass = object.getClass();
@@ -42,4 +45,28 @@ public class CustomerServiceUtil {
                 .time(new Date())
                 .build();
     }
+
+    public String hashString(String originalString) {
+        if(StringUtils.isBlank(originalString))
+            return "";
+
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance(SHA256);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        byte[] hashBytes = md.digest(originalString.getBytes(StandardCharsets.UTF_8));
+        String hashedString = Base64.getEncoder().encodeToString(hashBytes);
+        return hashedString;
+
+    }
+
+    public String mask(String str) {
+        if(Objects.isNull(str)) {
+            return "";
+        }
+        return str.replaceAll("\\d(?!\\d{0,3}$)","X");
+    }
+
 }
