@@ -1,67 +1,33 @@
 package com.paywallet.userservice.user.services;
 
-import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
-import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NOTIFICATION_SUCCESS;
-import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NOTIFICATION_FAILED;
-import static com.paywallet.userservice.user.constant.AppConstants.SMS_NOTIFICATION_FAILED;
-import static com.paywallet.userservice.user.constant.AppConstants.SMS_NOTIFICATION_SUCCESS;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.enums.ProviderTypeEnum;
+import com.paywallet.userservice.user.exception.*;
+import com.paywallet.userservice.user.model.*;
+import com.paywallet.userservice.user.repository.CustomerRepository;
+import com.paywallet.userservice.user.util.CustomerServiceUtil;
+import com.paywallet.userservice.user.util.NotificationUtil;
+import com.paywallet.userservice.user.util.RequestIdUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.paywallet.userservice.user.entities.CustomerDetails;
-import com.paywallet.userservice.user.enums.ProviderTypeEnum;
-import com.paywallet.userservice.user.exception.CreateCustomerException;
-import com.paywallet.userservice.user.exception.CustomerAccountException;
-import com.paywallet.userservice.user.exception.CustomerNotFoundException;
-import com.paywallet.userservice.user.exception.FineractAPIException;
-import com.paywallet.userservice.user.exception.GeneralCustomException;
-import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
-import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
-import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
-import com.paywallet.userservice.user.model.AccountDetails;
-import com.paywallet.userservice.user.model.CreateCustomerRequest;
-import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
-import com.paywallet.userservice.user.model.CustomerResponseDTO;
-import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
-import com.paywallet.userservice.user.model.FineractLenderCreationResponseDTO;
-import com.paywallet.userservice.user.model.LinkRequestProductDTO;
-import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
-import com.paywallet.userservice.user.model.OtpProduct;
-import com.paywallet.userservice.user.model.RequestIdDTO;
-import com.paywallet.userservice.user.model.RequestIdDetails;
-import com.paywallet.userservice.user.model.RequestIdResponseDTO;
-import com.paywallet.userservice.user.model.Response;
-import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
-import com.paywallet.userservice.user.model.ValidateAccountRequest;
-import com.paywallet.userservice.user.repository.CustomerRepository;
-import com.paywallet.userservice.user.util.CustomerServiceUtil;
-import com.paywallet.userservice.user.util.NotificationUtil;
-
-import lombok.extern.slf4j.Slf4j;
+import static com.paywallet.userservice.user.constant.AppConstants.*;
 
 
 @Component
@@ -93,6 +59,9 @@ public class CustomerService {
     @Autowired
     NotificationUtil notificationUtil;
 
+    @Autowired
+    RequestIdUtil requestIdUtil;
+
     @Value("${lyons.api.baseURL}")
     private String lyonsBaseURL;
 
@@ -107,14 +76,7 @@ public class CustomerService {
 
     @Value("${lyons.api.returnDetails}")
     private int returnDetails;
-    
-    /**
-     * This attribute holds the URI path of the Account service provider 
-     * Microservice to create fineract account
-     */
-    @Value("${createVirtualAccount.eureka.uri}")
-    private String createVirtualAccountUri;
-    
+
     /**
      * This attribute holds the URI path of the Identity service provider Microservice
      */
@@ -130,10 +92,12 @@ public class CustomerService {
     @Value("${fineract.clienttype}")
 	private String fineractClientType;
     
-    
+    @Value("${createVirtualAccount.eureka.uri}")
+    private String createVirtualAccountUri;
+
     /**
      * Method fetches customer details by mobileNo
-     * @param mobileNo
+     * @param customerId
      * @return
      * @throws CustomerNotFoundException
      */
@@ -208,7 +172,6 @@ public class CustomerService {
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
-	            
 	            /*   CODE TO UPDATE CUSTOMER IF MOBILE NUMBER EXIST */
 	            
 	            /*log.info("Customer personal profile is getting updated...");
@@ -221,7 +184,7 @@ public class CustomerService {
 	
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
-	            CustomerDetails customerEntity = createFineractVirtualAccount(customer);
+	            CustomerDetails customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customer);
 	            log.info("Virtual fineract account created successfully ");
 	            
 	            if(requestIdDtls.getClientName() != null) 
@@ -233,7 +196,6 @@ public class CustomerService {
 	            /* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
 	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
 	            		saveCustomer.getVirtualAccount(),identifyProviderServiceUri, restTemplate, customer);
-	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
 	            log.info("Customer got created successfully");
@@ -269,10 +231,10 @@ public class CustomerService {
         }
         return saveCustomer;
     }
-    
+
 	/**
 	 * Methods that communicates with the account microservice to create a client and savings account for the customer.
-	 * @param fineractCreateAccountDTO
+	 * @param customer
 	 * @return
 	 * @throws GeneralCustomException
 	 */
@@ -309,7 +271,6 @@ public class CustomerService {
 			throw new FineractAPIException(e.getMessage());
 		}
 	}
-	 
 
     /**
      * Methods gets customer account details by mobileNo.
@@ -549,8 +510,7 @@ public class CustomerService {
                 .path(path)
                 .build();
     }
-    
-    
+
    public String createAndSendLinkSMSAndEmailNotification(String requestId, RequestIdDetails requestIdDetails, CustomerDetails customerDetails) 
 		   throws SMSAndEmailNotificationException, GeneralCustomException {
 	   log.info("Inside createAndSendSMSAndEmailNotification");
