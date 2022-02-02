@@ -34,10 +34,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.paywallet.userservice.user.util.DateCheck;
-import com.paywallet.userservice.user.util.FirstDateOfPaymentCheck;
-import com.paywallet.userservice.user.util.RepaymentFrequencyMode;
-import com.paywallet.userservice.user.util.StateCheck;
+import com.paywallet.userservice.user.util.*;
 
 import lombok.Data;
 
@@ -117,25 +114,30 @@ public class CreateCustomerRequest {
     
     @JsonInclude(JsonInclude.Include. NON_NULL)
     private int installmentAmount;
-    
-//    @NotBlank(message = FINANCEDAMOUNT_NULL_VALIDATION_MESSAGE)
-//    @Pattern(regexp = "[0-9]+",message = FINANCEDAMOUNT_VALIDATION_MESSAGE)
-//    @Size(min = 1, message = FINANCEDAMOUNT_LENGTH_VALIDATION_MESSAGE)
-//    private String financedAmount;
-    
-	/*
-	 * @NotBlank(message = EMPLOYER_NULL_VALIDATION_MESSAGE) private String
-	 * employer;
-	 * 
-	 * @NotBlank(message = LENDER_NULL_VALIDATION_MESSAGE) private String lender;
-	 */
-    
-//    @NotBlank(message = BANKABA_NULL_VALIDATION_MESSAGE)
-//    @Pattern(regexp = "[0-9]+",message = BANKABA_VALIDATION_MESSAGE)
-//    @Size(min = 9, max = 9, message = BANKABA_LENGTH_VALIDATION_MESSAGE)
-//    private String bankABA;
-    
-//    @NotBlank(message = BANKACCOUNTNUMBER_NULL_VALIDATION_MESSAGE)
-//    private String bankAccountNumber;
+
+    @Override
+    public String toString(){
+        return new StringBuilder("{")
+                .append("firstName").append(firstName).append(",")
+                .append("lastName").append(lastName).append(",")
+                .append("middleName").append(middleName).append(",")
+                .append("addressLine1").append(addressLine1).append(",")
+                .append("addressLine2").append(addressLine2).append(",")
+                .append("city").append(city).append(",")
+                .append("state").append(state).append(",")
+                .append("zip").append(zip).append(",")
+                .append("last4TIN").append(last4TIN).append(",")
+                .append("dateOfBirth").append(dateOfBirth).append(",")
+                .append("emailId").append(emailId).append(",")
+                .append("mobileNo").append(CustomerServiceUtil.mask(mobileNo)).append(",")
+                .append("callbackURLs").append(callbackURLs).append(",")
+                .append("firstDateOfPayment").append(firstDateOfPayment).append(",")
+                .append("repaymentFrequency").append(repaymentFrequency).append(",")
+                .append("totalNoOfRepayment").append(totalNoOfRepayment).append(",")
+                .append("installmentAmount").append(installmentAmount).append("}")
+                .toString();
+    }
+
+
 
 }
