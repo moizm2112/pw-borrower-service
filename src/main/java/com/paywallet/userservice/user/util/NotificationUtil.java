@@ -161,7 +161,6 @@ public class NotificationUtil {
 		emailTemplate.setTemplateId(emailTemplateId);
 		eMailBodyMap.put(EMAIL, emailAddress);
 		eMailBodyMap.put(LINK, linkForCustomer);
-		eMailBodyMap.put(PROVIDER, requestIdDetails.getProvider());
 		eMailBodyMap.put(EMPLOYER, requestIdDetails.getEmployer());
 		eMailBodyMap.put(LENDER, requestIdDetails.getClientName());
 
