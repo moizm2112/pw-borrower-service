@@ -35,7 +35,6 @@ public class NotificationUtil {
 	public static final String SUCCESS = "success";
 	public static final String FAIL = "fail";
 	private static final String EMAIL = "email";
-	private static final String PROVIDER = "provider";
 	private static final String LINK = "link";
 	private static final String EMPLOYER = "employer";
 	private static final String LENDER = "lender";
@@ -172,7 +171,7 @@ public class NotificationUtil {
 	private SmsRequestDTO creatSmsRequest(String phoneNumber, String linkForCustomer, RequestIdDetails requestIdDetails) {
 		log.info("Inside create SMS Request ");
 		String messageBody = null;
-		 messageBody = String.format(smsLinkTemplate, linkForCustomer,requestIdDetails.getProvider(),
+		 messageBody = String.format(smsLinkTemplate, linkForCustomer,
 				 requestIdDetails.getEmployer(),requestIdDetails.getClientName());
 		SmsRequestDTO smsRequest = SmsRequestDTO.builder().to(phoneNumber).requestor(REQUESTOR).requestId(REQUESTOR_ID)
 				.body(messageBody).build();
