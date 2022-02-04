@@ -27,8 +27,7 @@ public class NotificationUtil {
 	@Autowired
 	RestTemplate restTemplate;
 
-	private static final String REQUESTOR = "create_customer_service_requestor";
-	private static final String REQUESTOR_ID = "create_customer_service_id";
+	private static final String REQUESTOR_ID = "create_customer";
 	private static final String SMS_URI = "notifications/sms";
 	private static final String EMAIL_URI = "notifications/email";
 	public static final String STATUS_OK = "200 OK";
@@ -147,7 +146,7 @@ public class NotificationUtil {
 		EmailTemplateDTO emailTempDto = createEmailRequest(emailAddress, linkForCustomer,requestIdDetails);
 		EmailRequestDTO emailRequest = EmailRequestDTO.builder().templateId(emailTempDto.getTemplateId())
 				.templateBody(emailTempDto.getEmailBody()).subject(emailTempDto.getEmailSubject()).body("")
-				.to(emailAddress).requestor(REQUESTOR).requestId(REQUESTOR_ID).build();
+				.to(emailAddress).requestor(requestIdDetails.getClientName()).requestId(REQUESTOR_ID).build();
 		return emailRequest;
 	}
 
@@ -173,7 +172,7 @@ public class NotificationUtil {
 		String messageBody = null;
 		 messageBody = String.format(smsLinkTemplate, linkForCustomer,
 				 requestIdDetails.getEmployer(),requestIdDetails.getClientName());
-		SmsRequestDTO smsRequest = SmsRequestDTO.builder().to(phoneNumber).requestor(REQUESTOR).requestId(REQUESTOR_ID)
+		SmsRequestDTO smsRequest = SmsRequestDTO.builder().to(phoneNumber).requestor(requestIdDetails.getClientName()).requestId(REQUESTOR_ID)
 				.body(messageBody).build();
 		log.info("create SMS Request : " + smsRequest);
 		return smsRequest;
