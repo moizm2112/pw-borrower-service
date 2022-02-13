@@ -141,10 +141,10 @@ public class ControllerAdvisor {
 	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	public ResponseEntity<Object> handleCustomerNotFoundException(CustomerNotFoundException customerNotFoundException, HttpServletRequest request) {
 		String path = request.getRequestURI();
-        log.error("Customer with given mobile number does not exist in the Database ", customerNotFoundException);
+        log.error(customerNotFoundException.getMessage());
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", HttpStatus.BAD_REQUEST.toString());
-        body.put("message", "Customer does not exist");
+        body.put("message", customerNotFoundException.getMessage());
         body.put("timestamp", new Date());
         body.put("path", path);
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);

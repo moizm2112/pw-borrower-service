@@ -10,8 +10,8 @@ public final class AppConstants {
 	public static final String GET_ACCOUNT_DETAILS = "/customer/account/{mobileNo}";
 	public static final String VALIDATE_CUSTOMER_ACCOUNT = "/customer/account/validate";
 	public static final String UPDATE_CUSTOMER = "/customer/update";
-	public static final String UPDATE_CUSTOMER_MOBILENO = "/customer/updateMobileNo";
-	public static final String UPDATE_CUSTOMER_EMAILID = "/customer/updateEmailId";
+	public static final String UPDATE_CUSTOMER_MOBILENO = "/customer/update/mobileNo";
+	public static final String UPDATE_CUSTOMER_EMAILID = "/customer/update/emailId";
 
 	//=============Validation Errors------------------------
 	public static final String FIRST_NAME_VALIDATION_MESSAGE="First Name should contain at least one alphabet.";

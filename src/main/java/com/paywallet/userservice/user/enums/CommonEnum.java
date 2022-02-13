@@ -11,6 +11,8 @@ public enum CommonEnum {
 	CUSTOMER_CREATED_SUCCESS_MSG("Customer created successfully"),
 	CUSTOMER_EXIST_SUCCESS_MSG("Customer already exist for the given mobileNo in database"),
     SUCCESS_STATUS_MSG("SUCCESS"),
+    UPDATE_MOBILENO_SUCCESS_STATUS_MSG("Customer Mobile number updated Successfully"),
+    UPDATE_EMAILID_SUCCESS_STATUS_MSG("Customer Email updated Successfully"),
     FAILED_STATUS_MSG("FAILED"),
 
     SUCCESS_HTTP_RESPONSE_MSG(200,"Success");
