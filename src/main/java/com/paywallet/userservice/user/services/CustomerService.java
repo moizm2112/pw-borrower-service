@@ -1,15 +1,16 @@
 package com.paywallet.userservice.user.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.paywallet.userservice.user.entities.CustomerDetails;
-import com.paywallet.userservice.user.enums.ProviderTypeEnum;
-import com.paywallet.userservice.user.exception.*;
-import com.paywallet.userservice.user.model.*;
-import com.paywallet.userservice.user.repository.CustomerRepository;
-import com.paywallet.userservice.user.util.CustomerServiceUtil;
-import com.paywallet.userservice.user.util.NotificationUtil;
-import com.paywallet.userservice.user.util.RequestIdUtil;
-import lombok.extern.slf4j.Slf4j;
+import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NOTIFICATION_FAILED;
+import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NOTIFICATION_SUCCESS;
+import static com.paywallet.userservice.user.constant.AppConstants.SMS_NOTIFICATION_FAILED;
+import static com.paywallet.userservice.user.constant.AppConstants.SMS_NOTIFICATION_SUCCESS;
+
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,12 +23,36 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.enums.ProviderTypeEnum;
+import com.paywallet.userservice.user.exception.CreateCustomerException;
+import com.paywallet.userservice.user.exception.CustomerAccountException;
+import com.paywallet.userservice.user.exception.CustomerNotFoundException;
+import com.paywallet.userservice.user.exception.FineractAPIException;
+import com.paywallet.userservice.user.exception.GeneralCustomException;
+import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
+import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
+import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
+import com.paywallet.userservice.user.model.AccountDetails;
+import com.paywallet.userservice.user.model.CreateCustomerRequest;
+import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
+import com.paywallet.userservice.user.model.CustomerResponseDTO;
+import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
+import com.paywallet.userservice.user.model.FineractLenderCreationResponseDTO;
+import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
+import com.paywallet.userservice.user.model.RequestIdDetails;
+import com.paywallet.userservice.user.model.RequestIdResponseDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
+import com.paywallet.userservice.user.model.ValidateAccountRequest;
+import com.paywallet.userservice.user.repository.CustomerRepository;
+import com.paywallet.userservice.user.util.CustomerServiceUtil;
+import com.paywallet.userservice.user.util.NotificationUtil;
+import com.paywallet.userservice.user.util.RequestIdUtil;
 
-import static com.paywallet.userservice.user.constant.AppConstants.*;
+import lombok.extern.slf4j.Slf4j;
 
 
 @Component
@@ -154,11 +179,11 @@ public class CustomerService {
         {
         	RequestIdResponseDTO  requestIdResponseDTO = customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate);
         	requestIdDtls = requestIdResponseDTO.getData();
-	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if(requestIdDtls.getUserId() != null && requestIdDtls.getUserId().length() > 0) {
 	        	log.error("Customerservice createcustomer generalCustomException Create customer failed as request id and customer id already exist in database.");
 	        	throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
 	        }
+	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
 	        	log.info("Exsiting customer with new requestID : " + requestId);
 	            saveCustomer = byMobileNo.get();
@@ -168,19 +193,10 @@ public class CustomerService {
 	            	saveCustomer.setLender(requestIdDtls.getClientName());
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
 	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
-	            		saveCustomer.getVirtualAccount(), identifyProviderServiceUri, restTemplate, customer);
+	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(), identifyProviderServiceUri, restTemplate, customer);
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
-	            /*   CODE TO UPDATE CUSTOMER IF MOBILE NUMBER EXIST */
-	            
-	            /*log.info("Customer personal profile is getting updated...");
-	            CustomerDetails custDtls = byMobileNo.get();
-	            customerServiceHelper.setCustomerDetails(customer,custDtls);
-	            
-	            saveCustomer = customerRepository.save(byMobileNo.get());
-	            log.info("Customer personal profile got updated successfully");*/
-	            
 	
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
@@ -195,7 +211,7 @@ public class CustomerService {
 	            
 	            /* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
 	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
-	            		saveCustomer.getVirtualAccount(),identifyProviderServiceUri, restTemplate, customer);
+	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, restTemplate, customer);
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
 	            log.info("Customer got created successfully");
@@ -231,46 +247,6 @@ public class CustomerService {
         }
         return saveCustomer;
     }
-
-	/**
-	 * Methods that communicates with the account microservice to create a client and savings account for the customer.
-	 * @param customer
-	 * @return
-	 * @throws GeneralCustomException
-	 */
-	public CustomerDetails createFineractVirtualAccount(CreateCustomerRequest customer) 
-			throws ResourceAccessException, ServiceNotAvailableException, FineractAPIException, HttpClientErrorException {
-		try {
-			/* SET DATA FOR FINERACT API CALL*/
-			CustomerDetails customerEntity = customerServiceHelper.buildCustomerDetails(customer);
-			FineractCreateLenderDTO fineractCreateAccountDTO = customerServiceHelper.setFineractDataToCreateAccount(customerEntity, fineractClientType);
-			
-			/* POST CALL TO ACCOUNT SERVICE TO ACCESS FINERACT API*/
-			ObjectMapper objMapper= new ObjectMapper();
-			HttpEntity<String> requestEnty = new HttpEntity(fineractCreateAccountDTO);
-			ResponseEntity<Object> response = (ResponseEntity<Object>) restTemplate.postForEntity(createVirtualAccountUri, requestEnty, Object.class);
-			FineractLenderCreationResponseDTO fineractAccountCreationresponse = objMapper.convertValue(response.getBody(), FineractLenderCreationResponseDTO.class);
-			if(fineractAccountCreationresponse != null && fineractAccountCreationresponse.getSavingsId() != null) 
-			{
-				customerEntity.setVirtualAccount(String.valueOf(fineractAccountCreationresponse.getSavingsId().intValue()));
-				return customerEntity;
-			}
-			else 
-				throw new FineractAPIException("Error while creating virtual savings account for the customer");
-		}
-		catch(GeneralCustomException e) {
-			throw new FineractAPIException("Error while creating virtual savings account for the customer");
-		}
-		catch(ResourceAccessException e) {
-			throw new ServiceNotAvailableException(ERROR, e.getMessage());
-		}
-		catch(HttpClientErrorException e) {
-			throw new FineractAPIException("Error while creating virtual account with fineract API.");
-		}
-		catch(Exception e) {
-			throw new FineractAPIException(e.getMessage());
-		}
-	}
 
     /**
      * Methods gets customer account details by mobileNo.
@@ -439,6 +415,126 @@ public class CustomerService {
             log.error("Customer do not exists with the mobileNo: "+updateCustomerRequest.getMobileNo()+" to update");
             throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerRequest.getMobileNo()+" to update");
         }
+    }
+    
+    /**
+     * Method updates the customer Basic Details
+     * @param UpdateCustomerMobileNoDTO
+     * @return
+     * @throws CustomerNotFoundException
+     */
+    public CustomerDetails updateCustomerMobileNo(UpdateCustomerMobileNoDTO updateCustomerMobileNoDTO, String requestId) 
+    		throws CustomerNotFoundException, RequestIdNotFoundException{
+    	CustomerDetails custDetails = new CustomerDetails();
+    	try {
+    		RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
+        			.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
+        	RequestIdDetails requestIdDtls = requestIdResponseDTO.getData();
+        	
+        	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) {
+	        	if( ((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerMobileNoDTO.getEmployerName())) {
+	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerMobileNoDTO.getMobileNo());
+	                if(customerDetailsByMobileNo.isPresent()){
+	                	custDetails = customerDetailsByMobileNo.get();
+	                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
+	                    log.info("Customer details are getting updated...");
+	
+	                	// Make an fineract call to update the external Id and mobileNo.
+	                	customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getNewMobileNo(), custDetails.getVirtualClientId());
+	                	//Update the Customer table
+	                	custDetails.getPersonalProfile().setMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
+	                	log.info("Customer mobile number updated successfully");
+	                	custDetails = customerRepository.save(custDetails);
+	                } else {
+	                    log.error("Customer do not exists with the mobileNo: "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
+	                    throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
+	                }
+	        	}
+	        	else {
+	        		log.error("Employer name doesn't match with the existing customer details");
+	                throw new GeneralCustomException(ERROR, "Employer name doesn't match with the existing customer details "+updateCustomerMobileNoDTO.getEmployerName()+" to update");
+	        	}
+        	}
+        	else {
+        		log.error("Customer details cannot be updated. Active allocation exist for the given mobileNo.");
+                throw new CustomerNotFoundException("Customer details cannot be updated. Active allocation exist for the given mobileNo : "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
+        	}
+    	}catch(FineractAPIException e) {
+    		log.error("Exception occured in fineract while updating mobileNo for given client "+ e.getMessage());
+    		throw new FineractAPIException(e.getMessage());
+    	}catch(CustomerNotFoundException e) {
+    		log.error("Exception occured while updating customer details " + e.getMessage());
+    		throw new CustomerNotFoundException(e.getMessage());
+    	}catch(GeneralCustomException e) {
+    		log.error("Exception occured while updating customer details " + e.getMessage());
+    		throw new GeneralCustomException(ERROR, e.getMessage());
+    	}
+    	catch(Exception e) {
+    		log.error("Exception occured while updating customer details " + e.getMessage());
+    		throw new GeneralCustomException(ERROR, e.getMessage());
+    	}
+    	return custDetails;
+    }
+    
+    
+    /**
+     * Method updates the customer Basic Details
+     * @param UpdateCustomerMobileNoDTO
+     * @return
+     * @throws CustomerNotFoundException
+     */
+    public CustomerDetails updateCustomerEmailId(UpdateCustomerEmailIdDTO updateCustomerEmailIdDTO, String requestId) throws CustomerNotFoundException, RequestIdNotFoundException{
+    	CustomerDetails custDetails = new CustomerDetails();
+    	try {
+    		RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
+        			.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
+        	RequestIdDetails requestIdDtls = requestIdResponseDTO.getData();
+        	
+        	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) { 
+        		if (((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerEmailIdDTO.getEmployerName())) {
+	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerEmailIdDTO.getMobileNo());
+	                if(customerDetailsByMobileNo.isPresent()){
+	                	custDetails = customerDetailsByMobileNo.get();
+	                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
+	                    log.info("Customer details are getting updated...");
+	                    if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
+	                    	custDetails.getPersonalProfile().setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
+		                	log.info("Customer Email Id updated successfully");
+		                	custDetails =  customerRepository.save(custDetails);
+	                    }
+	                    else {
+	        				log.error("EmailId do not match with the existing customer details");
+	                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getEmailId() +") do not match with the existing customer details");
+	        			}
+	                } else {
+	                    log.error("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
+	                    throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
+	                }
+        		}
+    			else {
+    				log.error("mployer Name do not match with the existing customer details");
+                    throw new CustomerNotFoundException("Employer Name (" + updateCustomerEmailIdDTO.getEmployerName() + ") do not match with the existing customer details");
+    			}
+        	}
+        	else {
+        		log.error("Customer details cannot be updated. Active allocation exist for the given emailId.");
+                throw new CustomerNotFoundException("Customer details cannot be updated. Active allocation exist for the given emailId : "+updateCustomerEmailIdDTO.getEmailId()+" to update");
+        	}
+    	}catch(FineractAPIException e) {
+    		log.error("Exception occured in fineract while updating mobileNo for given client "+ e.getMessage());
+    		throw new FineractAPIException(e.getMessage());
+    	}catch(CustomerNotFoundException e) {
+    		log.error("Exception occured while updating customer details " + e.getMessage());
+    		throw new CustomerNotFoundException(e.getMessage());
+    	}catch(GeneralCustomException e) {
+    		log.error("Exception occured while updating customer details " + e.getMessage());
+    		throw new GeneralCustomException(ERROR, e.getMessage());
+    	}
+    	catch(Exception e) {
+    		log.error("Exception occured while updating customer details " + e.getMessage());
+    		throw new GeneralCustomException(ERROR, e.getMessage());
+    	}
+    	return custDetails;
     }
     
     /** Method creates a response DTO to orchestrate back to the caller. 

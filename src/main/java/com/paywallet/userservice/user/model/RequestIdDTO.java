@@ -32,6 +32,7 @@ public class RequestIdDTO {
     private String taskId;
     private String payrollId;
     private String virtualAccountNumber;
+    private String virtualAccountId;
     private String argyleAccountId;
     private String argyleUserId;
     private List<String> identityCallbackUrls;

@@ -3,6 +3,8 @@ package com.paywallet.userservice.user.model;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -14,6 +16,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@JsonInclude(JsonInclude.Include. NON_NULL)
 public class RequestIdDetails {
    
     private String requestId;
@@ -33,11 +36,13 @@ public class RequestIdDetails {
     private String clientTransactionId;
     private String taskid;
     private String payrollid;
-    private String vitualAccountNumber;
+    private String virtualAccountNumber;
+    private String virtualAccountId;
     private List<String> identityCallbackUrls;
     private List<String> employmentCallbackUrls;
     private List<String> incomeCallbackUrls;
     private List<String> allocationCallbackUrls;
     private List<String> insufficientFundCallbackUrls;
+    private int accountValidationAttempt;
 
 }

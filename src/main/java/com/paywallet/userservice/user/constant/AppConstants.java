@@ -10,6 +10,8 @@ public final class AppConstants {
 	public static final String GET_ACCOUNT_DETAILS = "/customer/account/{mobileNo}";
 	public static final String VALIDATE_CUSTOMER_ACCOUNT = "/customer/account/validate";
 	public static final String UPDATE_CUSTOMER = "/customer/update";
+	public static final String UPDATE_CUSTOMER_MOBILENO = "/customer/updateMobileNo";
+	public static final String UPDATE_CUSTOMER_EMAILID = "/customer/updateEmailId";
 
 	//=============Validation Errors------------------------
 	public static final String FIRST_NAME_VALIDATION_MESSAGE="First Name should contain at least one alphabet.";
@@ -39,7 +41,9 @@ public final class AppConstants {
 	public static final String EMAIL_FORMAT_VALIDATION_MESSAGE ="Email is not in valid format.";
 	public static final String MOBILENO_FORMAT_VALIDATION_MESSAGE ="Mobile number is not in valid format.";
 	public static final String EMAIL_NULL_VALIDATION_MESSAGE ="Email can't be blank.";
+	public static final String UPDATING_EMAIL_NULL_VALIDATION_MESSAGE ="Blank email can't be processed.";
 	public static final String MOBILENO_NULL_VALIDATION_MESSAGE="Phone Number can't be blank.";
+	public static final String EMPLOYERNAME_NULL_VALIDATION_MESSAGE="Employer Name can't be blank.";
 	public static final String SSN_NULL_VALIDATION_MESSAGE="SSN can't be blank.";
 	public static final String DOB_NULL_VALIDATION_MESSAGE="DOB can't be blank.";
 	public static final String LAST4TIN_NULL_VALIDATION_MESSAGE="Last 4 TIN can't be blank.";

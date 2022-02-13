@@ -47,5 +47,7 @@ public class CustomerDetails {
     private boolean emailNotificationSuccess;
     @JsonIgnore
     private boolean smsNotificationSuccess;
+    private String virtualAccountId;
+    private String virtualClientId;
 
 }
