@@ -40,9 +40,11 @@ import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
 import com.paywallet.userservice.user.model.CustomerResponseDTO;
 import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
 import com.paywallet.userservice.user.model.FineractLenderCreationResponseDTO;
+import com.paywallet.userservice.user.model.FineractUpdateLenderResponseDTO;
 import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.RequestIdResponseDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerDetailsResponseDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
@@ -146,6 +148,8 @@ public class CustomerService {
      */
     public CustomerDetails getCustomerByMobileNo(String mobileNo) throws CustomerNotFoundException {
         log.debug("Inside getCustomer of CustomerService class" + mobileNo);
+        if (!mobileNo.startsWith("+1") && mobileNo.length()==10)
+        	mobileNo = "+1".concat(mobileNo);
         Optional<CustomerDetails> optionalCustDetails = customerRepository.findByPersonalProfileMobileNo(mobileNo);
         CustomerDetails saveCustomer;
         if (optionalCustDetails.isPresent()) {
@@ -423,57 +427,97 @@ public class CustomerService {
      * @return
      * @throws CustomerNotFoundException
      */
-    public CustomerDetails updateCustomerMobileNo(UpdateCustomerMobileNoDTO updateCustomerMobileNoDTO, String requestId) 
+    public UpdateCustomerDetailsResponseDTO updateCustomerMobileNo(UpdateCustomerMobileNoDTO updateCustomerMobileNoDTO, String requestId) 
     		throws CustomerNotFoundException, RequestIdNotFoundException{
     	CustomerDetails custDetails = new CustomerDetails();
+    	boolean isMobileNoUpdatedInFineract = false;
+    	boolean isMobileNoUpdatedInCustomerDetails = false;
+    	UpdateCustomerDetailsResponseDTO updateCustomerDetailsResponseDTO = new UpdateCustomerDetailsResponseDTO();
     	try {
+    		
+    		if(!updateCustomerMobileNoDTO.getMobileNo().startsWith("+1") && updateCustomerMobileNoDTO.getMobileNo().length()==10) {
+    			updateCustomerMobileNoDTO.setMobileNo("+1".concat(updateCustomerMobileNoDTO.getMobileNo()));
+    		}
+    		if(!updateCustomerMobileNoDTO.getNewMobileNo().startsWith("+1") && updateCustomerMobileNoDTO.getNewMobileNo().length()==10) {
+    			updateCustomerMobileNoDTO.setNewMobileNo("+1".concat(updateCustomerMobileNoDTO.getNewMobileNo()));
+    		}
+    		if(updateCustomerMobileNoDTO.getMobileNo().equalsIgnoreCase(updateCustomerMobileNoDTO.getNewMobileNo())) {
+    			log.error("Please provide different mobile number. You cannot enter mobile number matching the customer data");
+                throw new CustomerNotFoundException("Please provide different mobile number. You cannot enter mobile number matching the customer data");
+    		}
+    		
     		RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
         			.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
         	RequestIdDetails requestIdDtls = requestIdResponseDTO.getData();
         	
         	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) {
-	        	if( ((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerMobileNoDTO.getEmployerName())) {
+//	        	if( ((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerMobileNoDTO.getEmployerName())) {
 	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerMobileNoDTO.getMobileNo());
 	                if(customerDetailsByMobileNo.isPresent()){
 	                	custDetails = customerDetailsByMobileNo.get();
 	                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
 	                    log.info("Customer details are getting updated...");
+	                    
+	                    
+	                    if(!custDetails.getPersonalProfile().getMobileNo().equalsIgnoreCase(updateCustomerMobileNoDTO.getMobileNo())) {
+	                    	log.error("Customer does nor exist for the given mobileNumber");
+	                        throw new CustomerNotFoundException("Provided mobile number does not match the customer data. Please provide a valid mobile number.");
+	                    }
+	                    
+	                    if(custDetails.getPersonalProfile().getMobileNo().equalsIgnoreCase(updateCustomerMobileNoDTO.getNewMobileNo())) {
+	                    	log.error("Updating mobile Number should be different from existing mobile number");
+	                        throw new CustomerNotFoundException("Updating Mobile Number (" + updateCustomerMobileNoDTO.getNewMobileNo() +") should be different from existing mobile number");
+	                    }
 	
 	                	// Make an fineract call to update the external Id and mobileNo.
-	                	customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getNewMobileNo(), custDetails.getVirtualClientId());
+	                    customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getNewMobileNo(), custDetails.getVirtualClientId());
+	                    isMobileNoUpdatedInFineract = true;
 	                	//Update the Customer table
 	                	custDetails.getPersonalProfile().setMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
+	                	custDetails.setRequestId(requestId);
+	                	
+	                	updateCustomerDetailsResponseDTO.setRequestId(requestId);
+	                	updateCustomerDetailsResponseDTO.setMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
+	                	updateCustomerDetailsResponseDTO.setCustomerId(custDetails.getCustomerId());
+	                	
 	                	log.info("Customer mobile number updated successfully");
 	                	custDetails = customerRepository.save(custDetails);
+	                	isMobileNoUpdatedInCustomerDetails = true;
 	                } else {
-	                    log.error("Customer do not exists with the mobileNo: "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
-	                    throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
+	                    log.error("Customer do not exists with the mobile number: "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
+	                    throw new CustomerNotFoundException("Customer do not exists with the mobile number: "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
 	                }
-	        	}
-	        	else {
-	        		log.error("Employer name doesn't match with the existing customer details");
-	                throw new GeneralCustomException(ERROR, "Employer name doesn't match with the existing customer details "+updateCustomerMobileNoDTO.getEmployerName()+" to update");
-	        	}
+//	        	}
+//	        	else {
+//	        		log.error("Employer name doesn't match with the existing customer details");
+//	                throw new GeneralCustomException(ERROR, "Employer name doesn't match with the existing customer details "+updateCustomerMobileNoDTO.getEmployerName()+" to update");
+//	        	}
         	}
         	else {
-        		log.error("Customer details cannot be updated. Active allocation exist for the given mobileNo.");
-                throw new CustomerNotFoundException("Customer details cannot be updated. Active allocation exist for the given mobileNo : "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
+        		log.error("Customer details cannot be updated. Active allocation exist for the given mobile number.");
+                throw new CustomerNotFoundException("Customer details cannot be updated. Active allocation exist for the given mobile number : "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
         	}
     	}catch(FineractAPIException e) {
-    		log.error("Exception occured in fineract while updating mobileNo for given client "+ e.getMessage());
+    		log.error("Exception occured in fineract while updating mobile number for given client "+ e.getMessage());
     		throw new FineractAPIException(e.getMessage());
     	}catch(CustomerNotFoundException e) {
+    		if(isMobileNoUpdatedInFineract && !isMobileNoUpdatedInCustomerDetails)
+    			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getMobileNo(), custDetails.getVirtualClientId());
     		log.error("Exception occured while updating customer details " + e.getMessage());
     		throw new CustomerNotFoundException(e.getMessage());
     	}catch(GeneralCustomException e) {
+    		if(isMobileNoUpdatedInFineract && !isMobileNoUpdatedInCustomerDetails)
+    			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getMobileNo(), custDetails.getVirtualClientId());
     		log.error("Exception occured while updating customer details " + e.getMessage());
     		throw new GeneralCustomException(ERROR, e.getMessage());
     	}
     	catch(Exception e) {
+    		if(isMobileNoUpdatedInFineract && !isMobileNoUpdatedInCustomerDetails)
+    			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getMobileNo(), custDetails.getVirtualClientId());
     		log.error("Exception occured while updating customer details " + e.getMessage());
     		throw new GeneralCustomException(ERROR, e.getMessage());
     	}
-    	return custDetails;
+    	return updateCustomerDetailsResponseDTO;
     }
     
     
@@ -483,24 +527,50 @@ public class CustomerService {
      * @return
      * @throws CustomerNotFoundException
      */
-    public CustomerDetails updateCustomerEmailId(UpdateCustomerEmailIdDTO updateCustomerEmailIdDTO, String requestId) throws CustomerNotFoundException, RequestIdNotFoundException{
+    public UpdateCustomerDetailsResponseDTO updateCustomerEmailId(UpdateCustomerEmailIdDTO updateCustomerEmailIdDTO, String requestId) throws CustomerNotFoundException, RequestIdNotFoundException{
     	CustomerDetails custDetails = new CustomerDetails();
+    	UpdateCustomerDetailsResponseDTO updateCustomerDetailsResponseDTO = new UpdateCustomerDetailsResponseDTO();
     	try {
+    		
+    		if(!updateCustomerEmailIdDTO.getMobileNo().startsWith("+1") && updateCustomerEmailIdDTO.getMobileNo().length()==10)
+    			updateCustomerEmailIdDTO.setMobileNo("+1".concat(updateCustomerEmailIdDTO.getMobileNo()));
+    		
+    		if(updateCustomerEmailIdDTO.getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getNewEmailId())) {
+            	log.error("You cannot enter exactly same emailId to update");
+                throw new CustomerNotFoundException("You cannot enter exactly same emailId to update");
+            }
+    		
     		RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
         			.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
         	RequestIdDetails requestIdDtls = requestIdResponseDTO.getData();
         	
         	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) { 
-        		if (((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerEmailIdDTO.getEmployerName())) {
+//        		if (((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerEmailIdDTO.getEmployerName())) {
 	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerEmailIdDTO.getMobileNo());
 	                if(customerDetailsByMobileNo.isPresent()){
 	                	custDetails = customerDetailsByMobileNo.get();
 	                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
 	                    log.info("Customer details are getting updated...");
+	                    
+                		if(!custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
+	                    	log.error("Customer does not exist for the given emailId");
+	                        throw new CustomerNotFoundException("Customer does not exist for the provided emailId (" + updateCustomerEmailIdDTO.getEmailId() +")");
+                		}
+                		
+                		if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getNewEmailId()))  {
+                    		log.error("Updating EmailId should be different from existing emailId");
+	                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getNewEmailId() +") should be different from existing emailId");
+	                    }
+	                    
 	                    if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
 	                    	custDetails.getPersonalProfile().setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
 		                	log.info("Customer Email Id updated successfully");
 		                	custDetails =  customerRepository.save(custDetails);
+		                	custDetails.setRequestId(requestId);
+		                	updateCustomerDetailsResponseDTO.setRequestId(requestId);
+		                	updateCustomerDetailsResponseDTO.setMobileNo(updateCustomerEmailIdDTO.getMobileNo());
+		                	updateCustomerDetailsResponseDTO.setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
+		                	updateCustomerDetailsResponseDTO.setCustomerId(custDetails.getCustomerId());
 	                    }
 	                    else {
 	        				log.error("EmailId do not match with the existing customer details");
@@ -510,31 +580,30 @@ public class CustomerService {
 	                    log.error("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
 	                    throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
 	                }
-        		}
-    			else {
-    				log.error("mployer Name do not match with the existing customer details");
-                    throw new CustomerNotFoundException("Employer Name (" + updateCustomerEmailIdDTO.getEmployerName() + ") do not match with the existing customer details");
-    			}
+//        		}
+//    			else {
+//    				log.error("mployer Name do not match with the existing customer details");
+//                    throw new CustomerNotFoundException("Employer Name (" + updateCustomerEmailIdDTO.getEmployerName() + ") do not match with the existing customer details");
+//    			}
+	                
+	                
         	}
         	else {
         		log.error("Customer details cannot be updated. Active allocation exist for the given emailId.");
                 throw new CustomerNotFoundException("Customer details cannot be updated. Active allocation exist for the given emailId : "+updateCustomerEmailIdDTO.getEmailId()+" to update");
         	}
-    	}catch(FineractAPIException e) {
-    		log.error("Exception occured in fineract while updating mobileNo for given client "+ e.getMessage());
-    		throw new FineractAPIException(e.getMessage());
     	}catch(CustomerNotFoundException e) {
-    		log.error("Exception occured while updating customer details " + e.getMessage());
+    		log.error("Exception occured while updating emailId customer details " + e.getMessage());
     		throw new CustomerNotFoundException(e.getMessage());
     	}catch(GeneralCustomException e) {
-    		log.error("Exception occured while updating customer details " + e.getMessage());
+    		log.error("Exception occured while updating emailIdcustomer details " + e.getMessage());
     		throw new GeneralCustomException(ERROR, e.getMessage());
     	}
     	catch(Exception e) {
-    		log.error("Exception occured while updating customer details " + e.getMessage());
+    		log.error("Exception occured while updating emailId customer details " + e.getMessage());
     		throw new GeneralCustomException(ERROR, e.getMessage());
     	}
-    	return custDetails;
+    	return updateCustomerDetailsResponseDTO;
     }
     
     /** Method creates a response DTO to orchestrate back to the caller. 
@@ -564,10 +633,29 @@ public class CustomerService {
      * @param path
      * @return
      */
+    public ResponseEntity<Object> prepareUpdateResponse(UpdateCustomerDetailsResponseDTO updateCustomerDetailsResponseDTO, String message, int status, String path) {
+        
+    	Map<String, Object> body = new LinkedHashMap<>();
+    	body.put("data", updateCustomerDetailsResponseDTO);
+        body.put("message", message);
+        body.put("status", status);
+        body.put("timestamp", new Date());
+        body.put("path", path);
+    	return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+    
+    /** Method creates a response DTO to orchestrate back to the caller. 
+     * This shares the response of customer details, status of request and URI path.
+     * @param customerDetails
+     * @param message
+     * @param status
+     * @param path
+     * @return
+     */
     public ResponseEntity<Object> prepareResponse(CustomerDetails customerDetails, String message, int status, String path) {
     	
     	Map<String, Object> body = new LinkedHashMap<>();
-        body.put("data", customerDetails);
+    	body.put("data", customerDetails);
         body.put("message", message);
         body.put("status", status);
         body.put("timestamp", new Date());
