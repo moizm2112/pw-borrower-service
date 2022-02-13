@@ -42,6 +42,9 @@ public class CustomerServiceHelper {
 	 */
 	@Value("${createVirtualAccount.eureka.uri}")
 	private String createVirtualAccountUri;
+	
+	@Value("${updateVirtualAccount.uri}")
+	private String updateVirtualAccountUri;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -161,14 +164,16 @@ public class CustomerServiceHelper {
      * @throws ResourceAccessException
      * @throws GeneralCustomException
      */
-    public RequestIdResponseDTO updateRequestIdDetails(String requestId, String customerId, String virtualAccountNumber,
-    		String identifyProviderServiceUri, RestTemplate restTemplate, CreateCustomerRequest customerRequest)  throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
+    public RequestIdResponseDTO updateRequestIdDetails(String requestId, String customerId, String virtualAccountNumber,String virtualAccountId,
+    		String identifyProviderServiceUri, RestTemplate restTemplate, CreateCustomerRequest customerRequest) 
+    				throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
     	log.info("Inside updateRequestIdDetails");
     	
     	/* SET INPUT (REQUESTIDDTO) TO ACCESS THE IDENTITY PROVIDER SERVICE*/
     	RequestIdDTO requestIdDTO = new RequestIdDTO();
     	requestIdDTO.setUserId(customerId);
     	requestIdDTO.setVirtualAccountNumber(virtualAccountNumber);
+    	requestIdDTO.setVirtualAccountId(virtualAccountId);
     	
     	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
     	CallbackURL callbackURL =  customerRequest.getCallbackURLs();
@@ -249,7 +254,9 @@ public class CustomerServiceHelper {
 			FineractLenderCreationResponseDTO fineractAccountCreationresponse = objMapper.convertValue(response.getBody(), FineractLenderCreationResponseDTO.class);
 			if(fineractAccountCreationresponse != null && fineractAccountCreationresponse.getSavingsId() != null)
 			{
-				customerEntity.setVirtualAccount(String.valueOf(fineractAccountCreationresponse.getSavingsId().intValue()));
+				customerEntity.setVirtualAccount(fineractAccountCreationresponse.getSavingsAccountNumber());
+				customerEntity.setVirtualAccountId(String.valueOf(fineractAccountCreationresponse.getSavingsId().intValue()));
+				customerEntity.setVirtualClientId(String.valueOf(fineractAccountCreationresponse.getClientId().intValue()));
 				return customerEntity;
 			}
 			else
@@ -267,6 +274,29 @@ public class CustomerServiceHelper {
 		catch(Exception e) {
 			throw new FineractAPIException(e.getMessage());
 		}
+	}
+	
+	public FineractUpdateLenderResponseDTO updateMobileNoInFineract(String mobileNo, String clientId) {
+    	log.info("Inside getLinkFromLinkVerificationService");
+    	FineractUpdateLenderAccountDTO fineractUpdateRequest = new FineractUpdateLenderAccountDTO();
+    	fineractUpdateRequest.setExternalId(mobileNo);
+    	fineractUpdateRequest.setMobileNo(mobileNo);
+    	FineractUpdateLenderResponseDTO fineractUpdateLenderResponseDTO = null;
+		
+		try {
+			ObjectMapper objMapper= new ObjectMapper();
+			HttpEntity<FineractUpdateLenderAccountDTO> requestEntity = new HttpEntity<>(fineractUpdateRequest);
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(updateVirtualAccountUri + clientId);
+			log.info("uriBuilder url formed: " + uriBuilder.toUriString());
+			fineractUpdateLenderResponseDTO = restTemplate
+					.exchange(uriBuilder.toUriString(), HttpMethod.PUT, requestEntity, FineractUpdateLenderResponseDTO.class)
+					.getBody();
+		} catch (Exception ex) {
+			log.error("Exception occured while updating mobileNo for given client in fineract" + ex.getMessage());
+			throw new FineractAPIException(ex.getMessage());
+		}
+		log.info("updateMobileNoInFineract response : " + fineractUpdateLenderResponseDTO);
+		return fineractUpdateLenderResponseDTO;
 	}
 
 }

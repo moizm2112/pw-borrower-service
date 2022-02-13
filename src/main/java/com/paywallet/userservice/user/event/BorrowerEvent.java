@@ -1,17 +1,16 @@
 package com.paywallet.userservice.user.event;
 
-import com.paywallet.userservice.user.dto.EventDTO;
-import com.paywallet.userservice.user.enums.ProgressLevel;
-import com.paywallet.userservice.user.model.RequestIdResponseDTO;
-import com.paywallet.userservice.user.util.CustomerServiceUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.concurrent.CompletableFuture;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.concurrent.CompletableFuture;
+import com.paywallet.userservice.user.dto.EventDTO;
+import com.paywallet.userservice.user.enums.ProgressLevel;
+import com.paywallet.userservice.user.util.CustomerServiceUtil;
 
 @Component
 public class BorrowerEvent {
@@ -19,7 +18,18 @@ public class BorrowerEvent {
     private String eventLoggingServiceUri;
 
     CustomerServiceUtil customerServiceUtil;
+    
+    /*@Autowired
+    KafkaTemplate<String,EventDTO> kafkaTemplate;
 
+    @Value("${kafka.event.topic:paywallet.event-topic}")
+    private String kafkaTopic;
+
+    public void triggerEvent(String requestId, String code, String message, String service, ProgressLevel progressLevel) {
+        EventDTO eventDTO = customerServiceUtil.prepareEvent(requestId, code, service, message, progressLevel.name());
+        kafkaTemplate.send(kafkaTopic,eventDTO);
+    }*/
+	
     public CompletableFuture triggerEvent(String requestId, String code, String message, String service, ProgressLevel progressLevel) {
         EventDTO eventDTO = customerServiceUtil.prepareEvent(requestId, code, service, message, progressLevel.name());
         RestTemplate restTemplate = new RestTemplate();

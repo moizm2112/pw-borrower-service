@@ -6,6 +6,8 @@ import static com.paywallet.userservice.user.constant.AppConstants.GET_ACCOUNT_D
 import static com.paywallet.userservice.user.constant.AppConstants.GET_CUSTOMER;
 import static com.paywallet.userservice.user.constant.AppConstants.GET_CUSTOMER_BY_MOBILENO;
 import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER;
+import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_EMAILID;
+import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_MOBILENO;
 import static com.paywallet.userservice.user.constant.AppConstants.VALIDATE_CUSTOMER_ACCOUNT;
 import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 
@@ -38,6 +40,8 @@ import com.paywallet.userservice.user.model.AccountDetails;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
 import com.paywallet.userservice.user.model.CustomerResponseDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
 import com.paywallet.userservice.user.model.ValidateAccountRequest;
 import com.paywallet.userservice.user.services.CustomerService;
@@ -153,5 +157,39 @@ public class CustomerController {
         return customerService.prepareResponseDTO(customerDetails, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
         		HttpStatus.OK.value(), request.getRequestURI());
     }
+    
+    /**
+     * Method updates the customer mobileNo
+     * @param UpdateCustomerMobileNoDTO
+     * @param request
+     * @return
+     * @throws CustomerNotFoundException
+     */
+   /* @PutMapping(UPDATE_CUSTOMER_MOBILENO)
+    public CustomerResponseDTO updateCustomerMobileNo(@Valid @RequestBody UpdateCustomerMobileNoDTO updateCustomerDetailsDTO, @RequestHeader(REQUEST_ID) String requestId,
+    		 HttpServletRequest request)
+    		throws CustomerNotFoundException {
+        log.debug("Inside update customer mobileNo " + updateCustomerDetailsDTO);
+        CustomerDetails customerDetails = customerService.updateCustomerMobileNo(updateCustomerDetailsDTO, requestId);
+        return customerService.prepareResponseDTO(customerDetails, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
+        		HttpStatus.OK.value(), request.getRequestURI());
+    }*/
+    
+    /**
+     * Method updates the customer mobileNo
+     * @param UpdateCustomerMobileNoDTO
+     * @param request
+     * @return
+     * @throws CustomerNotFoundException
+     */
+    /*@PutMapping(UPDATE_CUSTOMER_EMAILID)
+    public CustomerResponseDTO updateCustomerEmailId(@Valid @RequestBody UpdateCustomerEmailIdDTO updateCustomerEmailIdDTO, @RequestHeader(REQUEST_ID) String requestId,
+    		 HttpServletRequest request)
+    		throws CustomerNotFoundException {
+        log.debug("Inside update customer emailId " + updateCustomerEmailIdDTO);
+        CustomerDetails customerDetails = customerService.updateCustomerEmailId(updateCustomerEmailIdDTO, requestId);
+        return customerService.prepareResponseDTO(customerDetails, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
+        		HttpStatus.OK.value(), request.getRequestURI());
+    }*/
 
 }
