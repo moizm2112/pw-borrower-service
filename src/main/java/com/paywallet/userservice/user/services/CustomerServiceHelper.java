@@ -263,13 +263,13 @@ public class CustomerServiceHelper {
 				throw new FineractAPIException("Error while creating virtual savings account for the customer");
 		}
 		catch(GeneralCustomException e) {
-			throw new FineractAPIException("Error while creating virtual savings account for the customer");
+			throw new FineractAPIException("Error while creating virtual savings account for the customer" + e.getMessage());
 		}
 		catch(ResourceAccessException e) {
 			throw new ServiceNotAvailableException(ERROR, e.getMessage());
 		}
 		catch(HttpClientErrorException e) {
-			throw new FineractAPIException("Error while creating virtual account with fineract API. Please provide a different Last4TIN as it exist in database");
+			throw new FineractAPIException("Error while creating virtual account with fineract API." + e.getMessage());
 		}
 		catch(Exception e) {
 			throw new FineractAPIException(e.getMessage());
