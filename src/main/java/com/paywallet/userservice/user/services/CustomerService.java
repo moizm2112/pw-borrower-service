@@ -555,8 +555,8 @@ public class CustomerService {
 //        		if (((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerEmailIdDTO.getEmployerName())) {
 	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerEmailIdDTO.getMobileNo());
 	                if(customerDetailsByMobileNo.isPresent()){
-	                	Optional<CustomerDetails> checkForEmailIdInDB= customerRepository.findByPersonalProfileEmailId(updateCustomerEmailIdDTO.getNewEmailId());
-		                if(!checkForEmailIdInDB.isPresent()) {
+//	                	Optional<CustomerDetails> checkForEmailIdInDB= customerRepository.findByPersonalProfileEmailId(updateCustomerEmailIdDTO.getNewEmailId());
+//		                if(!checkForEmailIdInDB.isPresent()) {
 		                	custDetails = customerDetailsByMobileNo.get();
 		                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
 		                    log.info("Customer details are getting updated...");
@@ -586,10 +586,10 @@ public class CustomerService {
 		                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getEmailId() +") do not match with the existing customer details");
 		        			}
 		                }
-		                else {
+		                /*else {
 		                	log.error("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
 		                    throw new CustomerNotFoundException("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
-		                }
+		                }*/
 	                } else {
 	                    log.error("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
 	                    throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
