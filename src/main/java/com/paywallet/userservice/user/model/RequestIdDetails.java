@@ -44,5 +44,6 @@ public class RequestIdDetails {
     private List<String> allocationCallbackUrls;
     private List<String> insufficientFundCallbackUrls;
     private int accountValidationAttempt;
+    private List<String> notificationUrls;
 
 }
