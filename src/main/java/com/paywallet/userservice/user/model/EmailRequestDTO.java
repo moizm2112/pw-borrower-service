@@ -20,6 +20,7 @@ public class EmailRequestDTO {
 	private String body;
 	private String requestor;
 	private String requestId;
+	private String requestType;
 	
 	
 }

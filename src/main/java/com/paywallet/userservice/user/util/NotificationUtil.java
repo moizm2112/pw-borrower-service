@@ -37,6 +37,7 @@ public class NotificationUtil {
 	private static final String LINK = "link";
 	private static final String EMPLOYER = "employer";
 	private static final String LENDER = "lender";
+	private static final String REQUEST_TYPE = "Login link";
 	
 	@Value("${notification.uri}")
 	private String basePath;
@@ -146,7 +147,9 @@ public class NotificationUtil {
 		EmailTemplateDTO emailTempDto = createEmailRequest(emailAddress, linkForCustomer,requestIdDetails);
 		EmailRequestDTO emailRequest = EmailRequestDTO.builder().templateId(emailTempDto.getTemplateId())
 				.templateBody(emailTempDto.getEmailBody()).subject(emailTempDto.getEmailSubject()).body("")
-				.to(emailAddress).requestor(requestIdDetails.getClientName()).requestId(REQUESTOR_ID).build();
+				.to(emailAddress).requestor(requestIdDetails.getClientName()).requestId(requestIdDetails.getRequestId())
+				.requestType(REQUEST_TYPE)
+				.build();
 		return emailRequest;
 	}
 
@@ -172,7 +175,8 @@ public class NotificationUtil {
 		String messageBody = null;
 		 messageBody = String.format(smsLinkTemplate, linkForCustomer,
 				 requestIdDetails.getEmployer(),requestIdDetails.getClientName());
-		SmsRequestDTO smsRequest = SmsRequestDTO.builder().to(phoneNumber).requestor(requestIdDetails.getClientName()).requestId(REQUESTOR_ID)
+		SmsRequestDTO smsRequest = SmsRequestDTO.builder().to(phoneNumber).requestor(requestIdDetails.getClientName()).requestId(requestIdDetails.getRequestId())
+				.requestType(REQUEST_TYPE)
 				.body(messageBody).build();
 		log.info("create SMS Request : " + smsRequest);
 		return smsRequest;
