@@ -5,6 +5,7 @@ import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NOTIFIC
 import static com.paywallet.userservice.user.constant.AppConstants.SMS_NOTIFICATION_FAILED;
 import static com.paywallet.userservice.user.constant.AppConstants.SMS_NOTIFICATION_SUCCESS;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -24,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
 import com.paywallet.userservice.user.exception.CreateCustomerException;
@@ -747,11 +749,12 @@ public class CustomerService {
 		   if(optionalCustomerRequestFields.isPresent()) {
 			   CustomerRequestFields customerRequestFields = Optional.ofNullable(optionalCustomerRequestFields.get())
 					   .orElseThrow(()-> new GeneralCustomException(ERROR, "Exception occured while fetching required fields for employer"));
-			   if("YES".equalsIgnoreCase(customerRequestFields.getFirstName())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getFirstName())) 
+			   {
 				   List<String> errorList = customerFieldValidator.validateFirstName(customerRequest.getFirstName());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("First Name", errorList);
-			   }
+			   } 
 			   if("YES".equalsIgnoreCase(customerRequestFields.getLastName())) {
 				   List<String> errorList = customerFieldValidator.validateLastName(customerRequest.getLastName());
 				   if(errorList.size() > 0)
@@ -883,14 +886,63 @@ public class CustomerService {
    public boolean addCustomerRequiredFields(CustomerRequestFields customerRequestFields) {
 	   boolean isSuccess = false;
 	   try {
+		   validateCustomerRequestFields(customerRequestFields);
 		   CustomerRequestFields customerRequestFieldsResponse = customerRequestFieldsRepository.save(customerRequestFields);
 		   if(customerRequestFieldsResponse != null)
 			   isSuccess = true;
-	   }catch(Exception e) {
+	   }catch(GeneralCustomException e) {
+		   log.error("Customerservice addCustomerRequiredFields - " + e.getMessage());
+		   throw new GeneralCustomException(ERROR, e.getMessage());
+	   }
+	   catch(Exception e) {
 		   log.error("Customerservice addCustomerRequiredFields - addCustomerRequiredFields failed.");
 			throw new GeneralCustomException(ERROR ,"Customerservice addCustomerRequiredFields - addCustomerRequiredFields failed.");
 	   }
 	   return isSuccess;
+   }
+   
+   public void validateCustomerRequestFields(CustomerRequestFields customerRequestFields) {
+	   List<String> errorList = new ArrayList<String>();
+	   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
+	   try {
+		   if(customerRequestFields != null) {
+			   if(customerRequestFields.getFirstName() != null && customerRequestFields.getFirstName().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.FIRST_NAME_MANDATORY_MESSAGE);
+				   mapErrorList.put("First Name", errorList);
+			   }
+			   if(customerRequestFields.getLastName() != null && customerRequestFields.getLastName().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.LAST_NAME_MANDATORY_MESSAGE);
+				   mapErrorList.put("Last Name", errorList);
+			   }
+			   if(customerRequestFields.getMobileNo() != null && customerRequestFields.getMobileNo().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.MOBILENO_MANDATORY_MESSAGE);
+				   mapErrorList.put("Mobile Number", errorList);
+			   }
+			   if(customerRequestFields.getEmailId() != null && customerRequestFields.getEmailId().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.EMAIL_MANDATORY_MESSAGE);
+				   mapErrorList.put("Email", errorList);
+			   }
+			   
+			   if(mapErrorList.size() > 0) {
+				   ObjectMapper objectMapper = new ObjectMapper();
+				   String json = "";
+			        try {
+			            json = objectMapper.writeValueAsString(mapErrorList);
+			            log.error("Mandatory fields can't be made optional - " + json);
+			        } catch (JsonProcessingException e) {
+			        	throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + mapErrorList);
+			        }
+				   throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + json);
+			   }
+		   }
+	   }catch(GeneralCustomException e) {
+		   log.error("Mandatory fields can't be made optional - " + e.getMessage());
+		   throw new GeneralCustomException(ERROR, e.getMessage());
+	   }
+	   catch(Exception e) {
+		   log.error("Mandatory fields can't be made optional - " + e.getMessage());
+		   throw new GeneralCustomException(ERROR, e.getMessage());
+	   }
    }
 
 }

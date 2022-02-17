@@ -85,6 +85,11 @@ public final class AppConstants {
 	public static final String SMS_NOTIFICATION_FAILED="Provided mobileNo is not valid";
 	public static final String EMAIL_EXIST_VALIDATION_MESSAGE ="Email exist in database. Please provide different email";
 	
+	public static final String FIRST_NAME_MANDATORY_MESSAGE="First Name can't be made optional";
+	public static final String LAST_NAME_MANDATORY_MESSAGE="Last Name can't be made optional";
+	public static final String MOBILENO_MANDATORY_MESSAGE="Mobile number can't be made optional";
+	public static final String EMAIL_MANDATORY_MESSAGE="Email can't be made optional";
+	
 	
 //===========Till Here--------------------------------------------
 
