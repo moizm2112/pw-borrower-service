@@ -6,7 +6,9 @@ import static com.paywallet.userservice.user.constant.AppConstants.SMS_NOTIFICAT
 import static com.paywallet.userservice.user.constant.AppConstants.SMS_NOTIFICATION_SUCCESS;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -14,15 +16,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
@@ -37,19 +37,18 @@ import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
 import com.paywallet.userservice.user.model.AccountDetails;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
+import com.paywallet.userservice.user.model.CustomerRequestFields;
 import com.paywallet.userservice.user.model.CustomerResponseDTO;
-import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
-import com.paywallet.userservice.user.model.FineractLenderCreationResponseDTO;
-import com.paywallet.userservice.user.model.FineractUpdateLenderResponseDTO;
 import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.RequestIdResponseDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerDetailsResponseDTO;
-import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
 import com.paywallet.userservice.user.model.ValidateAccountRequest;
 import com.paywallet.userservice.user.repository.CustomerRepository;
+import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository;
 import com.paywallet.userservice.user.util.CustomerServiceUtil;
 import com.paywallet.userservice.user.util.NotificationUtil;
 import com.paywallet.userservice.user.util.RequestIdUtil;
@@ -75,6 +74,9 @@ public class CustomerService {
     CustomerRepository customerRepository;
     
     @Autowired
+    CustomerRequestFieldsRepository customerRequestFieldsRepository; 
+    
+    @Autowired
     CustomerServiceHelper customerServiceHelper;
     
     @Autowired
@@ -88,6 +90,9 @@ public class CustomerService {
 
     @Autowired
     RequestIdUtil requestIdUtil;
+    
+    @Autowired
+    CustomerFieldValidator customerFieldValidator;
 
     @Value("${lyons.api.baseURL}")
     private String lyonsBaseURL;
@@ -121,6 +126,8 @@ public class CustomerService {
     
     @Value("${createVirtualAccount.eureka.uri}")
     private String createVirtualAccountUri;
+    
+    private RequestIdResponseDTO requestIdResponseDTO;
 
     /**
      * Method fetches customer details by mobileNo
@@ -181,12 +188,16 @@ public class CustomerService {
         RequestIdDetails requestIdDtls = null;
         try 
         {
-        	RequestIdResponseDTO  requestIdResponseDTO = customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate);
-        	requestIdDtls = requestIdResponseDTO.getData();
-	        if(requestIdDtls.getUserId() != null && requestIdDtls.getUserId().length() > 0) {
-	        	log.error("Customerservice createcustomer generalCustomException Create customer failed as request id and customer id already exist in database.");
-	        	throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
-	        }
+//        	RequestIdResponseDTO  requestIdResponseDTO = customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate);
+//        	requestIdDtls = requestIdResponseDTO.getData();
+//	        if(requestIdDtls.getUserId() != null && requestIdDtls.getUserId().length() > 0) {
+//	        	log.error("Customerservice createcustomer generalCustomException Create customer failed as request id and customer id already exist in database.");
+//	        	throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
+//	        }
+        	requestIdDtls = validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
+        	
+        	validateCreateCustomerRequest(customer, requestId, requestIdDtls.getEmployer(), requestIdDtls.getClientName());
+        	
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
 	        	log.info("Exsiting customer with new requestID : " + requestId);
@@ -554,9 +565,9 @@ public class CustomerService {
         	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) { 
 //        		if (((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerEmailIdDTO.getEmployerName())) {
 	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerEmailIdDTO.getMobileNo());
-	                if(customerDetailsByMobileNo.isPresent()){
-//	                	Optional<CustomerDetails> checkForEmailIdInDB= customerRepository.findByPersonalProfileEmailId(updateCustomerEmailIdDTO.getNewEmailId());
-//		                if(!checkForEmailIdInDB.isPresent()) {
+	                if(customerDetailsByMobileNo.isPresent()) {
+	                	Optional<CustomerDetails> checkForEmailIdInDB= customerRepository.findByPersonalProfileEmailId(updateCustomerEmailIdDTO.getNewEmailId());
+		                if(!checkForEmailIdInDB.isPresent()) {
 		                	custDetails = customerDetailsByMobileNo.get();
 		                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
 		                    log.info("Customer details are getting updated...");
@@ -585,11 +596,11 @@ public class CustomerService {
 		        				log.error("EmailId do not match with the existing customer details");
 		                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getEmailId() +") do not match with the existing customer details");
 		        			}
-//		                }
-//		                else {
-//		                	log.error("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
-//		                    throw new CustomerNotFoundException("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
-//		                }
+		                }
+		                else {
+		                	log.error("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
+		                    throw new CustomerNotFoundException("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
+		                }
 	                } else {
 	                    log.error("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
 	                    throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
@@ -727,6 +738,154 @@ public class CustomerService {
 	   }
 	   log.info("createAndSendSMSAndEmailNotification response : " + notificationResponse);
 	   return notificationResponse;
+   }
+   
+   public void validateCreateCustomerRequest(CreateCustomerRequest customerRequest, String requestId, String employer, String lender){
+	   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
+	   try {
+		   Optional<CustomerRequestFields> optionalCustomerRequestFields = customerRequestFieldsRepository.findByEmployer(employer);
+		   if(optionalCustomerRequestFields.isPresent()) {
+			   CustomerRequestFields customerRequestFields = Optional.ofNullable(optionalCustomerRequestFields.get())
+					   .orElseThrow(()-> new GeneralCustomException(ERROR, "Exception occured while fetching required fields for employer"));
+			   if("YES".equalsIgnoreCase(customerRequestFields.getFirstName())) {
+				   List<String> errorList = customerFieldValidator.validateFirstName(customerRequest.getFirstName());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("First Name", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getLastName())) {
+				   List<String> errorList = customerFieldValidator.validateLastName(customerRequest.getLastName());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Last Name", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getMobileNo())) {
+				   List<String> errorList = customerFieldValidator.validateMobileNo(customerRequest.getMobileNo());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Mobile Number", errorList);
+			   }
+			   
+			   if("YES".equalsIgnoreCase(customerRequestFields.getMiddleName())) {
+				   List<String> errorList = customerFieldValidator.validateMiddleName(customerRequest.getMiddleName());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Middle Name", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getAddressLine1())) {
+				   List<String> errorList = customerFieldValidator.validateAddressLine1(customerRequest.getAddressLine1());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Address Line1", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getAddressLine2())) {
+				   List<String> errorList = customerFieldValidator.validateAddressLine2(customerRequest.getAddressLine2());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Address Line2", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getCity())) {
+				   List<String> errorList = customerFieldValidator.validateCity(customerRequest.getCity());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("City", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getState())) {
+				   List<String> errorList = customerFieldValidator.validateState(customerRequest.getState());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("State", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getZip())) {
+				   List<String> errorList = customerFieldValidator.validateZip(customerRequest.getZip());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Zip", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getLast4TIN())) {
+				   List<String> errorList = customerFieldValidator.validateLast4TIN(customerRequest.getLast4TIN());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Last 4TIN", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getDateOfBirth())) {
+				   List<String> errorList = customerFieldValidator.validateDateOfBirth(customerRequest.getDateOfBirth());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Date Of Birth", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getEmailId())) {
+				   List<String> errorList = customerFieldValidator.validateEmailId(customerRequest.getEmailId(), customerRepository);
+				   if(errorList.size() > 0)
+					   mapErrorList.put("EmailId", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getCallbackURLs())) {
+				   List<String> errorList = customerFieldValidator.validateCallbackURLs(customerRequest.getCallbackURLs());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Callback URLS", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getFirstDateOfPayment())) {
+				   List<String> errorList = customerFieldValidator.validateFirstDateOfPayment(customerRequest.getFirstDateOfPayment(), lender);
+				   if(errorList.size() > 0)
+					   mapErrorList.put("First Date Of Payment", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getRepaymentFrequency())) {
+				   List<String> errorList = customerFieldValidator.validateRepaymentFrequency(customerRequest.getRepaymentFrequency());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Repayment Frequency", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment())) {
+				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getTotalNoOfRepayment());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Total Number Of Repayment", errorList);
+			   }
+			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount())) {
+				   List<String> errorList = customerFieldValidator.validateInstallmentAmount(customerRequest.getInstallmentAmount());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Installment Amount", errorList);
+			   }
+			   
+			   if(mapErrorList.size() > 0) {
+				   ObjectMapper objectMapper = new ObjectMapper();
+				   String json = "";
+			        try {
+			            json = objectMapper.writeValueAsString(mapErrorList);
+			            log.error("Invalid data in customer request - " + json);
+			        } catch (JsonProcessingException e) {
+			        	throw new GeneralCustomException(ERROR, "Invalid data in customer request - " + mapErrorList);
+			        }
+				   throw new GeneralCustomException(ERROR, "Invalid data in customer request - " + json);
+			   }
+			   
+		   } else {
+			   log.error("No data available for given employer in the required fields table");
+			   throw new GeneralCustomException(ERROR, "No data available for given employer in the required fields table");
+		   }
+	   } catch(GeneralCustomException e) {
+		   throw e;
+	   } catch(Exception e) {
+		   log.error("Exception occured while validating the customer capture request");
+		   throw e;
+	   }
+   }
+   
+   public RequestIdDetails validateRequestId(String requestId, String identifyProviderServiceUri, RestTemplate restTemplate) {
+	   RequestIdDetails requestIdDtls = null;
+	   try {
+		   RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
+		   		.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
+			requestIdDtls = requestIdResponseDTO.getData();
+			if(StringUtils.isEmpty(requestIdDtls.getUserId()) && StringUtils.length(requestIdDtls.getUserId()) > 0) {
+				log.error("Customerservice createcustomer - Create customer failed as request id and customer id already exist in database.");
+				throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
+		   }
+	   }
+	   catch(Exception e) {
+		   log.error("Exception occured while fetching request Id details");
+	   }
+	   return requestIdDtls;
+   }
+   
+   public boolean addCustomerRequiredFields(CustomerRequestFields customerRequestFields) {
+	   boolean isSuccess = false;
+	   try {
+		   CustomerRequestFields customerRequestFieldsResponse = customerRequestFieldsRepository.save(customerRequestFields);
+		   if(customerRequestFieldsResponse != null)
+			   isSuccess = true;
+	   }catch(Exception e) {
+		   log.error("Customerservice addCustomerRequiredFields - addCustomerRequiredFields failed.");
+			throw new GeneralCustomException(ERROR ,"Customerservice addCustomerRequiredFields - addCustomerRequiredFields failed.");
+	   }
+	   return isSuccess;
    }
 
 }
