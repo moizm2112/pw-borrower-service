@@ -38,7 +38,7 @@ public class CommonUtil {
 		boolean isDateValid = false;
 
 		try {
-			if (StringUtils.isNotBlank(date)) {
+			if (StringUtils.isNotBlank(date) && StringUtils.isNotBlank(clientName)) {
 				LocalDate dateFormatted = LocalDate.parse(date,
 						DateTimeFormatter.ofPattern("uuuu-M-d").withResolverStyle(ResolverStyle.STRICT));
 				LocalDate validFirstFirstDateOfPayment = findValidFirstFirstDateOfPayment(clientName);

@@ -869,8 +869,13 @@ public class CustomerService {
 				throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
 		   }
 	   }
+	   catch(ServiceNotAvailableException e) {
+		   log.error("Exception occured while fetching request Id details- Service unavailable");
+		   throw new ServiceNotAvailableException(ERROR ,e.getMessage());
+	   }
 	   catch(Exception e) {
 		   log.error("Exception occured while fetching request Id details");
+		   throw new GeneralCustomException(ERROR ,e.getMessage());
 	   }
 	   return requestIdDtls;
    }

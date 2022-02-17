@@ -89,7 +89,7 @@ public class CustomerFieldValidator {
 		if (!checkFieldForValidPattern(regex, firstName)) {
 			errorList.add(FIRST_NAME_VALIDATION_MESSAGE);
 		}
-		if (StringUtils.length(firstName) < 3) {
+		if (firstName != null && StringUtils.length(firstName) < 3) {
 			errorList.add(FIRST_NAME_LENGTH_VALIDATION_MESSAGE);
 		}
 		return errorList;
@@ -104,7 +104,7 @@ public class CustomerFieldValidator {
 		if (!checkFieldForValidPattern(regex, lastName)) {
 			errorList.add(LAST_NAME_VALIDATION_MESSAGE);
 		}
-		if (StringUtils.length(lastName) < 2) {
+		if (lastName != null && StringUtils.length(lastName) < 2) {
 			errorList.add(LAST_NAME_LENGTH_VALIDATION_MESSAGE);
 		}
 		return errorList;
@@ -119,7 +119,7 @@ public class CustomerFieldValidator {
 		if (!checkFieldForValidPattern(regex, mobileNo)) {
 			errorList.add(MOBILENO_FORMAT_VALIDATION_MESSAGE);
 		}
-		if (!(StringUtils.length(mobileNo) >= 10 && StringUtils.length(mobileNo) < 13)) {
+		if (mobileNo != null && !(StringUtils.length(mobileNo) >= 10 && StringUtils.length(mobileNo) < 13)) {
 			errorList.add(MOBILENO_LENGTH_VALIDATION_MESSAGE);
 		}
 		return errorList;
@@ -134,7 +134,7 @@ public class CustomerFieldValidator {
 		if (!checkFieldForValidPattern(regex, middleName)) {
 			errorList.add(MIDDLE_NAME_VALIDATION_MESSAGE);
 		}
-		if (StringUtils.length(middleName) < 2) {
+		if (middleName != null && StringUtils.length(middleName) < 2) {
 			errorList.add(MIDDLE_NAME_LENGTH_VALIDATION_MESSAGE);
 		}
 		return errorList;
@@ -185,7 +185,7 @@ public class CustomerFieldValidator {
 		if (!checkFieldForValidPattern(regex, state)) {
 			errorList.add(STATE_VALIDATION_MESSAGE);
 		}
-		if (!EnumUtils.isValidEnum(StateEnum.class, state))
+		if (state != null && !EnumUtils.isValidEnum(StateEnum.class, state))
 			errorList.add(STATE_NOT_VALID_MESSAGE);
 
 		return errorList;
@@ -281,7 +281,7 @@ public class CustomerFieldValidator {
 			errorList.add(REPAYMENTFREQUENCY_NULL_VALIDATION_MESSAGE);
 		}
 		
-		if(!EnumUtils.isValidEnum(RepaymentFrequencyModeEnum.class, repaymentFrequency))
+		if(repaymentFrequency != null && !EnumUtils.isValidEnum(RepaymentFrequencyModeEnum.class, repaymentFrequency))
 			errorList.add(REPAYMENTFREQUENCY_NOT_VALID_MESSAGE);
 		
 		return errorList;
@@ -299,10 +299,12 @@ public class CustomerFieldValidator {
 		}
 
 		try {
-			Optional<CustomerDetails> checkForEmailIdInDB = customerRepository
-					.findByPersonalProfileEmailId(emailId);
-			if(checkForEmailIdInDB.isPresent()) {
-				errorList.add(EMAIL_EXIST_VALIDATION_MESSAGE);
+			if(emailId != null) {
+				Optional<CustomerDetails> checkForEmailIdInDB = customerRepository
+						.findByPersonalProfileEmailId(emailId);
+				if(checkForEmailIdInDB.isPresent()) {
+					errorList.add(EMAIL_EXIST_VALIDATION_MESSAGE);
+				}
 			}
 		}catch(Exception e) {
 			errorList.add(EMAIL_EXIST_VALIDATION_MESSAGE);
@@ -339,11 +341,12 @@ public class CustomerFieldValidator {
 	}
 
 	public boolean checkFieldForValidPattern(String regexPattern, String fieldValue) {
-
-		Pattern pattern = Pattern.compile(regexPattern);
-		Matcher m = pattern.matcher(fieldValue);
-
-		return m.matches();
+		if(fieldValue != null) {
+			Pattern pattern = Pattern.compile(regexPattern);
+			Matcher m = pattern.matcher(fieldValue);
+			return m.matches();
+		}
+		return false;
 	}
 	
 	public boolean dateOfBirthCheck(String date) {
