@@ -10,6 +10,7 @@ import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOM
 import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_MOBILENO;
 import static com.paywallet.userservice.user.constant.AppConstants.VALIDATE_CUSTOMER_ACCOUNT;
 import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
+import static com.paywallet.userservice.user.constant.AppConstants.ADD_REQUIRED_FIELDS;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -39,6 +40,7 @@ import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.model.AccountDetails;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
+import com.paywallet.userservice.user.model.CustomerRequestFields;
 import com.paywallet.userservice.user.model.CustomerResponseDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerDetailsResponseDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
@@ -191,6 +193,20 @@ public class CustomerController {
         UpdateCustomerDetailsResponseDTO updateCustomerDetailsResponseDTO = customerService.updateCustomerEmailId(updateCustomerEmailIdDTO, requestId);
         return customerService.prepareUpdateResponse(updateCustomerDetailsResponseDTO, CommonEnum.UPDATE_EMAILID_SUCCESS_STATUS_MSG.getMessage(),
         		HttpStatus.OK.value(), request.getRequestURI());
+    }
+    
+    @PostMapping(ADD_REQUIRED_FIELDS)
+    public ResponseEntity<Object> addCustomerRequiredFields(@Valid @RequestBody CustomerRequestFields customerRequestFields,
+    		HttpServletRequest request)
+    		throws MethodArgumentNotValidException, CreateCustomerException, RequestIdNotFoundException {
+        log.debug("Inside addCustomerRequiredFields -  Customer controller " + customerRequestFields);
+        boolean isSuccess = customerService.addCustomerRequiredFields(customerRequestFields);
+        if(isSuccess)
+        	return ResponseEntity.status(HttpStatus.OK)
+                .body("Success");
+        else
+        	return ResponseEntity.status(HttpStatus.OK)
+                    .body("Failed");		
     }
 
 }
