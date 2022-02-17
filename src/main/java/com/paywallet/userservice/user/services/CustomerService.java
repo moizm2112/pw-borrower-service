@@ -946,6 +946,10 @@ public class CustomerService {
 				   errorList.add(AppConstants.EMAIL_MANDATORY_MESSAGE);
 				   mapErrorList.put("Email", errorList);
 			   }
+			   if(StringUtils.isNotBlank(customerRequestFields.getCallbackURLs()) && customerRequestFields.getCallbackURLs().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.CALLBACKS_MANDATORY_MESSAGE);
+				   mapErrorList.put("Callback URL", errorList);
+			   }
 			   
 			   if(mapErrorList.size() > 0) {
 				   ObjectMapper objectMapper = new ObjectMapper();
