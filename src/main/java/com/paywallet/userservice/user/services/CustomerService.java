@@ -196,7 +196,7 @@ public class CustomerService {
 //	        }
         	requestIdDtls = validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
         	
-        	validateCreateCustomerRequest(customer, requestId, requestIdDtls.getEmployer(), requestIdDtls.getClientName());
+        	validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
         	
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
@@ -746,10 +746,10 @@ public class CustomerService {
 	   return notificationResponse;
    }
    
-   public void validateCreateCustomerRequest(CreateCustomerRequest customerRequest, String requestId, String employer, String lender){
+   public void validateCreateCustomerRequest(CreateCustomerRequest customerRequest, String requestId, String lender){
 	   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
 	   try {
-		   Optional<CustomerRequestFields> optionalCustomerRequestFields = customerRequestFieldsRepository.findByEmployer(employer);
+		   Optional<CustomerRequestFields> optionalCustomerRequestFields = customerRequestFieldsRepository.findByLender(lender);
 		   if(optionalCustomerRequestFields.isPresent()) {
 			   CustomerRequestFields customerRequestFields = Optional.ofNullable(optionalCustomerRequestFields.get())
 					   .orElseThrow(()-> new GeneralCustomException(ERROR, "Exception occured while fetching required fields for employer"));
@@ -891,7 +891,7 @@ public class CustomerService {
 	   boolean isSuccess = false;
 	   try {
 		   validateCustomerRequestFields(customerRequestFields);
-		   Optional<CustomerRequestFields> optCustomerRequestFields =  customerRequestFieldsRepository.findByEmployer(customerRequestFields.getEmployer());
+		   Optional<CustomerRequestFields> optCustomerRequestFields =  customerRequestFieldsRepository.findByLender(customerRequestFields.getLender());
 		   if(optCustomerRequestFields.isPresent()) {
 			   CustomerRequestFields customerRequestFieldsResp = optCustomerRequestFields.get();
 			   customerRequestFieldsRepository.deleteById(customerRequestFieldsResp.getId());

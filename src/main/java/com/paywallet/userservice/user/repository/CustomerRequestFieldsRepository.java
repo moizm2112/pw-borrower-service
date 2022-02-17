@@ -10,6 +10,6 @@ import com.paywallet.userservice.user.model.CustomerRequestFields;
 @Repository
 public interface CustomerRequestFieldsRepository extends MongoRepository<CustomerRequestFields, String> {
 
-	Optional<CustomerRequestFields> findByEmployer(String employer);
+	Optional<CustomerRequestFields> findByLender(String lender);
 	
 }
