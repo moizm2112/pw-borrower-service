@@ -119,7 +119,7 @@ public class CustomerFieldValidator {
 		if (!checkFieldForValidPattern(regex, mobileNo)) {
 			errorList.add(MOBILENO_FORMAT_VALIDATION_MESSAGE);
 		}
-		if (mobileNo != null && !(StringUtils.length(mobileNo) >= 10 && StringUtils.length(mobileNo) < 13)) {
+		if (mobileNo != null && !(StringUtils.length(mobileNo) >= 10 && StringUtils.length(mobileNo) <= 13)) {
 			errorList.add(MOBILENO_LENGTH_VALIDATION_MESSAGE);
 		}
 		return errorList;
@@ -287,7 +287,7 @@ public class CustomerFieldValidator {
 		return errorList;
 	}
 
-	public List<String> validateEmailId(String emailId, CustomerRepository customerRepository) {
+	public List<String> validateEmailId(String emailId, CustomerRepository customerRepository, String mobileNo) {
 		List<String> errorList = new ArrayList<String>();
 		if (StringUtils.isBlank(emailId)) {
 			errorList.add(EMAIL_NULL_VALIDATION_MESSAGE);
@@ -299,12 +299,15 @@ public class CustomerFieldValidator {
 		}
 
 		try {
-			if(emailId != null) {
-				Optional<CustomerDetails> checkForEmailIdInDB = customerRepository
-						.findByPersonalProfileEmailId(emailId);
-				if(checkForEmailIdInDB.isPresent()) {
-					errorList.add(EMAIL_EXIST_VALIDATION_MESSAGE);
-				}
+			if(emailId != null && mobileNo != null) {
+				Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(mobileNo);
+		        if (!byMobileNo.isPresent()) {
+		        	Optional<CustomerDetails> checkForEmailIdInDB = customerRepository
+							.findByPersonalProfileEmailId(emailId);
+					if(checkForEmailIdInDB.isPresent()) {
+						errorList.add(EMAIL_EXIST_VALIDATION_MESSAGE);
+					}
+		        }
 			}
 		}catch(Exception e) {
 			errorList.add(EMAIL_EXIST_VALIDATION_MESSAGE);

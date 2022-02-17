@@ -811,7 +811,7 @@ public class CustomerService {
 					   mapErrorList.put("Date Of Birth", errorList);
 			   }
 			   if("YES".equalsIgnoreCase(customerRequestFields.getEmailId())) {
-				   List<String> errorList = customerFieldValidator.validateEmailId(customerRequest.getEmailId(), customerRepository);
+				   List<String> errorList = customerFieldValidator.validateEmailId(customerRequest.getEmailId(), customerRepository, customerRequest.getMobileNo());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("EmailId", errorList);
 			   }
