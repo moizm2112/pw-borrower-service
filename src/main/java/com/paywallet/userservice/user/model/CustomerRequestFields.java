@@ -14,7 +14,7 @@ public class CustomerRequestFields {
 	@Id
 	private String id;
 	
-	private String employer;
+	private String lender;
 	
 	@AddRequiredFieldsCheck
     private String middleName;
