@@ -323,24 +323,40 @@ public class CustomerFieldValidator {
 		}
 		else
 		{
-			if(!(callBackURL.getIdentityCallbackUrls() != null && ((ArrayList<String>)callBackURL.getIdentityCallbackUrls()).size() > 0)) {
+			if(!(callBackURL.getIdentityCallbackUrls() != null && ((ArrayList<String>)callBackURL.getIdentityCallbackUrls()).size() > 0 
+					&& !checkForEmptyStringInArray(callBackURL.getIdentityCallbackUrls()))) {
 				errorList.add(CALLBACK_IDENTITYURL_NULL_VALIDATION_MESSAGE);
 			}
-			if(!(callBackURL.getEmploymentCallbackUrls() != null && ((ArrayList<String>)callBackURL.getEmploymentCallbackUrls()).size() > 0)) {
+			if(!(callBackURL.getEmploymentCallbackUrls() != null && ((ArrayList<String>)callBackURL.getEmploymentCallbackUrls()).size() > 0
+					&& !checkForEmptyStringInArray(callBackURL.getEmploymentCallbackUrls()))) {
 				errorList.add(CALLBACK_EMPLOYMENTURL_NULL_VALIDATION_MESSAGE);
 			}
-			if(!(callBackURL.getIncomeCallbackUrls() != null && ((ArrayList<String>)callBackURL.getIncomeCallbackUrls()).size() > 0)) {
+			if(!(callBackURL.getIncomeCallbackUrls() != null && ((ArrayList<String>)callBackURL.getIncomeCallbackUrls()).size() > 0
+					&& !checkForEmptyStringInArray(callBackURL.getIncomeCallbackUrls()))) {
 				errorList.add(CALLBACK_INCOMEURL_NULL_VALIDATION_MESSAGE);
 			}
-			if(!(callBackURL.getAllocationCallbackUrls() != null && ((ArrayList<String>)callBackURL.getAllocationCallbackUrls()).size() > 0)) {
+			if(!(callBackURL.getAllocationCallbackUrls() != null && ((ArrayList<String>)callBackURL.getAllocationCallbackUrls()).size() > 0
+					&& !checkForEmptyStringInArray(callBackURL.getAllocationCallbackUrls()))) {
 				errorList.add(CALLBACK_ALLOCATIONURL_NULL_VALIDATION_MESSAGE);
 			}
-			if(!(callBackURL.getInsufficientFundCallbackUrls() != null && ((ArrayList<String>)callBackURL.getInsufficientFundCallbackUrls()).size() > 0)) {
+			if(!(callBackURL.getInsufficientFundCallbackUrls() != null && ((ArrayList<String>)callBackURL.getInsufficientFundCallbackUrls()).size() > 0
+					&& !checkForEmptyStringInArray(callBackURL.getInsufficientFundCallbackUrls()))) {
 				errorList.add(CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE);
 			}
 		}
 		
 		return errorList;
+	}
+	
+	public boolean checkForEmptyStringInArray(List<String> lsCallBackUrls) {
+		
+		if(lsCallBackUrls.size() > 0) {
+			for (String string : lsCallBackUrls) {
+				if(StringUtils.isBlank(string))
+					return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean checkFieldForValidPattern(String regexPattern, String fieldValue) {
