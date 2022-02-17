@@ -13,7 +13,10 @@ public enum CommonEnum {
     SUCCESS_STATUS_MSG("SUCCESS"),
     UPDATE_MOBILENO_SUCCESS_STATUS_MSG("Customer Mobile number updated Successfully"),
     UPDATE_EMAILID_SUCCESS_STATUS_MSG("Customer Email updated Successfully"),
+    CUSTOMER_CREATED("CUSTOMER_CREATED"),
+    PAY_CYCLE("paycycle"),
     FAILED_STATUS_MSG("FAILED"),
+    
 
     SUCCESS_HTTP_RESPONSE_MSG(200,"Success");
 	

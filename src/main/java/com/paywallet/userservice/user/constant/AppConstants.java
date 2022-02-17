@@ -89,7 +89,8 @@ public final class AppConstants {
 	public static final String LAST_NAME_MANDATORY_MESSAGE="Last Name can't be made optional";
 	public static final String MOBILENO_MANDATORY_MESSAGE="Mobile number can't be made optional";
 	public static final String EMAIL_MANDATORY_MESSAGE="Email can't be made optional";
-	
+
+	public static final String LENDER_NAME="lenderName";
 	
 //===========Till Here--------------------------------------------
 

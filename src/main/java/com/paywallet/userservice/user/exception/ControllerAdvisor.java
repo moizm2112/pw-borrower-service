@@ -235,5 +235,19 @@ public class ControllerAdvisor {
         body.put("timestamp", new Date());
         return new ResponseEntity<Object> (body, HttpStatus.BAD_REQUEST);
     }
+
+	@ExceptionHandler(OfferPayAllocationException.class)
+	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+	public ResponseEntity<Object> handleOfferPayAllocationException(OfferPayAllocationException offerPayAllocationException, HttpServletRequest request) {
+		String path = request.getRequestURI();
+		log.error(offerPayAllocationException.getMessage());
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("code", HttpStatus.BAD_REQUEST.toString());
+		body.put("message", offerPayAllocationException.getMessage());
+		body.put("timestamp", new Date());
+		body.put("path", path);
+		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+	}
+
 	
 }

@@ -89,6 +89,8 @@ public class CreateCustomerRequest {
 //    @JsonInclude(JsonInclude.Include. NON_NULL)
     private int installmentAmount;
 
+
+
     @Override
     public String toString(){
         return new StringBuilder("{")
