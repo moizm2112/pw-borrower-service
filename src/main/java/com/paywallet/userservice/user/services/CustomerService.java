@@ -625,8 +625,14 @@ public class CustomerService {
     		throw new GeneralCustomException(ERROR, e.getMessage());
     	}
     	catch(Exception e) {
-    		log.error("Exception occured while updating emailId customer details " + e.getMessage());
-    		throw new GeneralCustomException(ERROR, e.getMessage());
+    		if(e.getMessage().contains("returned non unique result")) {
+    			log.error("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
+                throw new CustomerNotFoundException("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
+    		}
+    		else {
+	    		log.error("Exception occured while updating emailId customer details " + e.getMessage());
+	    		throw new GeneralCustomException(ERROR, e.getMessage());
+    		}
     	}
     	return updateCustomerDetailsResponseDTO;
     }
