@@ -887,9 +887,15 @@ public class CustomerService {
 	   boolean isSuccess = false;
 	   try {
 		   validateCustomerRequestFields(customerRequestFields);
+		   Optional<CustomerRequestFields> optCustomerRequestFields =  customerRequestFieldsRepository.findByEmployer(customerRequestFields.getEmployer());
+		   if(optCustomerRequestFields.isPresent()) {
+			   CustomerRequestFields customerRequestFieldsResp = optCustomerRequestFields.get();
+			   customerRequestFieldsRepository.deleteById(customerRequestFieldsResp.getId());
+		   }
 		   CustomerRequestFields customerRequestFieldsResponse = customerRequestFieldsRepository.save(customerRequestFields);
 		   if(customerRequestFieldsResponse != null)
 			   isSuccess = true;
+		   
 	   }catch(GeneralCustomException e) {
 		   log.error("Customerservice addCustomerRequiredFields - " + e.getMessage());
 		   throw new GeneralCustomException(ERROR, e.getMessage());
