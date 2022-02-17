@@ -1,14 +1,6 @@
 package com.paywallet.userservice.user.model;
 
-import static com.paywallet.userservice.user.constant.AppConstants.*;
-
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.paywallet.userservice.user.util.*;
+import com.paywallet.userservice.user.util.CustomerServiceUtil;
 
 import lombok.Data;
 

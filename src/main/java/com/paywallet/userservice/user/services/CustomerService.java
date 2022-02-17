@@ -465,41 +465,48 @@ public class CustomerService {
 //	        	if( ((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerMobileNoDTO.getEmployerName())) {
 	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerMobileNoDTO.getMobileNo());
 	                if(customerDetailsByMobileNo.isPresent()){
-	                	Optional<CustomerDetails> checkForMobileNumberinDB= customerRepository.findByPersonalProfileMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
-		                if(!checkForMobileNumberinDB.isPresent()){
-		                	custDetails = customerDetailsByMobileNo.get();
-		                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
-		                    log.info("Customer details are getting updated...");
-		                    
-		                    
-		                    if(!custDetails.getPersonalProfile().getMobileNo().equalsIgnoreCase(updateCustomerMobileNoDTO.getMobileNo())) {
-		                    	log.error("Customer does nor exist for the given mobileNumber");
-		                        throw new CustomerNotFoundException("Provided mobile number does not match the customer data. Please provide a valid mobile number.");
-		                    }
-		                    
-		                    if(custDetails.getPersonalProfile().getMobileNo().equalsIgnoreCase(updateCustomerMobileNoDTO.getNewMobileNo())) {
-		                    	log.error("Updating mobile Number should be different from existing mobile number");
-		                        throw new CustomerNotFoundException("Updating Mobile Number (" + updateCustomerMobileNoDTO.getNewMobileNo() +") should be different from existing mobile number");
-		                    }
-		                    
-		                	// Make an fineract call to update the external Id and mobileNo.
-		                    customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getNewMobileNo(), custDetails.getVirtualClientId());
-		                    isMobileNoUpdatedInFineract = true;
-		                	//Update the Customer table
-		                	custDetails.getPersonalProfile().setMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
-		                	custDetails.setRequestId(requestId);
-		                	
-		                	updateCustomerDetailsResponseDTO.setRequestId(requestId);
-		                	updateCustomerDetailsResponseDTO.setMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
-		                	updateCustomerDetailsResponseDTO.setCustomerId(custDetails.getCustomerId());
-		                	
-		                	log.info("Customer mobile number updated successfully");
-		                	custDetails = customerRepository.save(custDetails);
-		                	isMobileNoUpdatedInCustomerDetails = true;
-		                }
-		                else {
-		                	log.error("Updating mobile number "+updateCustomerMobileNoDTO.getNewMobileNo()+" exist in database");
-		                    throw new CustomerNotFoundException("Updating mobile number "+updateCustomerMobileNoDTO.getNewMobileNo()+" exist in database");
+	                	custDetails = customerDetailsByMobileNo.get();
+	                	if(requestIdDtls.getUserId().equalsIgnoreCase(custDetails.getCustomerId())) {
+		                	Optional<CustomerDetails> checkForMobileNumberinDB= customerRepository.findByPersonalProfileMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
+			                if(!checkForMobileNumberinDB.isPresent()){
+			                	
+			                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
+			                    log.info("Customer details are getting updated...");
+			                    
+			                    
+			                    if(!custDetails.getPersonalProfile().getMobileNo().equalsIgnoreCase(updateCustomerMobileNoDTO.getMobileNo())) {
+			                    	log.error("Customer does nor exist for the given mobileNumber");
+			                        throw new CustomerNotFoundException("Provided mobile number does not match the customer data. Please provide a valid mobile number.");
+			                    }
+			                    
+			                    if(custDetails.getPersonalProfile().getMobileNo().equalsIgnoreCase(updateCustomerMobileNoDTO.getNewMobileNo())) {
+			                    	log.error("Updating mobile Number should be different from existing mobile number");
+			                        throw new CustomerNotFoundException("Updating Mobile Number (" + updateCustomerMobileNoDTO.getNewMobileNo() +") should be different from existing mobile number");
+			                    }
+			                    
+			                	// Make an fineract call to update the external Id and mobileNo.
+			                    customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getNewMobileNo(), custDetails.getVirtualClientId());
+			                    isMobileNoUpdatedInFineract = true;
+			                	//Update the Customer table
+			                	custDetails.getPersonalProfile().setMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
+			                	custDetails.setRequestId(requestId);
+			                	
+			                	updateCustomerDetailsResponseDTO.setRequestId(requestId);
+			                	updateCustomerDetailsResponseDTO.setMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
+			                	updateCustomerDetailsResponseDTO.setCustomerId(custDetails.getCustomerId());
+			                	
+			                	log.info("Customer mobile number updated successfully");
+			                	custDetails = customerRepository.save(custDetails);
+			                	isMobileNoUpdatedInCustomerDetails = true;
+			                }
+			                else {
+			                	log.error("Updating mobile number "+updateCustomerMobileNoDTO.getNewMobileNo()+" exist in database");
+			                    throw new CustomerNotFoundException("Updating mobile number "+updateCustomerMobileNoDTO.getNewMobileNo()+" exist in database");
+			                }
+	                	}
+	                	else {
+		                	log.error("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
+		                    throw new CustomerNotFoundException("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
 		                }
 	                } else {
 	                    log.error("Customer do not exists with the mobile number: "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
@@ -566,40 +573,47 @@ public class CustomerService {
 //        		if (((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerEmailIdDTO.getEmployerName())) {
 	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerEmailIdDTO.getMobileNo());
 	                if(customerDetailsByMobileNo.isPresent()) {
-	                	Optional<CustomerDetails> checkForEmailIdInDB= customerRepository.findByPersonalProfileEmailId(updateCustomerEmailIdDTO.getNewEmailId());
-		                if(!checkForEmailIdInDB.isPresent()) {
-		                	custDetails = customerDetailsByMobileNo.get();
-		                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
-		                    log.info("Customer details are getting updated...");
-		                    
-	                		if(!custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
-		                    	log.error("Customer does not exist for the given emailId");
-		                        throw new CustomerNotFoundException("Customer does not exist for the provided emailId (" + updateCustomerEmailIdDTO.getEmailId() +")");
-	                		}
-	                		
-	                		if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getNewEmailId()))  {
-	                    		log.error("Updating EmailId should be different from existing emailId");
-		                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getNewEmailId() +") should be different from existing emailId");
-		                    }
-		                    
-		                    if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
-		                    	custDetails.getPersonalProfile().setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
-			                	log.info("Customer Email Id updated successfully");
-			                	custDetails =  customerRepository.save(custDetails);
-			                	custDetails.setRequestId(requestId);
-			                	updateCustomerDetailsResponseDTO.setRequestId(requestId);
-			                	updateCustomerDetailsResponseDTO.setMobileNo(updateCustomerEmailIdDTO.getMobileNo());
-			                	updateCustomerDetailsResponseDTO.setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
-			                	updateCustomerDetailsResponseDTO.setCustomerId(custDetails.getCustomerId());
-		                    }
-		                    else {
-		        				log.error("EmailId do not match with the existing customer details");
-		                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getEmailId() +") do not match with the existing customer details");
-		        			}
-		                }
-		                else {
-		                	log.error("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
-		                    throw new CustomerNotFoundException("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
+	                	custDetails = customerDetailsByMobileNo.get();
+	                	if(requestIdDtls.getUserId().equalsIgnoreCase(custDetails.getCustomerId())) {
+		                	Optional<CustomerDetails> checkForEmailIdInDB= customerRepository.findByPersonalProfileEmailId(updateCustomerEmailIdDTO.getNewEmailId());
+			                if(!checkForEmailIdInDB.isPresent()) {
+			                	
+			                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
+			                    log.info("Customer details are getting updated...");
+			                    
+		                		if(!custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
+			                    	log.error("Customer does not exist for the given emailId");
+			                        throw new CustomerNotFoundException("Customer does not exist for the provided emailId (" + updateCustomerEmailIdDTO.getEmailId() +")");
+		                		}
+		                		
+		                		if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getNewEmailId()))  {
+		                    		log.error("Updating EmailId should be different from existing emailId");
+			                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getNewEmailId() +") should be different from existing emailId");
+			                    }
+			                    
+			                    if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
+			                    	custDetails.getPersonalProfile().setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
+				                	log.info("Customer Email Id updated successfully");
+				                	custDetails =  customerRepository.save(custDetails);
+				                	custDetails.setRequestId(requestId);
+				                	updateCustomerDetailsResponseDTO.setRequestId(requestId);
+				                	updateCustomerDetailsResponseDTO.setMobileNo(updateCustomerEmailIdDTO.getMobileNo());
+				                	updateCustomerDetailsResponseDTO.setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
+				                	updateCustomerDetailsResponseDTO.setCustomerId(custDetails.getCustomerId());
+			                    }
+			                    else {
+			        				log.error("EmailId do not match with the existing customer details");
+			                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getEmailId() +") do not match with the existing customer details");
+			        			}
+			                }
+			                else {
+			                	log.error("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
+			                    throw new CustomerNotFoundException("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
+			                }
+	                	}
+	                	else {
+	                		log.error("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
+		                    throw new CustomerNotFoundException("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
 		                }
 	                } else {
 	                    log.error("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
@@ -753,89 +767,89 @@ public class CustomerService {
 		   if(optionalCustomerRequestFields.isPresent()) {
 			   CustomerRequestFields customerRequestFields = Optional.ofNullable(optionalCustomerRequestFields.get())
 					   .orElseThrow(()-> new GeneralCustomException(ERROR, "Exception occured while fetching required fields for employer"));
-			   if("YES".equalsIgnoreCase(customerRequestFields.getFirstName())) 
+			   if("YES".equalsIgnoreCase(customerRequestFields.getFirstName()) || StringUtils.isNotBlank(customerRequest.getFirstName())) 
 			   {
 				   List<String> errorList = customerFieldValidator.validateFirstName(customerRequest.getFirstName());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("First Name", errorList);
 			   } 
-			   if("YES".equalsIgnoreCase(customerRequestFields.getLastName())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getLastName()) || StringUtils.isNotBlank(customerRequest.getLastName())) {
 				   List<String> errorList = customerFieldValidator.validateLastName(customerRequest.getLastName());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Last Name", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getMobileNo())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getMobileNo()) || StringUtils.isNotBlank(customerRequest.getMobileNo())) {
 				   List<String> errorList = customerFieldValidator.validateMobileNo(customerRequest.getMobileNo());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Mobile Number", errorList);
 			   }
 			   
-			   if("YES".equalsIgnoreCase(customerRequestFields.getMiddleName())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getMiddleName()) || StringUtils.isNotBlank(customerRequest.getMiddleName())) {
 				   List<String> errorList = customerFieldValidator.validateMiddleName(customerRequest.getMiddleName());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Middle Name", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getAddressLine1())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getAddressLine1()) || StringUtils.isNotBlank(customerRequest.getAddressLine1())) {
 				   List<String> errorList = customerFieldValidator.validateAddressLine1(customerRequest.getAddressLine1());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Address Line1", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getAddressLine2())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getAddressLine2()) || StringUtils.isNotBlank(customerRequest.getAddressLine2())) {
 				   List<String> errorList = customerFieldValidator.validateAddressLine2(customerRequest.getAddressLine2());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Address Line2", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getCity())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getCity()) || StringUtils.isNotBlank(customerRequest.getCity())) {
 				   List<String> errorList = customerFieldValidator.validateCity(customerRequest.getCity());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("City", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getState())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getState()) || StringUtils.isNotBlank(customerRequest.getState())) {
 				   List<String> errorList = customerFieldValidator.validateState(customerRequest.getState());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("State", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getZip())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getZip()) || StringUtils.isNotEmpty(customerRequest.getZip())) {
 				   List<String> errorList = customerFieldValidator.validateZip(customerRequest.getZip());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Zip", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getLast4TIN())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getLast4TIN()) || StringUtils.isNotBlank(customerRequest.getLast4TIN())) {
 				   List<String> errorList = customerFieldValidator.validateLast4TIN(customerRequest.getLast4TIN());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Last 4TIN", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getDateOfBirth())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getDateOfBirth()) || StringUtils.isNotBlank(customerRequest.getDateOfBirth())) {
 				   List<String> errorList = customerFieldValidator.validateDateOfBirth(customerRequest.getDateOfBirth());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Date Of Birth", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getEmailId())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getEmailId()) || StringUtils.isNotEmpty(customerRequest.getEmailId())) {
 				   List<String> errorList = customerFieldValidator.validateEmailId(customerRequest.getEmailId(), customerRepository, customerRequest.getMobileNo());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("EmailId", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getCallbackURLs())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getCallbackURLs()) || customerRequest.getCallbackURLs() != null) {
 				   List<String> errorList = customerFieldValidator.validateCallbackURLs(customerRequest.getCallbackURLs());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Callback URLS", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getFirstDateOfPayment())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getFirstDateOfPayment()) || StringUtils.isNotBlank(customerRequest.getFirstDateOfPayment())) {
 				   List<String> errorList = customerFieldValidator.validateFirstDateOfPayment(customerRequest.getFirstDateOfPayment(), lender);
 				   if(errorList.size() > 0)
 					   mapErrorList.put("First Date Of Payment", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getRepaymentFrequency())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getRepaymentFrequency()) || StringUtils.isNotEmpty(customerRequest.getRepaymentFrequency())) {
 				   List<String> errorList = customerFieldValidator.validateRepaymentFrequency(customerRequest.getRepaymentFrequency());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Repayment Frequency", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment()) || customerRequest.getTotalNoOfRepayment() > 0) {
 				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getTotalNoOfRepayment());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Total Number Of Repayment", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount()) || customerRequest.getInstallmentAmount() > 0) {
 				   List<String> errorList = customerFieldValidator.validateInstallmentAmount(customerRequest.getInstallmentAmount());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Installment Amount", errorList);
@@ -854,8 +868,8 @@ public class CustomerService {
 			   }
 			   
 		   } else {
-			   log.error("No data available for given employer in the required fields table");
-			   throw new GeneralCustomException(ERROR, "No data available for given employer in the required fields table");
+			   log.error("No data available for given lender in the required fields table");
+			   throw new GeneralCustomException(ERROR, "No data available for given lender in the required fields table");
 		   }
 	   } catch(GeneralCustomException e) {
 		   throw e;
@@ -871,7 +885,7 @@ public class CustomerService {
 		   RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
 			requestIdDtls = requestIdResponseDTO.getData();
-			if(StringUtils.isEmpty(requestIdDtls.getUserId()) && StringUtils.length(requestIdDtls.getUserId()) > 0) {
+			if(StringUtils.isNotBlank(requestIdDtls.getUserId())) {
 				log.error("Customerservice createcustomer - Create customer failed as request id and customer id already exist in database.");
 				throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
 		   }
@@ -916,19 +930,19 @@ public class CustomerService {
 	   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
 	   try {
 		   if(customerRequestFields != null) {
-			   if(customerRequestFields.getFirstName() != null && customerRequestFields.getFirstName().equalsIgnoreCase("NO")) {
+			   if(StringUtils.isNotBlank(customerRequestFields.getFirstName()) && customerRequestFields.getFirstName().equalsIgnoreCase("NO")) {
 				   errorList.add(AppConstants.FIRST_NAME_MANDATORY_MESSAGE);
 				   mapErrorList.put("First Name", errorList);
 			   }
-			   if(customerRequestFields.getLastName() != null && customerRequestFields.getLastName().equalsIgnoreCase("NO")) {
+			   if(StringUtils.isNotBlank(customerRequestFields.getLastName()) && customerRequestFields.getLastName().equalsIgnoreCase("NO")) {
 				   errorList.add(AppConstants.LAST_NAME_MANDATORY_MESSAGE);
 				   mapErrorList.put("Last Name", errorList);
 			   }
-			   if(customerRequestFields.getMobileNo() != null && customerRequestFields.getMobileNo().equalsIgnoreCase("NO")) {
+			   if(StringUtils.isNotBlank(customerRequestFields.getMobileNo()) && customerRequestFields.getMobileNo().equalsIgnoreCase("NO")) {
 				   errorList.add(AppConstants.MOBILENO_MANDATORY_MESSAGE);
 				   mapErrorList.put("Mobile Number", errorList);
 			   }
-			   if(customerRequestFields.getEmailId() != null && customerRequestFields.getEmailId().equalsIgnoreCase("NO")) {
+			   if(StringUtils.isNotBlank(customerRequestFields.getEmailId()) && customerRequestFields.getEmailId().equalsIgnoreCase("NO")) {
 				   errorList.add(AppConstants.EMAIL_MANDATORY_MESSAGE);
 				   mapErrorList.put("Email", errorList);
 			   }
