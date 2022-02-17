@@ -129,8 +129,6 @@ public class CustomerService {
     @Value("${createVirtualAccount.eureka.uri}")
     private String createVirtualAccountUri;
     
-    private RequestIdResponseDTO requestIdResponseDTO;
-
     /**
      * Method fetches customer details by mobileNo
      * @param customerId
@@ -213,7 +211,7 @@ public class CustomerService {
 	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(), identifyProviderServiceUri, restTemplate, customer);
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
-	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
+	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
 	
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
@@ -230,7 +228,7 @@ public class CustomerService {
 	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
 	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, restTemplate, customer);
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
-	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdResponseDTO.getData(), saveCustomer);
+	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
 	            log.info("Customer got created successfully");
 	        }
     	}
