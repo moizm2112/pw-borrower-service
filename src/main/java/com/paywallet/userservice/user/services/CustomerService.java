@@ -575,41 +575,47 @@ public class CustomerService {
 	                if(customerDetailsByMobileNo.isPresent()) {
 	                	custDetails = customerDetailsByMobileNo.get();
 	                	if(requestIdDtls.getUserId().equalsIgnoreCase(custDetails.getCustomerId())) {
-		                	Optional<CustomerDetails> checkForEmailIdInDB= customerRepository.findByPersonalProfileEmailId(updateCustomerEmailIdDTO.getNewEmailId());
-			                if(!checkForEmailIdInDB.isPresent()) {
-			                	
-			                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
-			                    log.info("Customer details are getting updated...");
-			                    
-		                		if(!custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
-			                    	log.error("Customer does not exist for the given emailId");
-			                        throw new CustomerNotFoundException("Customer does not exist for the provided emailId (" + updateCustomerEmailIdDTO.getEmailId() +")");
-		                		}
-		                		
-		                		if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getNewEmailId()))  {
-		                    		log.error("Updating EmailId should be different from existing emailId");
-			                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getNewEmailId() +") should be different from existing emailId");
-			                    }
-			                    
-			                    if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
-			                    	custDetails.getPersonalProfile().setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
-				                	log.info("Customer Email Id updated successfully");
-				                	custDetails =  customerRepository.save(custDetails);
-				                	custDetails.setRequestId(requestId);
-				                	updateCustomerDetailsResponseDTO.setRequestId(requestId);
-				                	updateCustomerDetailsResponseDTO.setMobileNo(updateCustomerEmailIdDTO.getMobileNo());
-				                	updateCustomerDetailsResponseDTO.setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
-				                	updateCustomerDetailsResponseDTO.setCustomerId(custDetails.getCustomerId());
-			                    }
-			                    else {
-			        				log.error("EmailId do not match with the existing customer details");
-			                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getEmailId() +") do not match with the existing customer details");
-			        			}
-			                }
-			                else {
-			                	log.error("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
-			                    throw new CustomerNotFoundException("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
-			                }
+	                		if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
+			                	Optional<CustomerDetails> checkForEmailIdInDB= customerRepository.findByPersonalProfileEmailId(updateCustomerEmailIdDTO.getNewEmailId());
+				                if(!checkForEmailIdInDB.isPresent()) {
+				                	
+				                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
+				                    log.info("Customer details are getting updated...");
+				                    
+			                		if(!custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
+				                    	log.error("Customer does not exist for the given emailId");
+				                        throw new CustomerNotFoundException("Customer does not exist for the provided emailId (" + updateCustomerEmailIdDTO.getEmailId() +")");
+			                		}
+			                		
+			                		if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getNewEmailId()))  {
+			                    		log.error("Updating EmailId should be different from existing emailId");
+				                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getNewEmailId() +") should be different from existing emailId");
+				                    }
+				                    
+				                    if(custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
+				                    	custDetails.getPersonalProfile().setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
+					                	log.info("Customer Email Id updated successfully");
+					                	custDetails =  customerRepository.save(custDetails);
+					                	custDetails.setRequestId(requestId);
+					                	updateCustomerDetailsResponseDTO.setRequestId(requestId);
+					                	updateCustomerDetailsResponseDTO.setMobileNo(updateCustomerEmailIdDTO.getMobileNo());
+					                	updateCustomerDetailsResponseDTO.setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
+					                	updateCustomerDetailsResponseDTO.setCustomerId(custDetails.getCustomerId());
+				                    }
+				                    else {
+				        				log.error("EmailId do not match with the existing customer details");
+				                        throw new CustomerNotFoundException("EmailId (" + updateCustomerEmailIdDTO.getEmailId() +") do not match with the existing customer details");
+				        			}
+				                }
+				                else {
+				                	log.error("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
+				                    throw new CustomerNotFoundException("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
+				                }
+	                		}
+	                		else {
+	                			log.error("Provided email doesn't match with the customer's email");
+			                    throw new CustomerNotFoundException("\"Provided email "+updateCustomerEmailIdDTO.getEmailId()+" doesn't match with the customer's email.");
+	                		}
 	                	}
 	                	else {
 	                		log.error("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
