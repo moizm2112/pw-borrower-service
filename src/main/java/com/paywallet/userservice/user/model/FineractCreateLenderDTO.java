@@ -6,9 +6,14 @@ import lombok.Setter;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 @Data
 @Getter
 @Setter
+@JsonInclude(value = Include.NON_NULL)
 public class FineractCreateLenderDTO {
     private String firstname;
     private String lastname;
@@ -16,7 +21,6 @@ public class FineractCreateLenderDTO {
 //    private String displayName;
     private String externalId;
     private String mobileNo;
-    private String dateOfBirth;
     private String dateFormat; //"dd MMMM yyyy"
     private String locale; //en
     private Boolean active;
