@@ -31,7 +31,7 @@ public class LinkServiceUtil {
     public StateControllerInfo getStateInfo(String requestId, String lenderName) {
 
         String endUrl = UriComponentsBuilder.fromHttpUrl(adminServiceUrl).
-                queryParam(AppConstants.LENDER_NAME).encode().toUriString();
+                queryParam(AppConstants.LENDER_NAME,lenderName).encode().toUriString();
         HttpHeaders httpHeaders = prepareHeader();
         httpHeaders.set(AppConstants.REQUEST_ID, requestId);
         return restHelper.get(endUrl, httpHeaders, StateControllerInfo.class);
