@@ -972,8 +972,10 @@ public class CustomerService {
 
     private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer) {
         String requestId = requestIdDetails.getRequestId();
+        log.info(" Inside check And SavePayAllocation : Request ID : {} ",requestId);
         try {
             StateControllerInfo stateControllerInfo = linkServiceUtil.getStateInfo(requestId, requestIdDetails.getClientName());
+            log.info(" response from stateControllerInfo {} : Request id : {} ",stateControllerInfo,requestId);
             boolean allocationStatus = linkServiceUtil.checkStateInfo(stateControllerInfo);
             if (allocationStatus) {
                 OfferPayAllocationRequest offerPayAllocationRequest = linkServiceUtil.prepareCheckAffordabilityRequest(customer);
