@@ -76,6 +76,8 @@ public final class AppConstants {
 	public static final String CALLBACK_INCOMEURL_NULL_VALIDATION_MESSAGE="Callback income url can't be blank.";
 	public static final String CALLBACK_ALLOCATIONURL_NULL_VALIDATION_MESSAGE="Callback allocation url can't be blank.";
 	public static final String CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE="Callback Insufficient Fund url can't be blank.";
+	public static final String CALLBACK_NOTIFICATIONURL_NULL_VALIDATION_MESSAGE="Callback Notification url can't be blank.";
+	
 	
 	
 	public static final String REQUEST_ID="x-request-id";

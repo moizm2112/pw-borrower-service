@@ -343,6 +343,11 @@ public class CustomerFieldValidator {
 					&& !checkForEmptyStringInArray(callBackURL.getInsufficientFundCallbackUrls()))) {
 				errorList.add(CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE);
 			}
+			if(!(callBackURL.getNotificationUrls() != null && ((ArrayList<String>)callBackURL.getNotificationUrls()).size() > 0
+					&& !checkForEmptyStringInArray(callBackURL.getNotificationUrls()))) {
+				errorList.add(CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE);
+			}
+			
 		}
 		
 		return errorList;
