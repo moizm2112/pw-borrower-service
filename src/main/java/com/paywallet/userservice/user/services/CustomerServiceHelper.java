@@ -8,6 +8,8 @@ import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
 import com.paywallet.userservice.user.model.*;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,12 +111,13 @@ public class CustomerServiceHelper {
 		fineractCreateAccountDTO.setLocale("en");
 		fineractCreateAccountDTO.setActive(true);
 		DateFormat df = new SimpleDateFormat("dd MMMM yyyy");
-		DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd");
-		Date d1 = df1.parse(customerEntity.getPersonalProfile().getDateOfBirth());
 		String requiredDate = df.format(new Date()).toString();
-
-		String dateOfBirth = df.format(d1);
-		fineractCreateAccountDTO.setDateOfBirth(dateOfBirth);
+//		if(StringUtils.isNotBlank(customerEntity.getPersonalProfile().getDateOfBirth())) {
+//			DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd");
+//			Date d1 = df1.parse(customerEntity.getPersonalProfile().getDateOfBirth());
+//			String dateOfBirth = df.format(d1);
+//			fineractCreateAccountDTO.setDateOfBirth(dateOfBirth);
+//		}
 		fineractCreateAccountDTO.setActivationDate(requiredDate);
 		fineractCreateAccountDTO.setSubmittedOnDate(requiredDate);
 		fineractCreateAccountDTO.setOfficeId(Long.valueOf("1"));

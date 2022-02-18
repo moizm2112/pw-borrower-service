@@ -76,6 +76,8 @@ public final class AppConstants {
 	public static final String CALLBACK_INCOMEURL_NULL_VALIDATION_MESSAGE="Callback income url can't be blank.";
 	public static final String CALLBACK_ALLOCATIONURL_NULL_VALIDATION_MESSAGE="Callback allocation url can't be blank.";
 	public static final String CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE="Callback Insufficient Fund url can't be blank.";
+	public static final String CALLBACK_NOTIFICATIONURL_NULL_VALIDATION_MESSAGE="Callback Notification url can't be blank.";
+	
 	
 	
 	public static final String REQUEST_ID="x-request-id";
@@ -89,9 +91,9 @@ public final class AppConstants {
 	public static final String LAST_NAME_MANDATORY_MESSAGE="Last Name can't be made optional";
 	public static final String MOBILENO_MANDATORY_MESSAGE="Mobile number can't be made optional";
 	public static final String EMAIL_MANDATORY_MESSAGE="Email can't be made optional";
-
 	public static final String LENDER_NAME="lenderName";
-	
+	public static final String CALLBACKS_MANDATORY_MESSAGE="Callback URL's can't be made optional";
+		
 //===========Till Here--------------------------------------------
 
 
