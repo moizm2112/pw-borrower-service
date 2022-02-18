@@ -59,7 +59,7 @@ public class LinkServiceUtil {
         return OfferPayAllocationRequest.builder()
                 .installmentAmount(String.valueOf(customer.getInstallmentAmount()))
                 .firstRepaymentDate(customer.getFirstDateOfPayment())
-                .numberOfInstallment(Integer.parseInt(customer.getRepaymentFrequency()))
+                .numberOfInstallment(customer.getTotalNoOfRepayment())
                 .build();
     }
 
