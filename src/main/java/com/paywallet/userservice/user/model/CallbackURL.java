@@ -14,7 +14,7 @@ public class CallbackURL {
 	private List<String> employmentCallbackUrls;
 	private List<String> incomeCallbackUrls;
 	private List<String> allocationCallbackUrls;
-	private List<String> insufficientFundCallbackUrls;;
+	private List<String> insufficientFundCallbackUrls;
 	private List<String> notificationUrls;
 
 }
