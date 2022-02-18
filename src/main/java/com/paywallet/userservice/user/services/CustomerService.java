@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.paywallet.userservice.user.entities.OfferPayAllocationRequest;
+import com.paywallet.userservice.user.entities.OfferPayAllocationResponse;
+import com.paywallet.userservice.user.exception.*;
+import com.paywallet.userservice.user.model.*;
+import com.paywallet.userservice.user.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,32 +33,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
-import com.paywallet.userservice.user.exception.CreateCustomerException;
-import com.paywallet.userservice.user.exception.CustomerAccountException;
-import com.paywallet.userservice.user.exception.CustomerNotFoundException;
-import com.paywallet.userservice.user.exception.FineractAPIException;
-import com.paywallet.userservice.user.exception.GeneralCustomException;
-import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
-import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
-import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
-import com.paywallet.userservice.user.model.AccountDetails;
-import com.paywallet.userservice.user.model.CreateCustomerRequest;
-import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
-import com.paywallet.userservice.user.model.CustomerRequestFields;
-import com.paywallet.userservice.user.model.CustomerResponseDTO;
-import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
-import com.paywallet.userservice.user.model.RequestIdDetails;
-import com.paywallet.userservice.user.model.RequestIdResponseDTO;
-import com.paywallet.userservice.user.model.UpdateCustomerDetailsResponseDTO;
-import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
-import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
-import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
-import com.paywallet.userservice.user.model.ValidateAccountRequest;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository;
-import com.paywallet.userservice.user.util.CustomerServiceUtil;
-import com.paywallet.userservice.user.util.NotificationUtil;
-import com.paywallet.userservice.user.util.RequestIdUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -128,6 +109,12 @@ public class CustomerService {
     
     @Value("${createVirtualAccount.eureka.uri}")
     private String createVirtualAccountUri;
+
+    @Autowired
+    KafkaPublisherUtil kafkaPublisherUtil;
+
+    @Autowired
+    LinkServiceUtil linkServiceUtil;
     
     /**
      * Method fetches customer details by mobileNo
@@ -197,7 +184,9 @@ public class CustomerService {
         	requestIdDtls = validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
         	
         	validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
-        	
+
+            checkAndSavePayAllocation(requestIdDtls,customer);
+
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
 	        	log.info("Exsiting customer with new requestID : " + requestId);
@@ -208,11 +197,12 @@ public class CustomerService {
 	            	saveCustomer.setLender(requestIdDtls.getClientName());
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
 	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
-	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(), identifyProviderServiceUri, restTemplate, customer);
+	            saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(), identifyProviderServiceUri, restTemplate, customer);
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
-	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-	
+	           // String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
+	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer);
+
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
 	            CustomerDetails customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customer);
@@ -228,7 +218,8 @@ public class CustomerService {
 	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
 	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, restTemplate, customer);
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
-	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
+	            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
+                kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer);
 	            log.info("Customer got created successfully");
 	        }
     	}
@@ -978,6 +969,23 @@ public class CustomerService {
 		   throw new GeneralCustomException(ERROR, e.getMessage());
 	   }
    }
+
+    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer) {
+        String requestId = requestIdDetails.getRequestId();
+        try {
+            StateControllerInfo stateControllerInfo = linkServiceUtil.getStateInfo(requestId, requestIdDetails.getClientName());
+            boolean allocationStatus = linkServiceUtil.checkStateInfo(stateControllerInfo);
+            if (allocationStatus) {
+                OfferPayAllocationRequest offerPayAllocationRequest = linkServiceUtil.prepareCheckAffordabilityRequest(customer);
+                OfferPayAllocationResponse offerPayAllocationResponse = linkServiceUtil.postCheckAffordabilityRequest(offerPayAllocationRequest, requestId);
+                log.info(" offerPayAllocationResponse : {} : requestId {} ", offerPayAllocationResponse, requestId);
+            }
+        } catch (Exception ex) {
+            log.error(" Error while doing checkAndSavePayAllocation {}  : requestId {} ", ex.getMessage(), requestId);
+            throw new OfferPayAllocationException(" save allocation failed : " + ex.getMessage());
+        }
+
+    }
 
 }
 
