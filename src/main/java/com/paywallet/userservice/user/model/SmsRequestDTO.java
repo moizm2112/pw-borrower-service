@@ -15,6 +15,7 @@ public class SmsRequestDTO {
 		private String body;
 		private String requestor;
 		private String requestId;
+		private String requestType;
 	
 	
 }

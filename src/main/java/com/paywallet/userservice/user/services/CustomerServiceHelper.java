@@ -186,6 +186,7 @@ public class CustomerServiceHelper {
 	    	requestIdDTO.setIncomeCallbackUrls(callbackURL.getIncomeCallbackUrls());
 	    	requestIdDTO.setAllocationCallbackUrls(callbackURL.getAllocationCallbackUrls());
 	    	requestIdDTO.setInsufficientFundCallbackUrls(callbackURL.getInsufficientFundCallbackUrls());
+			requestIdDTO.setNotificationUrls(callbackURL.getNotificationUrls());
     	}
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
