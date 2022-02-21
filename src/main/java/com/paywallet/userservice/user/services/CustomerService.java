@@ -850,12 +850,12 @@ public class CustomerService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Repayment Frequency", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment()) || customerRequest.getTotalNoOfRepayment() > 0) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment()) || customerRequest.getTotalNoOfRepayment() >= 0) {
 				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getTotalNoOfRepayment());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Total Number Of Repayment", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount()) || customerRequest.getInstallmentAmount() > 0) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount()) || customerRequest.getInstallmentAmount() >= 0) {
 				   List<String> errorList = customerFieldValidator.validateInstallmentAmount(customerRequest.getInstallmentAmount());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Installment Amount", errorList);
