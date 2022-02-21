@@ -1,49 +1,6 @@
 package com.paywallet.userservice.user.services;
 
-import static com.paywallet.userservice.user.constant.AppConstants.ADDRESSLINE1_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ADDRESSLINE2_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ADDRESS_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACKURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACK_ALLOCATIONURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACK_EMPLOYMENTURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACK_IDENTITYURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACK_INCOMEURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CITY_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CITY_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.DOB_FORMAT_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.DOB_INVALID_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.DOB_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_EXIST_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_FORMAT_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.FIRSTDATEOFPAYMENT_FORMAT_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.FIRSTDATEOFPAYMENT_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.FIRST_NAME_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.FIRST_NAME_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.FIRST_NAME_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.INSTALLMENTAMOUNT_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST4TIN_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST4TIN_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST4TIN_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST_NAME_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST_NAME_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST_NAME_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MIDDLE_NAME_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MIDDLE_NAME_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MIDDLE_NAME_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_FORMAT_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.REPAYMENTFREQUENCY_NOT_VALID_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.REPAYMENTFREQUENCY_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.STATE_NOT_VALID_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.STATE_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.STATE_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.TOTALNOOFREPAYMENT_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ZIP_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ZIP_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ZIP_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -280,7 +237,9 @@ public class CustomerFieldValidator {
 		if (StringUtils.isBlank(repaymentFrequency)) {
 			errorList.add(REPAYMENTFREQUENCY_NULL_VALIDATION_MESSAGE);
 		}
-		
+		if(!StringUtils.isAllUpperCase(repaymentFrequency)) {
+			repaymentFrequency = StringUtils.toRootUpperCase(repaymentFrequency);
+		}
 		if(repaymentFrequency != null && !EnumUtils.isValidEnum(RepaymentFrequencyModeEnum.class, repaymentFrequency))
 			errorList.add(REPAYMENTFREQUENCY_NOT_VALID_MESSAGE);
 		
@@ -345,7 +304,7 @@ public class CustomerFieldValidator {
 			}
 			if(!(callBackURL.getNotificationUrls() != null && ((ArrayList<String>)callBackURL.getNotificationUrls()).size() > 0
 					&& !checkForEmptyStringInArray(callBackURL.getNotificationUrls()))) {
-				errorList.add(CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE);
+				errorList.add(CALLBACK_NOTIFICATIONURL_NULL_VALIDATION_MESSAGE);
 			}
 			
 		}
