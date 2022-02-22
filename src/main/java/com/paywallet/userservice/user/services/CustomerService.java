@@ -185,8 +185,6 @@ public class CustomerService {
         	
         	validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
 
-            checkAndSavePayAllocation(requestIdDtls,customer);
-
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
 	        	log.info("Exsiting customer with new requestID : " + requestId);
@@ -222,6 +220,7 @@ public class CustomerService {
                 kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer);
 	            log.info("Customer got created successfully");
 	        }
+            checkAndSavePayAllocation(requestIdDtls,customer);
     	}
         catch(GeneralCustomException e) {
         	log.error("Customerservice createcustomer generalCustomException");
