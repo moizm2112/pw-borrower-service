@@ -17,7 +17,7 @@ public class KafkaPublisherUtil {
     @Autowired
     KafkaProducerService kafkaProducerService;
 
-    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails) {
+    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails,int installmentAmount) {
         try {
             LinkServiceInfo linkServiceInfo = LinkServiceInfo.builder()
                     .requestId(requestIdDtls.getRequestId())
@@ -26,7 +26,7 @@ public class KafkaPublisherUtil {
                     .phoneNumber(customerDetails.getPersonalProfile().getMobileNo())
                     .email(customerDetails.getPersonalProfile().getEmailId())
                     .employer(requestIdDtls.getEmployer())
-                    .installmentAmount(String.valueOf(customerDetails.getInstallmentAmount()))
+                    .installmentAmount(String.valueOf(installmentAmount))
                     .payCycle(CommonEnum.PAY_CYCLE.getMessage()).build();
             StatusEnum statusEnum = kafkaProducerService.publishLinkServiceInfo(linkServiceInfo);
             log.info(" requestId : {}  publish status  : {} ", requestIdDtls.getRequestId(), statusEnum);

@@ -199,7 +199,7 @@ public class CustomerService {
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	           // String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer);
+	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount());
 
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
@@ -217,7 +217,7 @@ public class CustomerService {
 	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, restTemplate, customer);
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-                kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer);
+                kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount());
 	            log.info("Customer got created successfully");
 	        }
             checkAndSavePayAllocation(requestIdDtls,customer);
