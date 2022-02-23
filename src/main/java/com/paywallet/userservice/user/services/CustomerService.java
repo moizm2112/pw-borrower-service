@@ -451,7 +451,9 @@ public class CustomerService {
     		RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
         			.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
         	RequestIdDetails requestIdDtls = requestIdResponseDTO.getData();
-        	
+        	if(StringUtils.isBlank(requestIdDtls.getUserId())) {
+        		throw new CustomerNotFoundException("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
+        	}
         	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) {
 //	        	if( ((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerMobileNoDTO.getEmployerName())) {
 	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerMobileNoDTO.getMobileNo());
@@ -559,7 +561,9 @@ public class CustomerService {
     		RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
         			.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
         	RequestIdDetails requestIdDtls = requestIdResponseDTO.getData();
-        	
+        	if(StringUtils.isBlank(requestIdDtls.getUserId())) {
+        		throw new CustomerNotFoundException("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
+        	}
         	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) { 
 //        		if (((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerEmailIdDTO.getEmployerName())) {
 	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerEmailIdDTO.getMobileNo());
