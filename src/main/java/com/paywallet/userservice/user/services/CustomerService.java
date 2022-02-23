@@ -827,7 +827,7 @@ public class CustomerService {
 					   mapErrorList.put("EmailId", errorList);
 			   }
 			   if("YES".equalsIgnoreCase(customerRequestFields.getCallbackURLs()) || customerRequest.getCallbackURLs() != null) {
-				   List<String> errorList = customerFieldValidator.validateCallbackURLs(customerRequest.getCallbackURLs());
+				   List<String> errorList = customerFieldValidator.validateCallbackURLs(customerRequest.getCallbackURLs(), restTemplate , requestId, lender);
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Callback URLS", errorList);
 			   }
