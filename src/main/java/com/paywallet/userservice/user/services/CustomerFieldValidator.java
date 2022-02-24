@@ -231,17 +231,17 @@ public class CustomerFieldValidator {
 		return errorList;
 	}
 	
-	public List<String> validateTotalNoOfRepayment(int totalNoOfRepayment) {
+	public List<String> validateTotalNoOfRepayment(Integer totalNoOfRepayment) {
 		List<String> errorList = new ArrayList<String>();
-		if (totalNoOfRepayment <= 0) {
+		if (totalNoOfRepayment == null || totalNoOfRepayment <= 0) {
 			errorList.add(TOTALNOOFREPAYMENT_NULL_VALIDATION_MESSAGE);
 		}
 		return errorList;
 	}
 	
-	public List<String> validateInstallmentAmount(int installmentAmount) {
+	public List<String> validateInstallmentAmount(Integer installmentAmount) {
 		List<String> errorList = new ArrayList<String>();
-		if (installmentAmount <= 0) {
+		if (installmentAmount == null || installmentAmount <= 0) {
 			errorList.add(INSTALLMENTAMOUNT_NULL_VALIDATION_MESSAGE);
 		}
 		return errorList;
@@ -266,7 +266,7 @@ public class CustomerFieldValidator {
 		if (StringUtils.isBlank(emailId)) {
 			errorList.add(EMAIL_NULL_VALIDATION_MESSAGE);
 		}
-		String regex = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
+		String regex = "^(?=.{1,64}@)[A-Za-z0-9+_-]+(\\.[A-Za-z0-9+_-]+)*@"
 				+ "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
 		if (!checkFieldForValidPattern(regex, emailId)) {
 			errorList.add(EMAIL_FORMAT_VALIDATION_MESSAGE);

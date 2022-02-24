@@ -9,7 +9,7 @@ public enum CommonEnum {
 	SERVICE_UNAVAILABLE("Service Unavailable"),
 
 	CUSTOMER_CREATED_SUCCESS_MSG("Customer created successfully"),
-	CUSTOMER_EXIST_SUCCESS_MSG("Customer already exist for the given mobileNo in database"),
+	CUSTOMER_EXIST_SUCCESS_MSG("Request linked to the existing customer successfully"),
     SUCCESS_STATUS_MSG("SUCCESS"),
     UPDATE_MOBILENO_SUCCESS_STATUS_MSG("Customer Mobile number updated Successfully"),
     UPDATE_EMAILID_SUCCESS_STATUS_MSG("Customer Email updated Successfully"),

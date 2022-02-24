@@ -9,6 +9,9 @@ import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOM
 import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_EMAILID;
 import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_MOBILENO;
 import static com.paywallet.userservice.user.constant.AppConstants.VALIDATE_CUSTOMER_ACCOUNT;
+
+import java.util.Optional;
+
 import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 import static com.paywallet.userservice.user.constant.AppConstants.ADD_REQUIRED_FIELDS;
 
@@ -74,8 +77,11 @@ public class CustomerController {
     		throws MethodArgumentNotValidException, CreateCustomerException, RequestIdNotFoundException {
         log.debug("Inside Create Customer controller " + customer);
         CustomerDetails customerDetails = customerService.createCustomer(customer, requestId);
+        if(customerDetails.isExistingCustomer())
+        	return customerService.prepareResponse(customerDetails, CommonEnum.CUSTOMER_EXIST_SUCCESS_MSG.getMessage(),
+        			HttpStatus.OK.value(), request.getRequestURI());
         return customerService.prepareResponse(customerDetails, CommonEnum.CUSTOMER_CREATED_SUCCESS_MSG.getMessage(),
-				HttpStatus.CREATED.value(), request.getRequestURI());		
+        		HttpStatus.CREATED.value(), request.getRequestURI());		
     }
     
     /**
