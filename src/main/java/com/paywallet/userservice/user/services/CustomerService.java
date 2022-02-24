@@ -516,8 +516,8 @@ public class CustomerService {
 //	        	}
         	}
         	else {
-        		log.error("Customer details cannot be updated. Active allocation exist for the given mobile number.");
-                throw new CustomerNotFoundException("Customer details cannot be updated. Active allocation exist for the given mobile number : "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
+        		log.error("Request id is completed. Hence can't do an update");
+                throw new CustomerNotFoundException("Request id is completed. Hence can't do an update");
         	}
     	}catch(FineractAPIException e) {
     		log.error("Exception occured in fineract while updating mobile number for given client "+ e.getMessage());
