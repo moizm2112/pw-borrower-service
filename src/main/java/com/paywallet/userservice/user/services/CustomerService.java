@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.enums.CommonEnum;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository;
@@ -184,7 +185,10 @@ public class CustomerService {
         	requestIdDtls = validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
         	
         	validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
-
+        	if(customer.getTotalNoOfRepayment() == null)
+        		customer.setTotalNoOfRepayment(0);
+        	if(customer.getInstallmentAmount() ==null)
+        		customer.setInstallmentAmount(0);
             //checkAndSavePayAllocation(requestIdDtls,customer);
 
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
@@ -629,8 +633,8 @@ public class CustomerService {
 	                
         	}
         	else {
-        		log.error("Customer details cannot be updated. Active allocation exist for the given emailId.");
-                throw new CustomerNotFoundException("Customer details cannot be updated. Active allocation exist for the given emailId : "+updateCustomerEmailIdDTO.getEmailId()+" to update");
+        		log.error("Request id is completed. Hence can't do an update");
+                throw new CustomerNotFoundException("Request id is completed. Hence can't do an update");
         	}
     	}catch(CustomerNotFoundException e) {
     		log.error("Exception occured while updating emailId customer details " + e.getMessage());
@@ -698,7 +702,7 @@ public class CustomerService {
      * @param path
      * @return
      */
-    public ResponseEntity<Object> prepareResponse(CustomerDetails customerDetails, String message, int status, String path) {
+    public ResponseEntity<Object> prepareResponse(CustomerDetails customerDetails, String message,int status, String path) {
     	
     	Map<String, Object> body = new LinkedHashMap<>();
     	body.put("data", customerDetails);
@@ -825,7 +829,7 @@ public class CustomerService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Date Of Birth", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getEmailId()) || StringUtils.isNotEmpty(customerRequest.getEmailId())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getEmailId()) || StringUtils.isNotBlank(customerRequest.getEmailId())) {
 				   List<String> errorList = customerFieldValidator.validateEmailId(customerRequest.getEmailId(), customerRepository, customerRequest.getMobileNo());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("EmailId", errorList);
@@ -840,17 +844,17 @@ public class CustomerService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("First Date Of Payment", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getRepaymentFrequency()) || StringUtils.isNotEmpty(customerRequest.getRepaymentFrequency())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getRepaymentFrequency()) || StringUtils.isNotBlank(customerRequest.getRepaymentFrequency())) {
 				   List<String> errorList = customerFieldValidator.validateRepaymentFrequency(customerRequest.getRepaymentFrequency());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Repayment Frequency", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment()) || customerRequest.getTotalNoOfRepayment() >= 0) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment()) || (("NO".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment())) && customerRequest.getTotalNoOfRepayment() != null && customerRequest.getTotalNoOfRepayment() >= 0)){
 				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getTotalNoOfRepayment());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Total Number Of Repayment", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount()) || customerRequest.getInstallmentAmount() >= 0) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount()) || (("NO".equalsIgnoreCase(customerRequestFields.getInstallmentAmount())) && customerRequest.getInstallmentAmount() != null && customerRequest.getInstallmentAmount() >= 0)) {
 				   List<String> errorList = customerFieldValidator.validateInstallmentAmount(customerRequest.getInstallmentAmount());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Installment Amount", errorList);

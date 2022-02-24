@@ -1,5 +1,8 @@
 package com.paywallet.userservice.user.model;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import com.paywallet.userservice.user.util.CustomerServiceUtil;
 
 import lombok.Data;
@@ -76,10 +79,10 @@ public class CreateCustomerRequest {
     private String repaymentFrequency;
     
 //    @JsonInclude(JsonInclude.Include. NON_NULL)
-    private int totalNoOfRepayment;
+    private Integer totalNoOfRepayment;
     
 //    @JsonInclude(JsonInclude.Include. NON_NULL)
-    private int installmentAmount;
+    private Integer installmentAmount;
 
 
 
