@@ -516,8 +516,8 @@ public class CustomerService {
 //	        	}
         	}
         	else {
-        		log.error("Request id is completed. Hence can't do an update");
-                throw new CustomerNotFoundException("Request id is completed. Hence can't do an update");
+        		log.error("Mobile Number cannot be updated as pay allocation has already been completed");
+                throw new CustomerNotFoundException("Mobile Number cannot be updated as pay allocation has already been completed");
         	}
     	}catch(FineractAPIException e) {
     		log.error("Exception occured in fineract while updating mobile number for given client "+ e.getMessage());
@@ -633,8 +633,8 @@ public class CustomerService {
 	                
         	}
         	else {
-        		log.error("Request id is completed. Hence can't do an update");
-                throw new CustomerNotFoundException("Request id is completed. Hence can't do an update");
+        		log.error("Email Id cannot be updated as pay allocation has already been completed");
+                throw new CustomerNotFoundException("Email Id cannot be updated as pay allocation has already been completed");
         	}
     	}catch(CustomerNotFoundException e) {
     		log.error("Exception occured while updating emailId customer details " + e.getMessage());
