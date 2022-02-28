@@ -43,8 +43,8 @@ public final class AppConstants {
 	
 	
 	
-	public static final String INSTALLMENTAMOUNT_NULL_VALIDATION_MESSAGE="Installment Amount cannot be 0.";
-	public static final String TOTALNOOFREPAYMENT_NULL_VALIDATION_MESSAGE="Total Number Of Repayment cannot be 0.";
+	public static final String INSTALLMENTAMOUNT_NULL_VALIDATION_MESSAGE="Installment Amount should be more than zero.";
+	public static final String TOTALNOOFREPAYMENT_NULL_VALIDATION_MESSAGE="Total Number Of Repayment should be more than zero.";
 	public static final String REPAYMENTFREQUENCY_NULL_VALIDATION_MESSAGE="Repayment frequency can't be blank.";
 	public static final String FIRST_NAME_NULL_VALIDATION_MESSAGE="First Name Can't be blank.";
 	public static final String FIRSTDATEOFPAYMENT_NULL_VALIDATION_MESSAGE="First date of payment can't be blank.";
