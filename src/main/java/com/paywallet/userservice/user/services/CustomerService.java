@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.paywallet.userservice.user.entities.OfferPayAllocationRequest;
+import com.paywallet.userservice.user.entities.OfferPayAllocationResponse;
+import com.paywallet.userservice.user.exception.*;
+import com.paywallet.userservice.user.model.*;
+import com.paywallet.userservice.user.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,32 +33,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
-import com.paywallet.userservice.user.exception.CreateCustomerException;
-import com.paywallet.userservice.user.exception.CustomerAccountException;
-import com.paywallet.userservice.user.exception.CustomerNotFoundException;
-import com.paywallet.userservice.user.exception.FineractAPIException;
-import com.paywallet.userservice.user.exception.GeneralCustomException;
-import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
-import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
-import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
-import com.paywallet.userservice.user.model.AccountDetails;
-import com.paywallet.userservice.user.model.CreateCustomerRequest;
-import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
-import com.paywallet.userservice.user.model.CustomerRequestFields;
-import com.paywallet.userservice.user.model.CustomerResponseDTO;
-import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
-import com.paywallet.userservice.user.model.RequestIdDetails;
-import com.paywallet.userservice.user.model.RequestIdResponseDTO;
-import com.paywallet.userservice.user.model.UpdateCustomerDetailsResponseDTO;
-import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
-import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
-import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
-import com.paywallet.userservice.user.model.ValidateAccountRequest;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository;
-import com.paywallet.userservice.user.util.CustomerServiceUtil;
-import com.paywallet.userservice.user.util.NotificationUtil;
-import com.paywallet.userservice.user.util.RequestIdUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -129,11 +110,11 @@ public class CustomerService {
     @Value("${createVirtualAccount.eureka.uri}")
     private String createVirtualAccountUri;
 
-   /* @Autowired
+    @Autowired
     KafkaPublisherUtil kafkaPublisherUtil;
 
     @Autowired
-    LinkServiceUtil linkServiceUtil;*/
+    LinkServiceUtil linkServiceUtil;
     
     /**
      * Method fetches customer details by mobileNo
