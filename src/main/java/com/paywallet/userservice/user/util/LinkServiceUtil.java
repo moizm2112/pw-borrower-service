@@ -31,7 +31,7 @@ public class LinkServiceUtil {
     public StateControllerInfo getStateInfo(String requestId, String lenderName) {
 
         String endUrl = UriComponentsBuilder.fromHttpUrl(adminServiceUrl).
-                queryParam(AppConstants.LENDER_NAME).encode().toUriString();
+                queryParam(AppConstants.LENDER_NAME,lenderName).encode().toUriString();
         HttpHeaders httpHeaders = prepareHeader();
         httpHeaders.set(AppConstants.REQUEST_ID, requestId);
         return restHelper.get(endUrl, httpHeaders, StateControllerInfo.class);
@@ -65,6 +65,7 @@ public class LinkServiceUtil {
 
     public OfferPayAllocationResponse postCheckAffordabilityRequest(OfferPayAllocationRequest offerPayAllocationRequest,
                                                                     String requestId) {
+        log.info(" initiating allocation : offerPayAllocationRequest : {} : requestId {}",offerPayAllocationRequest,requestId);
         HttpHeaders httpHeaders = prepareHeader();
         httpHeaders.set(AppConstants.REQUEST_ID, requestId);
         HttpEntity httpEntity = new HttpEntity<>(offerPayAllocationRequest, httpHeaders);

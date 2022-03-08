@@ -203,11 +203,13 @@ public class CustomerService {
         	requestIdDtls = validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
         	
         	validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
+          
         	if(customer.getTotalNoOfRepayment() == null)
         		customer.setTotalNoOfRepayment(0);
         	if(customer.getInstallmentAmount() ==null)
         		customer.setInstallmentAmount(0);
-            //checkAndSavePayAllocation(requestIdDtls,customer);
+           checkAndSavePayAllocation(requestIdDtls,customer);
+
 
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
@@ -222,9 +224,8 @@ public class CustomerService {
 	            saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(), identifyProviderServiceUri, restTemplate, customer);
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
-	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-	          // kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer);
-
+	           // String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
+	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount());
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
 	            CustomerDetails customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customer);
@@ -240,10 +241,11 @@ public class CustomerService {
 	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
 	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, restTemplate, customer);
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
-	            String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-               // kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer);
+	            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
+                kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount());
 	            log.info("Customer got created successfully");
 	        }
+            checkAndSavePayAllocation(requestIdDtls,customer);
     	}
         catch(GeneralCustomException e) {
         	log.error("Customerservice createcustomer generalCustomException");
@@ -996,10 +998,12 @@ public class CustomerService {
 	   }
    }
 
-    /*private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer) {
+    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer) {
         String requestId = requestIdDetails.getRequestId();
+        log.info(" Inside check And SavePayAllocation : Request ID : {} ",requestId);
         try {
             StateControllerInfo stateControllerInfo = linkServiceUtil.getStateInfo(requestId, requestIdDetails.getClientName());
+            log.info(" response from stateControllerInfo {} : Request id : {} ",stateControllerInfo,requestId);
             boolean allocationStatus = linkServiceUtil.checkStateInfo(stateControllerInfo);
             if (allocationStatus) {
                 OfferPayAllocationRequest offerPayAllocationRequest = linkServiceUtil.prepareCheckAffordabilityRequest(customer);
@@ -1011,7 +1015,7 @@ public class CustomerService {
             throw new OfferPayAllocationException(" save allocation failed : " + ex.getMessage());
         }
 
-    }*/
+    }
 
 }
 
