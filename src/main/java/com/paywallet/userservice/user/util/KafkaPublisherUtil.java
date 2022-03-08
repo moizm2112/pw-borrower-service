@@ -1,20 +1,20 @@
 package com.paywallet.userservice.user.util;
 
-import com.paywallet.userservice.user.entities.CustomerDetails;
+/*import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.CommonEnum;
 import com.paywallet.userservice.user.enums.StatusEnum;
 import com.paywallet.userservice.user.model.LinkServiceInfo;
 import com.paywallet.userservice.user.model.RequestIdDetails;
-import com.paywallet.userservice.user.services.KafkaProducerService;
+import com.paywallet.userservice.user.services.KafkaProducerService;*/
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+/*import org.springframework.beans.factory.annotation.Autowired;*/
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class KafkaPublisherUtil {
 
-    @Autowired
+   /* @Autowired
     KafkaProducerService kafkaProducerService;
 
     public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails,int installmentAmount) {
@@ -33,5 +33,5 @@ public class KafkaPublisherUtil {
         } catch (Exception ex) {
             log.error(" Exception occurred while publishing LinkServiceInfo {}  request id :", ex, requestIdDtls.getRequestId());
         }
-    }
+    }*/
 }

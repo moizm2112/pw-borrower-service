@@ -1,49 +1,6 @@
 package com.paywallet.userservice.user.services;
 
-import static com.paywallet.userservice.user.constant.AppConstants.ADDRESSLINE1_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ADDRESSLINE2_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ADDRESS_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACKURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACK_ALLOCATIONURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACK_EMPLOYMENTURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACK_IDENTITYURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACK_INCOMEURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CITY_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.CITY_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.DOB_FORMAT_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.DOB_INVALID_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.DOB_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_EXIST_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_FORMAT_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.FIRSTDATEOFPAYMENT_FORMAT_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.FIRSTDATEOFPAYMENT_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.FIRST_NAME_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.FIRST_NAME_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.FIRST_NAME_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.INSTALLMENTAMOUNT_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST4TIN_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST4TIN_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST4TIN_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST_NAME_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST_NAME_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.LAST_NAME_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MIDDLE_NAME_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MIDDLE_NAME_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MIDDLE_NAME_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_FORMAT_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.REPAYMENTFREQUENCY_NOT_VALID_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.REPAYMENTFREQUENCY_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.STATE_NOT_VALID_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.STATE_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.STATE_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.TOTALNOOFREPAYMENT_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ZIP_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ZIP_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.ZIP_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -61,13 +18,25 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.RepaymentFrequencyModeEnum;
 import com.paywallet.userservice.user.enums.StateEnum;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
+import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
 import com.paywallet.userservice.user.model.CallbackURL;
+import com.paywallet.userservice.user.model.LenderConfigInfo;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.util.CommonUtil;
 
@@ -77,6 +46,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CustomerFieldValidator {
 
+	@Value("${admin.service.url}")
+	private String adminServiceUri;
+	
 	@Autowired
 	CommonUtil commonUtil;
 	
@@ -259,17 +231,17 @@ public class CustomerFieldValidator {
 		return errorList;
 	}
 	
-	public List<String> validateTotalNoOfRepayment(int totalNoOfRepayment) {
+	public List<String> validateTotalNoOfRepayment(Integer totalNoOfRepayment) {
 		List<String> errorList = new ArrayList<String>();
-		if (totalNoOfRepayment <= 0) {
+		if (totalNoOfRepayment == null || totalNoOfRepayment <= 0) {
 			errorList.add(TOTALNOOFREPAYMENT_NULL_VALIDATION_MESSAGE);
 		}
 		return errorList;
 	}
 	
-	public List<String> validateInstallmentAmount(int installmentAmount) {
+	public List<String> validateInstallmentAmount(Integer installmentAmount) {
 		List<String> errorList = new ArrayList<String>();
-		if (installmentAmount <= 0) {
+		if (installmentAmount == null || installmentAmount <= 0) {
 			errorList.add(INSTALLMENTAMOUNT_NULL_VALIDATION_MESSAGE);
 		}
 		return errorList;
@@ -280,7 +252,9 @@ public class CustomerFieldValidator {
 		if (StringUtils.isBlank(repaymentFrequency)) {
 			errorList.add(REPAYMENTFREQUENCY_NULL_VALIDATION_MESSAGE);
 		}
-		
+		if(!StringUtils.isAllUpperCase(repaymentFrequency)) {
+			repaymentFrequency = StringUtils.toRootUpperCase(repaymentFrequency);
+		}
 		if(repaymentFrequency != null && !EnumUtils.isValidEnum(RepaymentFrequencyModeEnum.class, repaymentFrequency))
 			errorList.add(REPAYMENTFREQUENCY_NOT_VALID_MESSAGE);
 		
@@ -292,7 +266,7 @@ public class CustomerFieldValidator {
 		if (StringUtils.isBlank(emailId)) {
 			errorList.add(EMAIL_NULL_VALIDATION_MESSAGE);
 		}
-		String regex = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
+		String regex = "^(?=.{1,64}@)[A-Za-z0-9+_-]+(\\.[A-Za-z0-9+_-]+)*@"
 				+ "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
 		if (!checkFieldForValidPattern(regex, emailId)) {
 			errorList.add(EMAIL_FORMAT_VALIDATION_MESSAGE);
@@ -316,40 +290,41 @@ public class CustomerFieldValidator {
 		return errorList;
 	}
 	
-	public List<String> validateCallbackURLs(CallbackURL callBackURL) {
+	public List<String> validateCallbackURLs(CallbackURL callBackURL, RestTemplate restTemplate, String requestId, String lender) {
 		List<String> errorList = new ArrayList<String>();
 		if (callBackURL == null) {
 			errorList.add(CALLBACKURL_NULL_VALIDATION_MESSAGE);
 		}
 		else
 		{
-			if(!(callBackURL.getIdentityCallbackUrls() != null && ((ArrayList<String>)callBackURL.getIdentityCallbackUrls()).size() > 0 
+			LenderConfigInfo lenderConfigInfo =  fetchLenderConfigurationForCallBack(requestId,restTemplate, lender);
+			lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validating callback urls"));
+			log.info(lenderConfigInfo.getPublishIdentityInfo().name());
+			if(lenderConfigInfo.getPublishIdentityInfo().name().equals("YES") && !(callBackURL.getIdentityCallbackUrls() != null && ((ArrayList<String>)callBackURL.getIdentityCallbackUrls()).size() > 0 
 					&& !checkForEmptyStringInArray(callBackURL.getIdentityCallbackUrls()))) {
 				errorList.add(CALLBACK_IDENTITYURL_NULL_VALIDATION_MESSAGE);
 			}
-			if(!(callBackURL.getEmploymentCallbackUrls() != null && ((ArrayList<String>)callBackURL.getEmploymentCallbackUrls()).size() > 0
+			if(lenderConfigInfo.getPublishEmploymentInfo().name().equals("YES") && !(callBackURL.getEmploymentCallbackUrls() != null && ((ArrayList<String>)callBackURL.getEmploymentCallbackUrls()).size() > 0
 					&& !checkForEmptyStringInArray(callBackURL.getEmploymentCallbackUrls()))) {
 				errorList.add(CALLBACK_EMPLOYMENTURL_NULL_VALIDATION_MESSAGE);
 			}
-			if(!(callBackURL.getIncomeCallbackUrls() != null && ((ArrayList<String>)callBackURL.getIncomeCallbackUrls()).size() > 0
+			if(lenderConfigInfo.getPublishIncomeInfo().name().equals("YES") && !(callBackURL.getIncomeCallbackUrls() != null && ((ArrayList<String>)callBackURL.getIncomeCallbackUrls()).size() > 0
 					&& !checkForEmptyStringInArray(callBackURL.getIncomeCallbackUrls()))) {
 				errorList.add(CALLBACK_INCOMEURL_NULL_VALIDATION_MESSAGE);
 			}
-			if(!(callBackURL.getAllocationCallbackUrls() != null && ((ArrayList<String>)callBackURL.getAllocationCallbackUrls()).size() > 0
+			if(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name().equals("YES") && !(callBackURL.getAllocationCallbackUrls() != null && ((ArrayList<String>)callBackURL.getAllocationCallbackUrls()).size() > 0
 					&& !checkForEmptyStringInArray(callBackURL.getAllocationCallbackUrls()))) {
 				errorList.add(CALLBACK_ALLOCATIONURL_NULL_VALIDATION_MESSAGE);
 			}
-			if(!(callBackURL.getInsufficientFundCallbackUrls() != null && ((ArrayList<String>)callBackURL.getInsufficientFundCallbackUrls()).size() > 0
+			if(lenderConfigInfo.getValidateAffordabilityCheck().name().equals("YES") && !(callBackURL.getInsufficientFundCallbackUrls() != null && ((ArrayList<String>)callBackURL.getInsufficientFundCallbackUrls()).size() > 0
 					&& !checkForEmptyStringInArray(callBackURL.getInsufficientFundCallbackUrls()))) {
 				errorList.add(CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE);
 			}
 			if(!(callBackURL.getNotificationUrls() != null && ((ArrayList<String>)callBackURL.getNotificationUrls()).size() > 0
 					&& !checkForEmptyStringInArray(callBackURL.getNotificationUrls()))) {
-				errorList.add(CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE);
+				errorList.add(CALLBACK_NOTIFICATIONURL_NULL_VALIDATION_MESSAGE);
 			}
-			
 		}
-		
 		return errorList;
 	}
 	
@@ -404,6 +379,37 @@ public class CustomerFieldValidator {
         	throw new GeneralCustomException("ERROR", e.getMessage());
 		}
         return valid;	
+	}
+	
+	/**
+     * Method fetches the lender configuration details by lender name.
+     * @param requestId
+     * @return
+     * @throws ResourceAccessException
+     * @throws GeneralCustomException
+     */
+    public LenderConfigInfo fetchLenderConfigurationForCallBack(String requestId, RestTemplate restTemplate, String lenderName) {
+		log.info("request id :: " + requestId);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.add(REQUEST_ID, requestId);
+		LenderConfigInfo lenderConfigInfo = new LenderConfigInfo();
+		HttpEntity<String> requestEntity = new HttpEntity<String>(headers);
+		try {
+			log.info("adminServiceUri:: " + adminServiceUri);
+
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(adminServiceUri).queryParam(AppConstants.LENDER_NAME, lenderName).encode();
+			log.info("uriBuilder url formed:: " + uriBuilder.toUriString());
+			lenderConfigInfo = restTemplate
+					.exchange(uriBuilder.toUriString(), HttpMethod.GET, requestEntity, LenderConfigInfo.class)
+					.getBody();
+
+		} catch (ResourceAccessException resourceException) {
+			throw new ServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
+		} catch (Exception ex) {
+			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
+		}
+		return lenderConfigInfo;
 	}
 
 }

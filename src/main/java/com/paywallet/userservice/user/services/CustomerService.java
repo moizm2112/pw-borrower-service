@@ -13,11 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.paywallet.userservice.user.entities.OfferPayAllocationRequest;
-import com.paywallet.userservice.user.entities.OfferPayAllocationResponse;
-import com.paywallet.userservice.user.exception.*;
-import com.paywallet.userservice.user.model.*;
-import com.paywallet.userservice.user.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +28,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
+import com.paywallet.userservice.user.exception.CreateCustomerException;
+import com.paywallet.userservice.user.exception.CustomerAccountException;
+import com.paywallet.userservice.user.exception.CustomerNotFoundException;
+import com.paywallet.userservice.user.exception.FineractAPIException;
+import com.paywallet.userservice.user.exception.GeneralCustomException;
+import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
+import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
+import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
+import com.paywallet.userservice.user.model.AccountDetails;
+import com.paywallet.userservice.user.model.CreateCustomerRequest;
+import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
+import com.paywallet.userservice.user.model.CustomerRequestFields;
+import com.paywallet.userservice.user.model.CustomerResponseDTO;
+import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
+import com.paywallet.userservice.user.model.RequestIdDetails;
+import com.paywallet.userservice.user.model.RequestIdResponseDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerDetailsResponseDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
+import com.paywallet.userservice.user.model.ValidateAccountRequest;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository;
+import com.paywallet.userservice.user.util.CustomerServiceUtil;
+import com.paywallet.userservice.user.util.NotificationUtil;
+import com.paywallet.userservice.user.util.RequestIdUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -110,11 +129,11 @@ public class CustomerService {
     @Value("${createVirtualAccount.eureka.uri}")
     private String createVirtualAccountUri;
 
-    @Autowired
+   /* @Autowired
     KafkaPublisherUtil kafkaPublisherUtil;
 
     @Autowired
-    LinkServiceUtil linkServiceUtil;
+    LinkServiceUtil linkServiceUtil;*/
     
     /**
      * Method fetches customer details by mobileNo
@@ -184,6 +203,13 @@ public class CustomerService {
         	requestIdDtls = validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
         	
         	validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
+          
+        	if(customer.getTotalNoOfRepayment() == null)
+        		customer.setTotalNoOfRepayment(0);
+        	if(customer.getInstallmentAmount() ==null)
+        		customer.setInstallmentAmount(0);
+           checkAndSavePayAllocation(requestIdDtls,customer);
+
 
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
@@ -200,7 +226,6 @@ public class CustomerService {
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	           // String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
 	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount());
-
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
 	            CustomerDetails customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customer);
@@ -450,7 +475,9 @@ public class CustomerService {
     		RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
         			.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
         	RequestIdDetails requestIdDtls = requestIdResponseDTO.getData();
-        	
+        	if(StringUtils.isBlank(requestIdDtls.getUserId())) {
+        		throw new CustomerNotFoundException("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
+        	}
         	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) {
 //	        	if( ((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerMobileNoDTO.getEmployerName())) {
 	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerMobileNoDTO.getMobileNo());
@@ -509,8 +536,8 @@ public class CustomerService {
 //	        	}
         	}
         	else {
-        		log.error("Customer details cannot be updated. Active allocation exist for the given mobile number.");
-                throw new CustomerNotFoundException("Customer details cannot be updated. Active allocation exist for the given mobile number : "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
+        		log.error("Mobile Number cannot be updated as pay allocation has already been completed");
+                throw new CustomerNotFoundException("Mobile Number cannot be updated as pay allocation has already been completed");
         	}
     	}catch(FineractAPIException e) {
     		log.error("Exception occured in fineract while updating mobile number for given client "+ e.getMessage());
@@ -558,7 +585,9 @@ public class CustomerService {
     		RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
         			.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
         	RequestIdDetails requestIdDtls = requestIdResponseDTO.getData();
-        	
+        	if(StringUtils.isBlank(requestIdDtls.getUserId())) {
+        		throw new CustomerNotFoundException("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
+        	}
         	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) { 
 //        		if (((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerEmailIdDTO.getEmployerName())) {
 	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerEmailIdDTO.getMobileNo());
@@ -624,8 +653,8 @@ public class CustomerService {
 	                
         	}
         	else {
-        		log.error("Customer details cannot be updated. Active allocation exist for the given emailId.");
-                throw new CustomerNotFoundException("Customer details cannot be updated. Active allocation exist for the given emailId : "+updateCustomerEmailIdDTO.getEmailId()+" to update");
+        		log.error("Email Id cannot be updated as pay allocation has already been completed");
+                throw new CustomerNotFoundException("Email Id cannot be updated as pay allocation has already been completed");
         	}
     	}catch(CustomerNotFoundException e) {
     		log.error("Exception occured while updating emailId customer details " + e.getMessage());
@@ -693,7 +722,7 @@ public class CustomerService {
      * @param path
      * @return
      */
-    public ResponseEntity<Object> prepareResponse(CustomerDetails customerDetails, String message, int status, String path) {
+    public ResponseEntity<Object> prepareResponse(CustomerDetails customerDetails, String message,int status, String path) {
     	
     	Map<String, Object> body = new LinkedHashMap<>();
     	body.put("data", customerDetails);
@@ -820,13 +849,13 @@ public class CustomerService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Date Of Birth", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getEmailId()) || StringUtils.isNotEmpty(customerRequest.getEmailId())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getEmailId()) || StringUtils.isNotBlank(customerRequest.getEmailId())) {
 				   List<String> errorList = customerFieldValidator.validateEmailId(customerRequest.getEmailId(), customerRepository, customerRequest.getMobileNo());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("EmailId", errorList);
 			   }
 			   if("YES".equalsIgnoreCase(customerRequestFields.getCallbackURLs()) || customerRequest.getCallbackURLs() != null) {
-				   List<String> errorList = customerFieldValidator.validateCallbackURLs(customerRequest.getCallbackURLs());
+				   List<String> errorList = customerFieldValidator.validateCallbackURLs(customerRequest.getCallbackURLs(), restTemplate , requestId, lender);
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Callback URLS", errorList);
 			   }
@@ -835,17 +864,17 @@ public class CustomerService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("First Date Of Payment", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getRepaymentFrequency()) || StringUtils.isNotEmpty(customerRequest.getRepaymentFrequency())) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getRepaymentFrequency()) || StringUtils.isNotBlank(customerRequest.getRepaymentFrequency())) {
 				   List<String> errorList = customerFieldValidator.validateRepaymentFrequency(customerRequest.getRepaymentFrequency());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Repayment Frequency", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment()) || customerRequest.getTotalNoOfRepayment() > 0) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment()) || (("NO".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment())) && customerRequest.getTotalNoOfRepayment() != null && customerRequest.getTotalNoOfRepayment() >= 0)){
 				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getTotalNoOfRepayment());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Total Number Of Repayment", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount()) || customerRequest.getInstallmentAmount() > 0) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount()) || (("NO".equalsIgnoreCase(customerRequestFields.getInstallmentAmount())) && customerRequest.getInstallmentAmount() != null && customerRequest.getInstallmentAmount() >= 0)) {
 				   List<String> errorList = customerFieldValidator.validateInstallmentAmount(customerRequest.getInstallmentAmount());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Installment Amount", errorList);

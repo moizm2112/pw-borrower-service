@@ -39,9 +39,7 @@ public final class AppConstants {
 	public static final String DOB_INVALID_MESSAGE="You cannot enter DOB in the future ";
 	public static final String FIRSTDATEOFPAYMENT_FORMAT_VALIDATION_MESSAGE="First date of payment should be in YYYY-MM-DD format only";
 	public static final String REPAYMENT_FREQUENCY_MODE_FORMAT_VALIDATION_MESSAGE="Please enter valid repayment frequency mode";
-	public static final String REPAYMENTFREQUENCY_NOT_VALID_MESSAGE="Repayment frequency entered is not valid. Eg: For MONTHLY,QUATERLY";
-	
-	
+	public static final String REPAYMENTFREQUENCY_NOT_VALID_MESSAGE="Repayment frequency entered is not valid. Eg: For MONTHLY,WEEKLY,BIWEEKLY, SEMIMONTHLY";
 	
 	public static final String INSTALLMENTAMOUNT_NULL_VALIDATION_MESSAGE="Installment Amount should be more than zero.";
 	public static final String TOTALNOOFREPAYMENT_NULL_VALIDATION_MESSAGE="Total Number Of Repayment should be more than zero.";
