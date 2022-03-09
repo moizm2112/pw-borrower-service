@@ -1,5 +1,7 @@
 package com.paywallet.userservice.user.services;
 
+import static com.paywallet.userservice.user.constant.AppConstants.BANKABA_LENGTH_VALIDATION_MESSAGE;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -82,14 +84,20 @@ public class CustomerWrapperAPIService {
 				updateCustomerDetailsResponse = customerService.updateCustomerEmailId(updateCustomerEmailIdDTO, requestId);
 				setUpdateCustomerCredentialsEmailResponse(updateCustomerDetailsResponse, updateCustomerCredentialsResponse);
 			}
+			else {
+				updateCustomerCredentialsResponse.setEmailId(StringUtils.EMPTY);
+				updateCustomerCredentialsResponse.setEmailIdVerified(StringUtils.EMPTY);
+			}
 			
 			if(StringUtils.isNotBlank(customerCredentialsModel.getNewMobileNo())) {
 				UpdateCustomerMobileNoDTO updateCustomerMobileNoDTO = setDTOForMobileNoUpdate(customerCredentialsModel);
 				updateCustomerDetailsResponse = customerService.updateCustomerMobileNo(updateCustomerMobileNoDTO, requestId);
 				setUpdateCustomerCredentialsMobileResponse(updateCustomerDetailsResponse, updateCustomerCredentialsResponse);
 			}
-			
-			updateCustomerDetailsResponse = Optional.ofNullable(updateCustomerDetailsResponse).orElseThrow(() -> new GeneralCustomException("ERROR", "Exception occured while updating the customer credentials"));
+			else {
+				updateCustomerCredentialsResponse.setMobileNo(updateCustomerDetailsResponse.getMobileNo());
+				updateCustomerCredentialsResponse.setMobileNoVerified(StringUtils.EMPTY);
+			}
 			updateCustomerDetailsResponse.setRequestId(requestId);
 		}
 		catch(CustomerNotFoundException | RequestIdNotFoundException | FineractAPIException | GeneralCustomException e) {
@@ -196,9 +204,13 @@ public class CustomerWrapperAPIService {
 	}
 	
 	
-	public void validateDepositAllocationRequest(DepositAllocationRequestWrapperModel allocationRequest, String requestId, String lender, LenderConfigInfo lenderConfigInfo){
+	public void validateDepositAllocationRequest(DepositAllocationRequestWrapperModel allocationRequest, String requestId, RequestIdDetails requestIdDetails, LenderConfigInfo lenderConfigInfo){
 		   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
 		   try {
+			   
+			   String lender = requestIdDetails.getClientName();
+			   String employerPWId = requestIdDetails.getEmployerPWId();
+			   
 			   if(StringUtils.isNotBlank(allocationRequest.getFirstName())) {
 				   List<String> errorList = customerFieldValidator.validateFirstName(allocationRequest.getFirstName());
 				   if(errorList.size() > 0)
@@ -209,38 +221,43 @@ public class CustomerWrapperAPIService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Last Name", errorList);
 			   }
-			   
 			   if(StringUtils.isNotBlank(allocationRequest.getMobileNo()) || StringUtils.isBlank(allocationRequest.getMobileNo())) {
 				   List<String> errorList = customerFieldValidator.validateMobileNo(allocationRequest.getMobileNo());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Mobile Number", errorList);
 			   }
 			   if(StringUtils.isNotBlank(allocationRequest.getEmployerId()) || StringUtils.isBlank(allocationRequest.getEmployerId())) {
-				   List<String> errorList = customerFieldValidator.validateEmployerId(allocationRequest.getEmployerId());
+				   List<String> errorList = customerFieldValidator.validateEmployerId(allocationRequest.getEmployerId(), employerPWId);
 				   if(errorList.size() > 0)
 					   mapErrorList.put("EmployerId", errorList);
 			   }
 			   if(StringUtils.isNotBlank(allocationRequest.getAchPullRequest())) {
 				   List<String> errorList = customerFieldValidator.validateACHPullRequest(allocationRequest.getAchPullRequest());
 				   if(errorList.size() > 0)
-					   mapErrorList.put("Address Line1", errorList);
+					   mapErrorList.put("ACH Pull Request", errorList);
 			   }
 			   if(StringUtils.isNotBlank(allocationRequest.getAccountVerificationOverride())) {
 				   List<String> errorList = customerFieldValidator.validateAccountValidationOverride(allocationRequest.getAccountVerificationOverride());
 				   if(errorList.size() > 0)
-					   mapErrorList.put("Address Line2", errorList);
+					   mapErrorList.put("Account verfication override", errorList);
 			   }
 			   if(StringUtils.isNotBlank(allocationRequest.getExternalVirtualAccountABANumber())) {
 				   List<String> errorList = customerFieldValidator.validateExternalVirtualAccountABANumber(allocationRequest.getExternalVirtualAccountABANumber());
 				   if(errorList.size() > 0)
-					   mapErrorList.put("City", errorList);
+					   mapErrorList.put("External virtual account ABA number", errorList);
 			   }
 			   if(StringUtils.isNotBlank(allocationRequest.getEmailId()) || StringUtils.isBlank(allocationRequest.getEmailId())) {
 				   List<String> errorList = customerFieldValidator.validateEmailId(allocationRequest.getEmailId(), customerRepository, allocationRequest.getMobileNo());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("EmailId", errorList);
 			   }
-			   
+			   if(StringUtils.isNotBlank(allocationRequest.getLender())) {
+				   if(!lender.equalsIgnoreCase(allocationRequest.getLender())) {
+					   List<String> errorList = new ArrayList<String>();
+					   errorList.add(AppConstants.LENDER_NAME_NO_MATCH);
+					   mapErrorList.put("Lender", errorList);
+				   }
+			   }
 			   if(StringUtils.isNotBlank(allocationRequest.getFirstDateOfPayment())) {
 				   List<String> errorList = customerFieldValidator.validateFirstDateOfPayment(allocationRequest.getFirstDateOfPayment(), lender);
 				   if(errorList.size() > 0)

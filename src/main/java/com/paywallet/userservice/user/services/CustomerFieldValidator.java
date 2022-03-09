@@ -325,10 +325,13 @@ public class CustomerFieldValidator {
 		return errorList;
 	}
 	
-	public List<String> validateEmployerId(String employerId) {
+	public List<String> validateEmployerId(String employerId, String employerPWId) {
 		List<String> errorList = new ArrayList<String>();
 		if (StringUtils.isBlank(employerId)) {
 			errorList.add(EMPLOYERID_MANDATORY_MESSAGE);
+		}
+		if(employerPWId != null && !employerId.equalsIgnoreCase(employerPWId)) {
+			errorList.add(EMPLOYERID_NO_MACTH_MESSAGE);
 		}
 		return errorList;
 	}
@@ -347,7 +350,7 @@ public class CustomerFieldValidator {
 		if (!checkFieldForValidPattern(regex, externalVirtualAccountABANumber)) {
 			errorList.add(BANKABA_VALIDATION_MESSAGE);
 		}
-		if (externalVirtualAccountABANumber != null && StringUtils.length(externalVirtualAccountABANumber) == 9) {
+		if (externalVirtualAccountABANumber != null && StringUtils.length(externalVirtualAccountABANumber) != 9) {
 			errorList.add(BANKABA_LENGTH_VALIDATION_MESSAGE);
 		}
 		return errorList;
