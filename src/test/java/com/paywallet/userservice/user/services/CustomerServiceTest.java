@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import com.paywallet.userservice.user.helper.CustomerDataTest;
 import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
 import com.paywallet.userservice.user.model.CustomerResponseDTO;
+import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestWrapperModel;
 
 class CustomerServiceTest {
 
@@ -30,7 +31,8 @@ class CustomerServiceTest {
         CustomerDataTest customerDataTest = new CustomerDataTest();
         CustomerResponseDTO customerResponse = customerDataTest.createCustomerResponse();
         CustomerService mockCustomerService = mock(CustomerService.class);
-        when(mockCustomerService.createCustomer(customerDataTest.createCustomerRequest(),""))
+        DepositAllocationRequestWrapperModel depositAllocationRequest = new DepositAllocationRequestWrapperModel();
+        when(mockCustomerService.createCustomer(customerDataTest.createCustomerRequest(),"",depositAllocationRequest,false))
         		.thenReturn(customerResponse.getData());
 
         assertEquals("61822f23019cba309dd5b070",customerResponse.getData().getCustomerId());

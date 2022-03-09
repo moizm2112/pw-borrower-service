@@ -101,8 +101,15 @@ public class CustomerServiceHelper {
 		fineractLenderAddressDTO.setStateProvinceId(Long.valueOf("1"));
 		fineractLenderAddressDTO.setCountryId(Long.valueOf("1"));
 		sFineractLenderAddress.add(fineractLenderAddressDTO);
-		fineractCreateAccountDTO.setFirstname(customerEntity.getPersonalProfile().getFirstName());
-		fineractCreateAccountDTO.setLastname(customerEntity.getPersonalProfile().getLastName());
+		if(StringUtils.isNotBlank(customerEntity.getPersonalProfile().getFirstName()))
+			fineractCreateAccountDTO.setFirstname(customerEntity.getPersonalProfile().getFirstName());
+		else
+			fineractCreateAccountDTO.setFirstname(customerEntity.getPersonalProfile().getMobileNo());
+		
+		if(StringUtils.isNotBlank(customerEntity.getPersonalProfile().getLastName()))
+			fineractCreateAccountDTO.setLastname(customerEntity.getPersonalProfile().getLastName());
+		else
+			fineractCreateAccountDTO.setLastname(customerEntity.getPersonalProfile().getEmailId());
 //    	fineractCreateAccountDTO.setFullname(customerEntity.getPersonalProfile().getFirstName()+" "+ customerEntity.getPersonalProfile().getLastName());
 		fineractCreateAccountDTO.setExternalId(customerEntity.getPersonalProfile().getMobileNo());
 		fineractCreateAccountDTO.setMobileNo(customerEntity.getPersonalProfile().getMobileNo());
@@ -168,7 +175,7 @@ public class CustomerServiceHelper {
      * @throws GeneralCustomException
      */
     public RequestIdResponseDTO updateRequestIdDetails(String requestId, String customerId, String virtualAccountNumber,String virtualAccountId,
-    		String identifyProviderServiceUri, RestTemplate restTemplate, CreateCustomerRequest customerRequest) 
+    		String identifyProviderServiceUri, RestTemplate restTemplate, CallbackURL callbackURL) 
     				throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
     	log.info("Inside updateRequestIdDetails");
     	
@@ -179,7 +186,6 @@ public class CustomerServiceHelper {
     	requestIdDTO.setVirtualAccountId(virtualAccountId);
     	
     	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
-    	CallbackURL callbackURL =  customerRequest.getCallbackURLs();
     	if(callbackURL != null) {
 	    	requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
 	    	requestIdDTO.setEmploymentCallbackUrls(callbackURL.getEmploymentCallbackUrls());
@@ -244,11 +250,10 @@ public class CustomerServiceHelper {
 	 * @return
 	 * @throws GeneralCustomException
 	 */
-	public CustomerDetails createFineractVirtualAccount(String requestId, CreateCustomerRequest customer)
+	public CustomerDetails createFineractVirtualAccount(String requestId, CustomerDetails customerEntity)
 			throws ResourceAccessException, ServiceNotAvailableException, FineractAPIException, HttpClientErrorException {
 		try {
 			/* SET DATA FOR FINERACT API CALL*/
-			CustomerDetails customerEntity = buildCustomerDetails(customer);
 			FineractCreateLenderDTO fineractCreateAccountDTO = setFineractDataToCreateAccount(customerEntity, fineractClientType);
 
 			/* POST CALL TO ACCOUNT SERVICE TO ACCESS FINERACT API*/

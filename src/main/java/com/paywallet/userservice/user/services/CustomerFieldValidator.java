@@ -290,16 +290,13 @@ public class CustomerFieldValidator {
 		return errorList;
 	}
 	
-	public List<String> validateCallbackURLs(CallbackURL callBackURL, RestTemplate restTemplate, String requestId, String lender) {
+	public List<String> validateCallbackURLs(CallbackURL callBackURL, RestTemplate restTemplate, String requestId, String lender, LenderConfigInfo lenderConfigInfo) {
 		List<String> errorList = new ArrayList<String>();
 		if (callBackURL == null) {
 			errorList.add(CALLBACKURL_NULL_VALIDATION_MESSAGE);
 		}
 		else
 		{
-			LenderConfigInfo lenderConfigInfo =  fetchLenderConfigurationForCallBack(requestId,restTemplate, lender);
-			lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validating callback urls"));
-			log.info(lenderConfigInfo.getPublishIdentityInfo().name());
 			if(lenderConfigInfo.getPublishIdentityInfo().name().equals("YES") && !(callBackURL.getIdentityCallbackUrls() != null && ((ArrayList<String>)callBackURL.getIdentityCallbackUrls()).size() > 0 
 					&& !checkForEmptyStringInArray(callBackURL.getIdentityCallbackUrls()))) {
 				errorList.add(CALLBACK_IDENTITYURL_NULL_VALIDATION_MESSAGE);
@@ -327,6 +324,43 @@ public class CustomerFieldValidator {
 		}
 		return errorList;
 	}
+	
+	public List<String> validateEmployerId(String employerId) {
+		List<String> errorList = new ArrayList<String>();
+		if (StringUtils.isBlank(employerId)) {
+			errorList.add(EMPLOYERID_MANDATORY_MESSAGE);
+		}
+		return errorList;
+	}
+	
+	public List<String> validateACHPullRequest(String achPullRequest) {
+		List<String> errorList = new ArrayList<String>();
+		if (!StringUtils.containsAny(achPullRequest,new String[]{"YES", "NO"})) {
+			errorList.add(ACH_PULL_REQUEST_VALIDATION_MESSAGE);
+		}
+		return errorList;
+	}
+	
+	public List<String> validateExternalVirtualAccountABANumber(String externalVirtualAccountABANumber) {
+		List<String> errorList = new ArrayList<String>();
+		String regex = "[0-9]+";
+		if (!checkFieldForValidPattern(regex, externalVirtualAccountABANumber)) {
+			errorList.add(BANKABA_VALIDATION_MESSAGE);
+		}
+		if (externalVirtualAccountABANumber != null && StringUtils.length(externalVirtualAccountABANumber) == 9) {
+			errorList.add(BANKABA_LENGTH_VALIDATION_MESSAGE);
+		}
+		return errorList;
+	}
+	
+	public List<String> validateAccountValidationOverride(String accountValdiationOverride) {
+		List<String> errorList = new ArrayList<String>();
+		if (!StringUtils.containsAny(accountValdiationOverride,new String[]{"YES", "NO"})) {
+			errorList.add(ACCOUNT_VALIDATION_OVERRIDE_VALIDATION_MESSAGE);
+		}
+		return errorList;
+	}
+	
 	
 	public boolean checkForEmptyStringInArray(List<String> lsCallBackUrls) {
 		

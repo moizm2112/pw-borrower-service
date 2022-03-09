@@ -26,6 +26,7 @@ import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
 import com.paywallet.userservice.user.model.CustomerResponseDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
 import com.paywallet.userservice.user.model.ValidateAccountRequest;
+import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestWrapperModel;
 import com.paywallet.userservice.user.services.CustomerService;
 
 @WebMvcTest(CustomerController.class)
@@ -79,7 +80,7 @@ class CustomerControllerTest {
 
         CustomerResponseDTO customerResponse = customerDataTest.createCustomerResponse();
         CustomerDetails customerDetails =  customerResponse.getData();
-        when(customerService.createCustomer(any(), Mockito.anyString())).thenReturn(customerDetails);
+        when(customerService.createCustomer(any(), Mockito.anyString(),any(),Mockito.anyBoolean())).thenReturn(customerDetails);
         when(customerService.prepareResponseDTO(Mockito.any(),Mockito.anyString(),Mockito.anyInt(),Mockito.anyString())).thenReturn(customerResponse);
         
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isOk());
