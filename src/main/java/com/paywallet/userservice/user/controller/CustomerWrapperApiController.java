@@ -62,6 +62,4 @@ public class CustomerWrapperApiController {
 		return customerWrapperAPIService.prepareUpdateResponse(depositAllocationResponse, 
 				CommonEnum.DEPOSIT_ALLOCATION_SUCCESS_STATUS_MSG.getMessage(), HttpStatus.OK.value(), request.getRequestURI());
 	}
-	
-	
 }
