@@ -90,7 +90,7 @@ public class CustomerWrapperAPIService {
 			}
 			
 			updateCustomerDetailsResponse = Optional.ofNullable(updateCustomerDetailsResponse).orElseThrow(() -> new GeneralCustomException("ERROR", "Exception occured while updating the customer credentials"));
-			
+			updateCustomerDetailsResponse.setRequestId(requestId);
 		}
 		catch(CustomerNotFoundException | RequestIdNotFoundException | FineractAPIException | GeneralCustomException e) {
 			log.error("Exception occured while updating customer credentials " + e.getMessage());
