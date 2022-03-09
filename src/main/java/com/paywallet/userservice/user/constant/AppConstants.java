@@ -13,6 +13,8 @@ public final class AppConstants {
 	public static final String UPDATE_CUSTOMER_MOBILENO = "/customer/update/mobileNo";
 	public static final String UPDATE_CUSTOMER_EMAILID = "/customer/update/emailId";
 	public static final String ADD_REQUIRED_FIELDS = "/customer/addFields";
+	public static final String UPDATE_CUSTOMER_CREDENTIALS = "/customer/update/credentials";
+	public static final String INITIATE_DEPOSIT_ALLOCATION = "/deposit/allocation";
 	
 	//=============Validation Errors------------------------
 	public static final String FIRST_NAME_VALIDATION_MESSAGE="First Name should contain at least one alphabet.";
@@ -43,6 +45,8 @@ public final class AppConstants {
 	
 	public static final String INSTALLMENTAMOUNT_NULL_VALIDATION_MESSAGE="Installment Amount should be more than zero.";
 	public static final String TOTALNOOFREPAYMENT_NULL_VALIDATION_MESSAGE="Total Number Of Repayment should be more than zero.";
+	public static final String INSTALLMENTAMOUNT_MANDATORY_MESSAGE="Installment Amount is mandatory for deposit allocation";
+	public static final String TOTALNOOFREPAYMENT_MANDATORY_MESSAGE="Total Number Of Repayment is mandatory for deposit allocation";
 	public static final String REPAYMENTFREQUENCY_NULL_VALIDATION_MESSAGE="Repayment frequency can't be blank.";
 	public static final String FIRST_NAME_NULL_VALIDATION_MESSAGE="First Name Can't be blank.";
 	public static final String FIRSTDATEOFPAYMENT_NULL_VALIDATION_MESSAGE="First date of payment can't be blank.";
@@ -76,8 +80,6 @@ public final class AppConstants {
 	public static final String CALLBACK_INSUFFICIENTFUNDURL_NULL_VALIDATION_MESSAGE="Callback Insufficient Fund url can't be blank.";
 	public static final String CALLBACK_NOTIFICATIONURL_NULL_VALIDATION_MESSAGE="Callback Notification url can't be blank.";
 	
-	
-	
 	public static final String REQUEST_ID="x-request-id";
 	public static final String EMAIL_NOTIFICATION_SUCCESS="Email sent successfully to the provided emailId";
 	public static final String EMAIL_NOTIFICATION_FAILED="Provided emailId is not valid";
@@ -91,6 +93,11 @@ public final class AppConstants {
 	public static final String EMAIL_MANDATORY_MESSAGE="Email can't be made optional";
 	public static final String LENDER_NAME="lenderName";
 	public static final String CALLBACKS_MANDATORY_MESSAGE="Callback URL's can't be made optional";
+	
+	//WRAPPERAPI
+	public static final String EMPLOYERID_MANDATORY_MESSAGE="Employer Id Can't be blank.";
+	public static final String ACCOUNT_VALIDATION_OVERRIDE_VALIDATION_MESSAGE="Account validation override can have only YES/NO values";
+	public static final String ACH_PULL_REQUEST_VALIDATION_MESSAGE="ACH Pull Request can have only YES/NO values";
 		
 //===========Till Here--------------------------------------------
 

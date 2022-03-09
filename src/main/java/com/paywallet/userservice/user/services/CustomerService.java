@@ -17,6 +17,7 @@ import com.paywallet.userservice.user.entities.OfferPayAllocationRequest;
 import com.paywallet.userservice.user.entities.OfferPayAllocationResponse;
 import com.paywallet.userservice.user.exception.*;
 import com.paywallet.userservice.user.model.*;
+import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestWrapperModel;
 import com.paywallet.userservice.user.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
@@ -116,6 +117,11 @@ public class CustomerService {
     @Autowired
     LinkServiceUtil linkServiceUtil;
     
+    @Autowired
+    CustomerWrapperAPIService customerWrapperAPIService;
+    
+    private LenderConfigInfo lenderConfigInfo;
+    
     /**
      * Method fetches customer details by mobileNo
      * @param customerId
@@ -164,7 +170,8 @@ public class CustomerService {
      * @throws ServiceNotAvailableException
      * @throws RequestIdNotFoundException
      */
-    public CustomerDetails createCustomer(CreateCustomerRequest customer, String requestId) 
+    public CustomerDetails createCustomer(CreateCustomerRequest customer, String requestId, DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel, 
+    		boolean isDepositAllocation) 
     		throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, SMSAndEmailNotificationException {
         log.info("Inside createCustomer of CustomerService class");
         if (!customer.getMobileNo().startsWith("+1") && customer.getMobileNo().length()==10)
@@ -175,21 +182,25 @@ public class CustomerService {
         RequestIdDetails requestIdDtls = null;
         try 
         {
-//        	RequestIdResponseDTO  requestIdResponseDTO = customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate);
-//        	requestIdDtls = requestIdResponseDTO.getData();
-//	        if(requestIdDtls.getUserId() != null && requestIdDtls.getUserId().length() > 0) {
-//	        	log.error("Customerservice createcustomer generalCustomException Create customer failed as request id and customer id already exist in database.");
-//	        	throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
-//	        }
         	requestIdDtls = validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
         	
-        	validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
-          
+			if(lenderConfigInfo == null) {
+			   lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDtls.getClientName());
+			   lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validating callback urls"));
+			}
+        	
+        	if(!isDepositAllocation)
+        		validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
+        	else {
+        		if (!depositAllocationRequestWrapperModel.getMobileNo().startsWith("+1") && depositAllocationRequestWrapperModel.getMobileNo().length()==10)
+        			depositAllocationRequestWrapperModel.setMobileNo("+1".concat(depositAllocationRequestWrapperModel.getMobileNo()));
+        		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls.getClientName(), lenderConfigInfo);
+        	}
         	if(customer.getTotalNoOfRepayment() == null)
         		customer.setTotalNoOfRepayment(0);
         	if(customer.getInstallmentAmount() ==null)
         		customer.setInstallmentAmount(0);
-           checkAndSavePayAllocation(requestIdDtls,customer);
+//           checkAndSavePayAllocation(requestIdDtls,customer);
 
 
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
@@ -201,16 +212,37 @@ public class CustomerService {
 	            if(requestIdDtls.getClientName() != null) 
 	            	saveCustomer.setLender(requestIdDtls.getClientName());
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
-	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
-	            saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(), identifyProviderServiceUri, restTemplate, customer);
+            	customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
+        	            saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(), identifyProviderServiceUri, restTemplate, customer.getCallbackURLs());
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	           // String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
 	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount());
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
-	            CustomerDetails customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customer);
-	            log.info("Virtual fineract account created successfully ");
+	        	CustomerDetails customerEntity = customerServiceHelper.buildCustomerDetails(customer);
+	        	
+	        	// Create customer normal flow -  direct deposit allocation is FALSE
+	        	if(!isDepositAllocation) {
+	        		if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+		        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
+			            log.info("Virtual fineract account created successfully ");
+	        		}
+	        	}
+	        	// direct deposit allocation is TRUE and external virtual account number and ABA number provided
+	        	else if(isDepositAllocation && (StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) && 
+	        			StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))) {
+	        		customerEntity.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+					customerEntity.setVirtualAccountId(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+	        	}
+	        	// direct deposit allocation is TRUE and external virtual account number and ABA number NOT provided (So USE FINERACT)
+	        	else if(isDepositAllocation && (StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) || 
+	        			StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))) {
+	        		if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+		        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
+			            log.info("Virtual fineract account created successfully ");
+	        		}
+	        	}
 	            
 	            if(requestIdDtls.getClientName() != null) 
 	            	customerEntity.setLender(requestIdDtls.getClientName());
@@ -220,7 +252,7 @@ public class CustomerService {
 	            
 	            /* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
 	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
-	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, restTemplate, customer);
+	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, restTemplate, customer.getCallbackURLs());
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
                 kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount());
@@ -483,8 +515,10 @@ public class CustomerService {
 			                    }
 			                    
 			                	// Make an fineract call to update the external Id and mobileNo.
-			                    customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getNewMobileNo(), custDetails.getVirtualClientId());
-			                    isMobileNoUpdatedInFineract = true;
+			                    if(StringUtils.isNotBlank(custDetails.getVirtualClientId())) {
+			                    	customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getNewMobileNo(), custDetails.getVirtualClientId());
+			                    	isMobileNoUpdatedInFineract = true;
+			                    }
 			                	//Update the Customer table
 			                	custDetails.getPersonalProfile().setMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
 			                	custDetails.setRequestId(requestId);
@@ -773,6 +807,7 @@ public class CustomerService {
 		   if(optionalCustomerRequestFields.isPresent()) {
 			   CustomerRequestFields customerRequestFields = Optional.ofNullable(optionalCustomerRequestFields.get())
 					   .orElseThrow(()-> new GeneralCustomException(ERROR, "Exception occured while fetching required fields for employer"));
+			   
 			   if("YES".equalsIgnoreCase(customerRequestFields.getFirstName()) || StringUtils.isNotBlank(customerRequest.getFirstName())) 
 			   {
 				   List<String> errorList = customerFieldValidator.validateFirstName(customerRequest.getFirstName());
@@ -836,7 +871,7 @@ public class CustomerService {
 					   mapErrorList.put("EmailId", errorList);
 			   }
 			   if("YES".equalsIgnoreCase(customerRequestFields.getCallbackURLs()) || customerRequest.getCallbackURLs() != null) {
-				   List<String> errorList = customerFieldValidator.validateCallbackURLs(customerRequest.getCallbackURLs(), restTemplate , requestId, lender);
+				   List<String> errorList = customerFieldValidator.validateCallbackURLs(customerRequest.getCallbackURLs(), restTemplate , requestId, lender, lenderConfigInfo);
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Callback URLS", errorList);
 			   }
@@ -850,15 +885,49 @@ public class CustomerService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Repayment Frequency", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment()) || (("NO".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment())) && customerRequest.getTotalNoOfRepayment() != null && customerRequest.getTotalNoOfRepayment() >= 0)){
+			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment())){
 				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getTotalNoOfRepayment());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Total Number Of Repayment", errorList);
+			   }else {
+				   if(lenderConfigInfo == null) {
+					   lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, lender);
+					   lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validation"));
+				   }
+				   if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+					   List<String> errorList = new ArrayList<String>();
+					   if (customerRequest.getTotalNoOfRepayment() == null || customerRequest.getTotalNoOfRepayment() <= 0) {
+						   errorList.add(AppConstants.TOTALNOOFREPAYMENT_MANDATORY_MESSAGE);
+						   mapErrorList.put("Total Number Of Repayment", errorList);
+					   }
+				   }
+				   else if(customerRequest.getTotalNoOfRepayment() != null || customerRequest.getTotalNoOfRepayment() >= 0) {
+					   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getTotalNoOfRepayment());
+					   if(errorList.size() > 0)
+						   mapErrorList.put("Total Number Of Repayment", errorList);
+				   }
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount()) || (("NO".equalsIgnoreCase(customerRequestFields.getInstallmentAmount())) && customerRequest.getInstallmentAmount() != null && customerRequest.getInstallmentAmount() >= 0)) {
+			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount())) {
 				   List<String> errorList = customerFieldValidator.validateInstallmentAmount(customerRequest.getInstallmentAmount());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Installment Amount", errorList);
+			   }else {
+				   if(lenderConfigInfo == null) {
+					   lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, lender);
+					   lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validation"));
+				   }
+				   if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+					   List<String> errorList = new ArrayList<String>();
+					   if (customerRequest.getInstallmentAmount() == null || customerRequest.getInstallmentAmount() <= 0) {
+						   errorList.add(AppConstants.INSTALLMENTAMOUNT_MANDATORY_MESSAGE);
+						   mapErrorList.put("Installment amount", errorList);
+					   }
+				   }
+				   else if(customerRequest.getInstallmentAmount() != null || customerRequest.getInstallmentAmount() >= 0) {
+					   List<String> errorList = customerFieldValidator.validateInstallmentAmount(customerRequest.getInstallmentAmount());
+					   if(errorList.size() > 0)
+						   mapErrorList.put("Installment Amount", errorList);
+				   }
 			   }
 			   
 			   if(mapErrorList.size() > 0) {
