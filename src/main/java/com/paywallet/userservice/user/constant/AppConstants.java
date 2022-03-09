@@ -98,6 +98,8 @@ public final class AppConstants {
 	public static final String EMPLOYERID_MANDATORY_MESSAGE="Employer Id Can't be blank.";
 	public static final String ACCOUNT_VALIDATION_OVERRIDE_VALIDATION_MESSAGE="Account validation override can have only YES/NO values";
 	public static final String ACH_PULL_REQUEST_VALIDATION_MESSAGE="ACH Pull Request can have only YES/NO values";
+	public static final String LENDER_NAME_NO_MATCH="Lender name does not match with the request";
+	public static final String EMPLOYERID_NO_MACTH_MESSAGE="Employer Id does not match with the request";
 		
 //===========Till Here--------------------------------------------
 

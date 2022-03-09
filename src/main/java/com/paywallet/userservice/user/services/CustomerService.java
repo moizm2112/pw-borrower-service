@@ -21,6 +21,7 @@ import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestW
 import com.paywallet.userservice.user.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -183,18 +184,24 @@ public class CustomerService {
         try 
         {
         	requestIdDtls = validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
-        	
 			if(lenderConfigInfo == null) {
 			   lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDtls.getClientName());
 			   lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validating callback urls"));
 			}
-        	
         	if(!isDepositAllocation)
         		validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
         	else {
+        		/* Validating the request against lender configuration to check whether it is a valid deposit allocation request    */
+        		StateControllerInfo stateControllerInfo =  new StateControllerInfo(); 
+        		BeanUtils.copyProperties(lenderConfigInfo, stateControllerInfo);
+        		boolean allocationStatus = linkServiceUtil.checkStateInfo(stateControllerInfo);
+        		if(!allocationStatus) {
+        			throw new GeneralCustomException("ERROR","Deposit allocation request failed, please check the lender configuration");
+        		}
+        		
         		if (!depositAllocationRequestWrapperModel.getMobileNo().startsWith("+1") && depositAllocationRequestWrapperModel.getMobileNo().length()==10)
         			depositAllocationRequestWrapperModel.setMobileNo("+1".concat(depositAllocationRequestWrapperModel.getMobileNo()));
-        		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls.getClientName(), lenderConfigInfo);
+        		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
         	}
         	if(customer.getTotalNoOfRepayment() == null)
         		customer.setTotalNoOfRepayment(0);
@@ -549,8 +556,8 @@ public class CustomerService {
 //	        	}
         	}
         	else {
-        		log.error("Mobile Number cannot be updated as pay allocation has already been completed");
-                throw new CustomerNotFoundException("Mobile Number cannot be updated as pay allocation has already been completed");
+        		log.error("Mobile Number cannot be updated as allocation has already been completed");
+                throw new CustomerNotFoundException("Mobile Number cannot be updated as allocation has already been completed");
         	}
     	}catch(FineractAPIException e) {
     		log.error("Exception occured in fineract while updating mobile number for given client "+ e.getMessage());
@@ -666,8 +673,8 @@ public class CustomerService {
 	                
         	}
         	else {
-        		log.error("Email Id cannot be updated as pay allocation has already been completed");
-                throw new CustomerNotFoundException("Email Id cannot be updated as pay allocation has already been completed");
+        		log.error("Email Id cannot be updated as allocation has already been completed");
+                throw new CustomerNotFoundException("Email Id cannot be updated as allocation has already been completed");
         	}
     	}catch(CustomerNotFoundException e) {
     		log.error("Exception occured while updating emailId customer details " + e.getMessage());
