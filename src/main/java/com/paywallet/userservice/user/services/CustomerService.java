@@ -189,7 +189,6 @@ public class CustomerService {
         		customer.setTotalNoOfRepayment(0);
         	if(customer.getInstallmentAmount() ==null)
         		customer.setInstallmentAmount(0);
-           checkAndSavePayAllocation(requestIdDtls,customer);
 
 
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
