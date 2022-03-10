@@ -212,6 +212,8 @@ public class CustomerService {
 	            saveCustomer = byMobileNo.get();
 	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(true);
+	            saveCustomer.setInstallmentAmount(customer.getInstallmentAmount());
+	            saveCustomer.setTotalNoOfRepayment(customer.getTotalNoOfRepayment());
 	            if(requestIdDtls.getClientName() != null) 
 	            	saveCustomer.setLender(requestIdDtls.getClientName());
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
