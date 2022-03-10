@@ -245,7 +245,7 @@ public class CustomerService {
 	            
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	           // String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount());
+	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
 	        	CustomerDetails customerEntity = customerServiceHelper.buildCustomerDetails(customer);
@@ -283,10 +283,10 @@ public class CustomerService {
 	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, restTemplate, customer.getCallbackURLs());
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-                kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount());
+                kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
 	            log.info("Customer got created successfully");
 	        }
-            checkAndSavePayAllocation(requestIdDtls,customer, isDepositAllocation);
+            checkAndSavePayAllocation(requestIdDtls,customer);
     	}
         catch(GeneralCustomException e) {
         	log.error("Customerservice createcustomer generalCustomException");
@@ -1076,14 +1076,14 @@ public class CustomerService {
 	   }
    }
 
-    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer, boolean isDirectDepositAllocation) {
+    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer) {
         String requestId = requestIdDetails.getRequestId();
         log.info(" Inside check And SavePayAllocation : Request ID : {} ",requestId);
         try {
             StateControllerInfo stateControllerInfo = linkServiceUtil.getStateInfo(requestId, requestIdDetails.getClientName());
             log.info(" response from stateControllerInfo {} : Request id : {} ",stateControllerInfo,requestId);
             boolean allocationStatus = linkServiceUtil.checkStateInfo(stateControllerInfo);
-            if (allocationStatus || (isDirectDepositAllocation && stateControllerInfo.getInvokeAndPublishDepositAllocation().equals(StateStatus.YES))) {
+            if (allocationStatus) {
                 OfferPayAllocationRequest offerPayAllocationRequest = linkServiceUtil.prepareCheckAffordabilityRequest(customer);
                 OfferPayAllocationResponse offerPayAllocationResponse = linkServiceUtil.postCheckAffordabilityRequest(offerPayAllocationRequest, requestId);
                 log.info(" offerPayAllocationResponse : {} : requestId {} ", offerPayAllocationResponse, requestId);
