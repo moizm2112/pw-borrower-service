@@ -98,7 +98,7 @@ public class CustomerWrapperAPIService {
 				updateCustomerCredentialsResponse.setMobileNo(updateCustomerDetailsResponse.getMobileNo());
 				updateCustomerCredentialsResponse.setMobileNoVerified(StringUtils.EMPTY);
 			}
-			updateCustomerDetailsResponse.setRequestId(requestId);
+			updateCustomerCredentialsResponse.setRequestId(requestId);
 		}
 		catch(CustomerNotFoundException | RequestIdNotFoundException | FineractAPIException | GeneralCustomException e) {
 			log.error("Exception occured while updating customer credentials " + e.getMessage());
