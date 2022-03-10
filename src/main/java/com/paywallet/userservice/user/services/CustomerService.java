@@ -286,7 +286,7 @@ public class CustomerService {
                 kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
 	            log.info("Customer got created successfully");
 	        }
-            checkAndSavePayAllocation(requestIdDtls,customer);
+            checkAndSavePayAllocation(requestIdDtls,customer, isDepositAllocation);
     	}
         catch(GeneralCustomException e) {
         	log.error("Customerservice createcustomer generalCustomException");
@@ -1076,14 +1076,14 @@ public class CustomerService {
 	   }
    }
 
-    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer) {
+    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer, boolean isDepositAllocation) {
         String requestId = requestIdDetails.getRequestId();
         log.info(" Inside check And SavePayAllocation : Request ID : {} ",requestId);
         try {
             StateControllerInfo stateControllerInfo = linkServiceUtil.getStateInfo(requestId, requestIdDetails.getClientName());
             log.info(" response from stateControllerInfo {} : Request id : {} ",stateControllerInfo,requestId);
             boolean allocationStatus = linkServiceUtil.checkStateInfo(stateControllerInfo);
-            if (allocationStatus) {
+            if (allocationStatus || (isDepositAllocation && (StateStatus.YES).equals(stateControllerInfo.getInvokeAndPublishDepositAllocation()))) {
                 OfferPayAllocationRequest offerPayAllocationRequest = linkServiceUtil.prepareCheckAffordabilityRequest(customer);
                 OfferPayAllocationResponse offerPayAllocationResponse = linkServiceUtil.postCheckAffordabilityRequest(offerPayAllocationRequest, requestId);
                 log.info(" offerPayAllocationResponse : {} : requestId {} ", offerPayAllocationResponse, requestId);
