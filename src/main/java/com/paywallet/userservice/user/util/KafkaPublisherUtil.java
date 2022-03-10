@@ -23,7 +23,7 @@ public class KafkaPublisherUtil {
         try {
             LinkServiceInfo linkServiceInfo = LinkServiceInfo.builder()
                     .requestId(requestIdDtls.getRequestId())
-                    .eventType(eventType)
+                    .eventType(CommonEnum.CUSTOMER_CREATED.getMessage())
                     .lenderName(requestIdDtls.getClientName())
                     .phoneNumber(customerDetails.getPersonalProfile().getMobileNo())
                     .email(customerDetails.getPersonalProfile().getEmailId())
