@@ -65,7 +65,7 @@ class CustomerControllerTest {
         
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.salaryAccountNumber").value(testAccDetails.getData().getSalaryAccountNumber()))
-                .andExpect(jsonPath("$.data.abaOfSalaryAccount").value(testAccDetails.getData().getAbaOfSalaryAccount()));
+                .andExpect(jsonPath("$.data.accountABANumber").value(testAccDetails.getData().getAccountABANumber()));
     }
 
     @Test
@@ -143,7 +143,7 @@ class CustomerControllerTest {
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value(validateAccountResponse.getData().getStatus()))
                 .andExpect(jsonPath("$.data.salaryAccountNumber").value(validateAccountResponse.getData().getSalaryAccountNumber()))
-                .andExpect(jsonPath("$.data.abaOfSalaryAccount").value(validateAccountResponse.getData().getAbaOfSalaryAccount()));
+                .andExpect(jsonPath("$.data.accountABANumber").value(validateAccountResponse.getData().getAccountABANumber()));
     }
 
     @Test
@@ -162,7 +162,7 @@ class CustomerControllerTest {
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value(updateCustomer.getData().getStatus()))
                 .andExpect(jsonPath("$.data.salaryAccountNumber").value(updateCustomer.getData().getSalaryAccountNumber()))
-                .andExpect(jsonPath("$.data.abaOfSalaryAccount").value(updateCustomer.getData().getAbaOfSalaryAccount()));
+                .andExpect(jsonPath("$.data.accountABANumber").value(updateCustomer.getData().getAccountABANumber()));
     }
 
      @Test

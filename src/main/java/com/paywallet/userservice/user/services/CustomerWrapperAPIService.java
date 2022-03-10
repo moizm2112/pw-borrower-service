@@ -196,8 +196,9 @@ public class CustomerWrapperAPIService {
 		DepositAllocationResponseWrapperModel depositAllocationResponseModel = new DepositAllocationResponseWrapperModel();
 		depositAllocationResponseModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
 		depositAllocationResponseModel.setMobileNo(customerDetails.getPersonalProfile().getMobileNo());
-		depositAllocationResponseModel.setExternalVirtualAccount(customerDetails.getVirtualAccount());
-		depositAllocationResponseModel.setExternalVirtualAccountABANumber(customerDetails.getVirtualAccountId());
+		depositAllocationResponseModel.setVirtualAccountNumber(customerDetails.getVirtualAccount());
+		depositAllocationResponseModel.setVirtualAccountABANumber(customerDetails.getAccountABANumber());
+		depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
 		depositAllocationResponseModel.setTotalNoOfRepayment(customerDetails.getTotalNoOfRepayment());
 		depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
 		return depositAllocationResponseModel;

@@ -14,7 +14,7 @@ public class CustomerDataTest {
     public CustomerAccountResponseDTO getAccDetails(){
     	CustomerAccountResponseDTO custAccountResponse = new CustomerAccountResponseDTO();
         AccountDetails accountDetailsTestData = new AccountDetails();
-        accountDetailsTestData.setAbaOfSalaryAccount("122199983");
+        accountDetailsTestData.setAccountABANumber("122199983");
         accountDetailsTestData.setSalaryAccountNumber("89455");
         custAccountResponse.setData(accountDetailsTestData);
         return custAccountResponse;
@@ -59,7 +59,7 @@ public class CustomerDataTest {
     public ValidateAccountRequest validateAccountRequest(){
         ValidateAccountRequest validateAccountRequestTest = new ValidateAccountRequest();
         validateAccountRequestTest.setMobileNo("+919980024111");
-        validateAccountRequestTest.setAbaOfSalaryAccount("122199983");
+        validateAccountRequestTest.setAccountABANumber("122199983");
         validateAccountRequestTest.setSalaryAccountNumber("89455");
 
         return validateAccountRequestTest;
@@ -70,7 +70,7 @@ public class CustomerDataTest {
     	CustomerDetails customerDetails = new CustomerDetails();
     	customerDetails.setStatus("Accept");
     	customerDetails.setSalaryAccountNumber("89455");
-    	customerDetails.setAbaOfSalaryAccount("122199983");
+    	customerDetails.setAccountABANumber("122199983");
     	validateAccountResponseTest.setData(customerDetails);
         return validateAccountResponseTest;
     }
@@ -114,7 +114,7 @@ public class CustomerDataTest {
         updateCustomertest.setUpdateCounter(0);
         updateCustomertest.setStatus("Accept");
         updateCustomertest.setSalaryAccountNumber("89455");
-        updateCustomertest.setAbaOfSalaryAccount("122199983");
+        updateCustomertest.setAccountABANumber("122199983");
 //        updateCustomertest.setEmployer("Amazon");
 //        updateCustomertest.setLender("Argyle");
         createCustomerResponseTest.setData(updateCustomertest);
