@@ -184,10 +184,8 @@ public class CustomerService {
         try 
         {
         	requestIdDtls = validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
-			if(lenderConfigInfo == null) {
-			   lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDtls.getClientName());
-			   lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validating callback urls"));
-			}
+		    lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDtls.getClientName());
+		    lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validating callback urls"));
         	if(!isDepositAllocation)
         		validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
         	else {
