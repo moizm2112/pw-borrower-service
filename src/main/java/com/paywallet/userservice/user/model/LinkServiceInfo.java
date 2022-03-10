@@ -21,5 +21,6 @@ public class LinkServiceInfo {
     private String employer;
     private String installmentAmount;
     private String payCycle;
+    private boolean isDirectDepositAllocation;
 
 }

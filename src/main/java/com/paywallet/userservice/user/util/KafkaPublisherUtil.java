@@ -1,14 +1,16 @@
 package com.paywallet.userservice.user.util;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.CommonEnum;
 import com.paywallet.userservice.user.enums.StatusEnum;
 import com.paywallet.userservice.user.model.LinkServiceInfo;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.services.KafkaProducerService;
+
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
@@ -17,17 +19,18 @@ public class KafkaPublisherUtil {
     @Autowired
     KafkaProducerService kafkaProducerService;
 
-    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails, int installmentAmount) {
+    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails, int installmentAmount, boolean isDepositAllocation) {
         try {
             LinkServiceInfo linkServiceInfo = LinkServiceInfo.builder()
                     .requestId(requestIdDtls.getRequestId())
-                    .eventType(CommonEnum.CUSTOMER_CREATED.getMessage())
+                    .eventType(eventType)
                     .lenderName(requestIdDtls.getClientName())
                     .phoneNumber(customerDetails.getPersonalProfile().getMobileNo())
                     .email(customerDetails.getPersonalProfile().getEmailId())
                     .employer(requestIdDtls.getEmployer())
                     .installmentAmount(String.valueOf(installmentAmount))
-                    .payCycle(CommonEnum.PAY_CYCLE.getMessage()).build();
+                    .payCycle(CommonEnum.PAY_CYCLE.getMessage())
+                    .isDirectDepositAllocation(isDepositAllocation).build();
             StatusEnum statusEnum = kafkaProducerService.publishLinkServiceInfo(linkServiceInfo);
             log.info(" requestId : {}  publish status  : {} ", requestIdDtls.getRequestId(), statusEnum);
         } catch (Exception ex) {
