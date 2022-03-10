@@ -39,9 +39,13 @@ public class CustomerDetails {
     private String requestId;
     @JsonIgnore
     private boolean existingCustomer;
+    @JsonIgnore
     private String firstDateOfPayment;
+    @JsonIgnore
     private String repaymentFrequency;
+    @JsonIgnore
     private int totalNoOfRepayment;
+    @JsonIgnore
     private int installmentAmount;
     @JsonIgnore
     private boolean emailNotificationSuccess;
