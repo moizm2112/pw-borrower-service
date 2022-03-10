@@ -13,15 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.paywallet.userservice.user.entities.OfferPayAllocationRequest;
-import com.paywallet.userservice.user.entities.OfferPayAllocationResponse;
-import com.paywallet.userservice.user.exception.*;
-import com.paywallet.userservice.user.model.*;
-import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestWrapperModel;
-import com.paywallet.userservice.user.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -34,9 +27,42 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.entities.OfferPayAllocationRequest;
+import com.paywallet.userservice.user.entities.OfferPayAllocationResponse;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
+import com.paywallet.userservice.user.enums.StateStatus;
+import com.paywallet.userservice.user.exception.CreateCustomerException;
+import com.paywallet.userservice.user.exception.CustomerAccountException;
+import com.paywallet.userservice.user.exception.CustomerNotFoundException;
+import com.paywallet.userservice.user.exception.FineractAPIException;
+import com.paywallet.userservice.user.exception.GeneralCustomException;
+import com.paywallet.userservice.user.exception.OfferPayAllocationException;
+import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
+import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
+import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
+import com.paywallet.userservice.user.model.AccountDetails;
+import com.paywallet.userservice.user.model.CreateCustomerRequest;
+import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
+import com.paywallet.userservice.user.model.CustomerRequestFields;
+import com.paywallet.userservice.user.model.CustomerResponseDTO;
+import com.paywallet.userservice.user.model.LenderConfigInfo;
+import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
+import com.paywallet.userservice.user.model.RequestIdDetails;
+import com.paywallet.userservice.user.model.RequestIdResponseDTO;
+import com.paywallet.userservice.user.model.StateControllerInfo;
+import com.paywallet.userservice.user.model.UpdateCustomerDetailsResponseDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
+import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
+import com.paywallet.userservice.user.model.ValidateAccountRequest;
+import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestWrapperModel;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository;
+import com.paywallet.userservice.user.util.CustomerServiceUtil;
+import com.paywallet.userservice.user.util.KafkaPublisherUtil;
+import com.paywallet.userservice.user.util.LinkServiceUtil;
+import com.paywallet.userservice.user.util.NotificationUtil;
+import com.paywallet.userservice.user.util.RequestIdUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -190,16 +216,13 @@ public class CustomerService {
         		validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
         	else {
         		/* Validating the request against lender configuration to check whether it is a valid deposit allocation request    */
-        		StateControllerInfo stateControllerInfo =  new StateControllerInfo(); 
-        		BeanUtils.copyProperties(lenderConfigInfo, stateControllerInfo);
-        		boolean allocationStatus = linkServiceUtil.checkStateInfo(stateControllerInfo);
-        		if(!allocationStatus) {
-        			throw new GeneralCustomException("ERROR","Deposit allocation request failed, please check the lender configuration");
-        		}
+				if(lenderConfigInfo.getInvokeAndPublishDepositAllocation().equals(StateStatus.NO)) { 
+					throw new GeneralCustomException("ERROR","Deposit allocation is not allowed for the lender"); 
+			}
         		
-        		if (!depositAllocationRequestWrapperModel.getMobileNo().startsWith("+1") && depositAllocationRequestWrapperModel.getMobileNo().length()==10)
-        			depositAllocationRequestWrapperModel.setMobileNo("+1".concat(depositAllocationRequestWrapperModel.getMobileNo()));
-        		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
+    		if (!depositAllocationRequestWrapperModel.getMobileNo().startsWith("+1") && depositAllocationRequestWrapperModel.getMobileNo().length()==10)
+    			depositAllocationRequestWrapperModel.setMobileNo("+1".concat(depositAllocationRequestWrapperModel.getMobileNo()));
+    		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
         	}
         	if(customer.getTotalNoOfRepayment() == null)
         		customer.setTotalNoOfRepayment(0);
@@ -263,7 +286,7 @@ public class CustomerService {
                 kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount());
 	            log.info("Customer got created successfully");
 	        }
-            checkAndSavePayAllocation(requestIdDtls,customer);
+            checkAndSavePayAllocation(requestIdDtls,customer, isDepositAllocation);
     	}
         catch(GeneralCustomException e) {
         	log.error("Customerservice createcustomer generalCustomException");
@@ -1053,14 +1076,14 @@ public class CustomerService {
 	   }
    }
 
-    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer) {
+    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer, boolean isDirectDepositAllocation) {
         String requestId = requestIdDetails.getRequestId();
         log.info(" Inside check And SavePayAllocation : Request ID : {} ",requestId);
         try {
             StateControllerInfo stateControllerInfo = linkServiceUtil.getStateInfo(requestId, requestIdDetails.getClientName());
             log.info(" response from stateControllerInfo {} : Request id : {} ",stateControllerInfo,requestId);
             boolean allocationStatus = linkServiceUtil.checkStateInfo(stateControllerInfo);
-            if (allocationStatus) {
+            if (allocationStatus || (isDirectDepositAllocation && stateControllerInfo.getInvokeAndPublishDepositAllocation().equals(StateStatus.YES))) {
                 OfferPayAllocationRequest offerPayAllocationRequest = linkServiceUtil.prepareCheckAffordabilityRequest(customer);
                 OfferPayAllocationResponse offerPayAllocationResponse = linkServiceUtil.postCheckAffordabilityRequest(offerPayAllocationRequest, requestId);
                 log.info(" offerPayAllocationResponse : {} : requestId {} ", offerPayAllocationResponse, requestId);
