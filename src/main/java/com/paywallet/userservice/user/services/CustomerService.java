@@ -237,6 +237,8 @@ public class CustomerService {
 	            saveCustomer.setExistingCustomer(true);
 	            saveCustomer.setInstallmentAmount(customer.getInstallmentAmount());
 	            saveCustomer.setTotalNoOfRepayment(customer.getTotalNoOfRepayment());
+	            saveCustomer.setSalaryAccountNumber(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+	            saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 	            if(requestIdDtls.getClientName() != null) 
 	            	saveCustomer.setLender(requestIdDtls.getClientName());
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
@@ -286,7 +288,7 @@ public class CustomerService {
                 kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
 	            log.info("Customer got created successfully");
 	        }
-            checkAndSavePayAllocation(requestIdDtls,customer);
+            checkAndSavePayAllocation(requestIdDtls,customer, isDepositAllocation);
     	}
         catch(GeneralCustomException e) {
         	log.error("Customerservice createcustomer generalCustomException");
@@ -352,7 +354,7 @@ public class CustomerService {
                     if(customerDetails.get().getSalaryProfile().getAba()!=null){
                         Integer abaOfsalaryAccNoLength = customerDetails.get().getSalaryProfile().getAba().length();
                         String leadingFourDigitsOfabaSalAccNo = customerDetails.get().getSalaryProfile().getAba().substring(abaOfsalaryAccNoLength - 4, abaOfsalaryAccNoLength);
-                        accountDetails.setAbaOfSalaryAccount(leadingFourDigitsOfabaSalAccNo);
+                        accountDetails.setAccountABANumber(leadingFourDigitsOfabaSalAccNo);
                     } else {
                         log.debug("ABA Of Salary AccNo is NULL for the customer with mobileNo: " + mobileNo+" in salary profile");
                         throw new CustomerAccountException("ABA Of Salary AccNo is NULL for the customer with mobileNo: " + mobileNo);
@@ -397,7 +399,7 @@ public class CustomerService {
             } else {
                 if (customerDetails.get().getSalaryProfile().getProvider().equalsIgnoreCase(ProviderTypeEnum.ARGYLE.toString())) {
                     String leadingFourDigitsOfSalAccNo = validateAccountRequest.getSalaryAccountNumber().substring(validateAccountRequest.getSalaryAccountNumber().length() - 4, validateAccountRequest.getSalaryAccountNumber().length());
-                    String leadingFourDigitsOfabaNo = validateAccountRequest.getAbaOfSalaryAccount().substring(validateAccountRequest.getAbaOfSalaryAccount().length() - 4, validateAccountRequest.getAbaOfSalaryAccount().length());
+                    String leadingFourDigitsOfabaNo = validateAccountRequest.getAccountABANumber().substring(validateAccountRequest.getAccountABANumber().length() - 4, validateAccountRequest.getAccountABANumber().length());
                     if (leadingFourDigitsOfSalAccNo.equalsIgnoreCase(customerDetails.get().getSalaryProfile().getSalaryAccount())
                             && leadingFourDigitsOfabaNo.equalsIgnoreCase(customerDetails.get().getSalaryProfile().getAba())) {
                         log.info("provided customer account details are validated with the existing data from the DB");
@@ -410,7 +412,7 @@ public class CustomerService {
                 }
                 if (customerDetails.get().getSalaryProfile().getProvider().equalsIgnoreCase(ProviderTypeEnum.ATOMICFI.toString())) {
                     if (validateAccountRequest.getSalaryAccountNumber().equalsIgnoreCase(customerDetails.get().getSalaryProfile().getSalaryAccount())
-                            && validateAccountRequest.getAbaOfSalaryAccount().equalsIgnoreCase(customerDetails.get().getSalaryProfile().getAba())) {
+                            && validateAccountRequest.getAccountABANumber().equalsIgnoreCase(customerDetails.get().getSalaryProfile().getAba())) {
                         log.info("provided customer account details are validated with the existing data from the DB");
                         accntAndabaVerification = true;
                     } else {
@@ -423,7 +425,7 @@ public class CustomerService {
                     JSONObject jsonObject = lyonsService.checkAccountOwnership(LyonsAPIRequestDTO.builder().firstName(customerDetails.get().getPersonalProfile().getFirstName())
                             .lastName(customerDetails.get().getPersonalProfile().getLastName())
                             .accountNumber(validateAccountRequest.getSalaryAccountNumber())
-                            .abaNumber(validateAccountRequest.getAbaOfSalaryAccount())
+                            .abaNumber(validateAccountRequest.getAccountABANumber())
                             .build());
                     log.debug("Lyons Call result: "+jsonObject.toString());
                     if (jsonObject.has(RESULT)) {
@@ -444,7 +446,7 @@ public class CustomerService {
                 if (accntAndabaVerification) {
                     log.info("As account details are validated successfully updating the DB with full SalaryAccNo & ABANo and resetting the counter to 0");
                     customerDetails.get().setSalaryAccountNumber(validateAccountRequest.getSalaryAccountNumber());
-                    customerDetails.get().setAbaOfSalaryAccount(validateAccountRequest.getAbaOfSalaryAccount());
+                    customerDetails.get().setAccountABANumber(validateAccountRequest.getAccountABANumber());
                     if (customerDetails.get().getUpdateCounter() != 0) {
                         customerDetails.get().setUpdateCounter(0);
                     }
@@ -1076,14 +1078,14 @@ public class CustomerService {
 	   }
    }
 
-    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer) {
+    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer, boolean isDepositAllocation) {
         String requestId = requestIdDetails.getRequestId();
         log.info(" Inside check And SavePayAllocation : Request ID : {} ",requestId);
         try {
             StateControllerInfo stateControllerInfo = linkServiceUtil.getStateInfo(requestId, requestIdDetails.getClientName());
             log.info(" response from stateControllerInfo {} : Request id : {} ",stateControllerInfo,requestId);
             boolean allocationStatus = linkServiceUtil.checkStateInfo(stateControllerInfo);
-            if (allocationStatus) {
+            if (allocationStatus || (isDepositAllocation && (StateStatus.YES).equals(stateControllerInfo.getInvokeAndPublishDepositAllocation()))) {
                 OfferPayAllocationRequest offerPayAllocationRequest = linkServiceUtil.prepareCheckAffordabilityRequest(customer);
                 OfferPayAllocationResponse offerPayAllocationResponse = linkServiceUtil.postCheckAffordabilityRequest(offerPayAllocationRequest, requestId);
                 log.info(" offerPayAllocationResponse : {} : requestId {} ", offerPayAllocationResponse, requestId);

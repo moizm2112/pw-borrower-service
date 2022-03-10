@@ -23,7 +23,7 @@ class CustomerServiceTest {
         when(mockCustomerService.getAccountDetails(mobileNo)).thenReturn(accDetails.getData());
 
         assertEquals("89455",accDetails.getData().getSalaryAccountNumber());
-        assertEquals("122199983",accDetails.getData().getAbaOfSalaryAccount());
+        assertEquals("122199983",accDetails.getData().getAccountABANumber());
     }
 
     @Test
@@ -74,7 +74,7 @@ class CustomerServiceTest {
 
         assertEquals("Accept",customerResponse.getData().getStatus());
         assertEquals("89455",customerResponse.getData().getSalaryAccountNumber());
-        assertEquals("122199983",customerResponse.getData().getAbaOfSalaryAccount());
+        assertEquals("122199983",customerResponse.getData().getAccountABANumber());
     }
 
     @Test
@@ -88,6 +88,6 @@ class CustomerServiceTest {
 
         assertEquals("Accept",customerResponse.getData().getStatus());
         assertEquals("89455",customerResponse.getData().getSalaryAccountNumber());
-        assertEquals("122199983",customerResponse.getData().getAbaOfSalaryAccount());
+        assertEquals("122199983",customerResponse.getData().getAccountABANumber());
     }
 }

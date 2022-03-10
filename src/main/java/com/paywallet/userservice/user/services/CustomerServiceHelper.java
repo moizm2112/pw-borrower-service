@@ -71,7 +71,7 @@ public class CustomerServiceHelper {
         personalProfileToUpdate.setAddressLine2(customer.getAddressLine2());
         personalProfileToUpdate.setMiddleName(customer.getMiddleName());
 //        custDtls.setFinancedAmount(customer.getFinancedAmount());
-//        custDtls.setAbaOfSalaryAccount(customer.getBankABA());
+//        custDtls.setAccountABANumber(customer.getBankABA());
 //        custDtls.setSalaryAccountNumber(customer.getBankAccountNumber());
     }
 

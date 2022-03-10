@@ -18,14 +18,14 @@ public class ValidateAccountRequest {
     @NotBlank(message =MOBILENO_NULL_VALIDATION_MESSAGE)
     private String mobileNo;
     private String salaryAccountNumber;
-    private String abaOfSalaryAccount;
+    private String accountABANumber;
 
     @Override
     public String toString(){
         return new StringBuilder("{")
                 .append("mobileNo:").append(CustomerServiceUtil.mask(mobileNo)).append(",")
                 .append("salaryAccountNumber:").append(CustomerServiceUtil.hashString(salaryAccountNumber)).append(",")
-                .append("abaOfSalaryAccount:").append(CustomerServiceUtil.hashString(abaOfSalaryAccount)).append("}")
+                .append("accountABANumber:").append(CustomerServiceUtil.hashString(accountABANumber)).append("}")
                 .toString();
     }
 }

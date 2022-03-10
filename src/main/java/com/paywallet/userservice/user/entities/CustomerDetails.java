@@ -29,7 +29,7 @@ public class CustomerDetails {
     private SalaryProfile salaryProfile;
 
     private String salaryAccountNumber;
-    private String abaOfSalaryAccount;
+    private String accountABANumber;
     private String financedAmount;
     private Integer updateCounter=0;
     private String status="";
