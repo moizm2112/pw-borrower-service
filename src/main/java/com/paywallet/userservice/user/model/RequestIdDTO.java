@@ -10,6 +10,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 @Component
 @Data
 @AllArgsConstructor
@@ -35,10 +37,15 @@ public class RequestIdDTO {
     private String virtualAccountId;
     private String argyleAccountId;
     private String argyleUserId;
+    private String depositTaskId;
+    private String salaryAccountNumber;
+    private String abaNumber;
+    private int accountValidationAttempt;
     private List<String> identityCallbackUrls;
     private List<String> employmentCallbackUrls;
     private List<String> incomeCallbackUrls;
     private List<String> allocationCallbackUrls;
     private List<String> insufficientFundCallbackUrls;
     private List<String> notificationUrls;
+    private boolean isDirectDepositAllocation;
 }
