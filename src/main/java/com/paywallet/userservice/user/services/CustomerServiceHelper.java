@@ -175,7 +175,7 @@ public class CustomerServiceHelper {
      * @throws GeneralCustomException
      */
     public RequestIdResponseDTO updateRequestIdDetails(String requestId, String customerId, String virtualAccountNumber,String virtualAccountId,
-    		String identifyProviderServiceUri, RestTemplate restTemplate, CallbackURL callbackURL) 
+    		String identifyProviderServiceUri, RestTemplate restTemplate, CallbackURL callbackURL, boolean isDirectDepositAllocation, String virtualAccountABANUmber) 
     				throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
     	log.info("Inside updateRequestIdDetails");
     	
@@ -184,7 +184,8 @@ public class CustomerServiceHelper {
     	requestIdDTO.setUserId(customerId);
     	requestIdDTO.setVirtualAccountNumber(virtualAccountNumber);
     	requestIdDTO.setVirtualAccountId(virtualAccountId);
-    	
+    	requestIdDTO.setDirectDepositAllocation(isDirectDepositAllocation);
+    	requestIdDTO.setAbaNumber(virtualAccountABANUmber);
     	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
     	if(callbackURL != null) {
 	    	requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());

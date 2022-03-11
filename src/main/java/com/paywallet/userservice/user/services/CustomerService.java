@@ -149,6 +149,8 @@ public class CustomerService {
     
     private LenderConfigInfo lenderConfigInfo;
     
+    public static final String ROUTING_NUMBER = "284073808";
+    
     /**
      * Method fetches customer details by mobileNo
      * @param customerId
@@ -237,16 +239,22 @@ public class CustomerService {
 	            saveCustomer.setExistingCustomer(true);
 	            saveCustomer.setInstallmentAmount(customer.getInstallmentAmount());
 	            saveCustomer.setTotalNoOfRepayment(customer.getTotalNoOfRepayment());
-	            if(isDepositAllocation) {
-		            saveCustomer.setSalaryAccountNumber(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-		            saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
-	            }
+	            
 	            if(requestIdDtls.getClientName() != null) 
 	            	saveCustomer.setLender(requestIdDtls.getClientName());
-	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
-            	customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
-        	            saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(), identifyProviderServiceUri, restTemplate, customer.getCallbackURLs());
 	            
+	            if(isDepositAllocation) {
+	            	// Set external virtual account only if it provided in the request for direct deposit allocation wrapper api
+	            	if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
+	            		saveCustomer.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+		            saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+	            }
+	            
+            	/* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
+            	customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
+        	            saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(), identifyProviderServiceUri, 
+        	            	restTemplate, customer.getCallbackURLs(), isDepositAllocation, saveCustomer.getAccountABANumber());
+            	
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	           // String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
 	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
@@ -258,6 +266,7 @@ public class CustomerService {
 	        	if(!isDepositAllocation) {
 	        		if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
 		        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
+		        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
 			            log.info("Virtual fineract account created successfully ");
 	        		}
 	        	}
@@ -265,14 +274,15 @@ public class CustomerService {
 	        	else if(isDepositAllocation && (StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) && 
 	        			StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))) {
 	        		customerEntity.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-					customerEntity.setVirtualAccountId(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+					customerEntity.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 	        	}
 	        	// direct deposit allocation is TRUE and external virtual account number and ABA number NOT provided (So USE FINERACT)
 	        	else if(isDepositAllocation && (StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) || 
 	        			StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))) {
 	        		if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
 		        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
-			            log.info("Virtual fineract account created successfully ");
+		        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
+			            log.info("Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
 	        		}
 	        	}
 	            
@@ -282,9 +292,10 @@ public class CustomerService {
 	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(false);
 	            
-	            /* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
+            	/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
 	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
-	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, restTemplate, customer.getCallbackURLs());
+	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, 
+	            			restTemplate, customer.getCallbackURLs(), isDepositAllocation, saveCustomer.getAccountABANumber());
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
                 kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
