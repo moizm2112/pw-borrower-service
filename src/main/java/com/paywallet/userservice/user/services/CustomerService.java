@@ -237,8 +237,10 @@ public class CustomerService {
 	            saveCustomer.setExistingCustomer(true);
 	            saveCustomer.setInstallmentAmount(customer.getInstallmentAmount());
 	            saveCustomer.setTotalNoOfRepayment(customer.getTotalNoOfRepayment());
-	            saveCustomer.setSalaryAccountNumber(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-	            saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+	            if(isDepositAllocation) {
+		            saveCustomer.setSalaryAccountNumber(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+		            saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+	            }
 	            if(requestIdDtls.getClientName() != null) 
 	            	saveCustomer.setLender(requestIdDtls.getClientName());
 	            /* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
