@@ -271,7 +271,6 @@ public class CustomerFieldValidator {
 		if (!checkFieldForValidPattern(regex, emailId)) {
 			errorList.add(EMAIL_FORMAT_VALIDATION_MESSAGE);
 		}
-
 		try {
 			if(emailId != null && mobileNo != null) {
 				Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(mobileNo);
