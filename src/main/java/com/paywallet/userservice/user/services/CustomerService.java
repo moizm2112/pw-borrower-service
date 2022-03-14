@@ -45,8 +45,10 @@ import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
 import com.paywallet.userservice.user.model.CustomerRequestFields;
 import com.paywallet.userservice.user.model.CustomerResponseDTO;
+import com.paywallet.userservice.user.model.EmployerSearchDetailsDTO;
 import com.paywallet.userservice.user.model.LenderConfigInfo;
 import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
+import com.paywallet.userservice.user.model.RequestIdDTO;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.RequestIdResponseDTO;
 import com.paywallet.userservice.user.model.StateControllerInfo;
@@ -189,6 +191,22 @@ public class CustomerService {
         }
     }
     
+    
+    public void getEmployerDetailsBasedOnEmployerId(String employerId, String requestId) {
+    	
+    	try {
+    		
+    		
+    		
+    		
+    		
+    	}
+    	catch(Exception e) {
+    		
+    	}
+    	
+    }
+    
     /** 
      * Method create a customer with fineract virtual savings account.
      * @param customer
@@ -220,17 +238,29 @@ public class CustomerService {
         		/* Validating the request against lender configuration to check whether it is a valid deposit allocation request    */
 				if(lenderConfigInfo.getInvokeAndPublishDepositAllocation().equals(StateStatus.NO)) { 
 					throw new GeneralCustomException("ERROR","Deposit allocation is not allowed for the lender"); 
-			}
-        		
-    		if (!depositAllocationRequestWrapperModel.getMobileNo().startsWith("+1") && depositAllocationRequestWrapperModel.getMobileNo().length()==10)
-    			depositAllocationRequestWrapperModel.setMobileNo("+1".concat(depositAllocationRequestWrapperModel.getMobileNo()));
-    		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
+				}
+	    		if (!depositAllocationRequestWrapperModel.getMobileNo().startsWith("+1") && depositAllocationRequestWrapperModel.getMobileNo().length()==10)
+	    			depositAllocationRequestWrapperModel.setMobileNo("+1".concat(depositAllocationRequestWrapperModel.getMobileNo()));
+	    		
+	    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
+	    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
+	    			EmployerSearchDetailsDTO employerSearchDetailsDTO = customerServiceHelper.getEmployerDetailsBasedOnEmployerId(depositAllocationRequestWrapperModel.getEmployerId(), requestId);
+	    			if(employerSearchDetailsDTO == null || (employerSearchDetailsDTO != null && employerSearchDetailsDTO.getId() == null)) {
+	    				throw new GeneralCustomException("ERROR","Fetch employer details and update request table in create customer failed");
+	    			}
+	    			log.info("Employer search and select from create customer :" + employerSearchDetailsDTO);
+	    		}
+	    		//Validation of direct deposit allocation request
+	    		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
         	}
+        	
+        	// Setup made to get int field in request and if null set it to default to 0.
         	if(customer.getTotalNoOfRepayment() == null)
         		customer.setTotalNoOfRepayment(0);
         	if(customer.getInstallmentAmount() ==null)
         		customer.setInstallmentAmount(0);
-
+        	
+        	//Check if customer already exist for the given request (thro' mobileno)
 	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
 	        if (byMobileNo.isPresent()) {
 	        	log.info("Exsiting customer with new requestID : " + requestId);
@@ -250,10 +280,11 @@ public class CustomerService {
 		            saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 	            }
 	            
+	            RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer.getCustomerId(),saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),
+						customer.getCallbackURLs(), isDepositAllocation, saveCustomer.getAccountABANumber());
             	/* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
-            	customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
-        	            saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(), identifyProviderServiceUri, 
-        	            	restTemplate, customer.getCallbackURLs(), isDepositAllocation, saveCustomer.getAccountABANumber());
+            	customerServiceHelper.updateRequestIdDetails(requestId,requestIdDTO, identifyProviderServiceUri, 
+        	            	restTemplate);
             	
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	           // String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
@@ -292,10 +323,10 @@ public class CustomerService {
 	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(false);
 	            
+	            RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer.getCustomerId(),saveCustomer.getVirtualAccount(),
+	            		saveCustomer.getVirtualAccountId(), customer.getCallbackURLs(), isDepositAllocation, saveCustomer.getAccountABANumber());
             	/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
-	            customerServiceHelper.updateRequestIdDetails(requestId, saveCustomer.getCustomerId(), 
-	            		saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),identifyProviderServiceUri, 
-	            			restTemplate, customer.getCallbackURLs(), isDepositAllocation, saveCustomer.getAccountABANumber());
+	            customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri, restTemplate);
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
                 kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
