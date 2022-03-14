@@ -47,6 +47,9 @@ public class CustomerServiceHelper {
 	
 	@Value("${updateVirtualAccount.uri}")
 	private String updateVirtualAccountUri;
+	
+	@Value("${employer.uri}")
+	private String searchEmployerUri;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -174,27 +177,10 @@ public class CustomerServiceHelper {
      * @throws ResourceAccessException
      * @throws GeneralCustomException
      */
-    public RequestIdResponseDTO updateRequestIdDetails(String requestId, String customerId, String virtualAccountNumber,String virtualAccountId,
-    		String identifyProviderServiceUri, RestTemplate restTemplate, CallbackURL callbackURL, boolean isDirectDepositAllocation, String virtualAccountABANUmber) 
+    public RequestIdResponseDTO updateRequestIdDetails(String requestId, RequestIdDTO requestIdDTO, String identifyProviderServiceUri, RestTemplate restTemplate) 
     				throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
     	log.info("Inside updateRequestIdDetails");
     	
-    	/* SET INPUT (REQUESTIDDTO) TO ACCESS THE IDENTITY PROVIDER SERVICE*/
-    	RequestIdDTO requestIdDTO = new RequestIdDTO();
-    	requestIdDTO.setUserId(customerId);
-    	requestIdDTO.setVirtualAccountNumber(virtualAccountNumber);
-    	requestIdDTO.setVirtualAccountId(virtualAccountId);
-    	requestIdDTO.setDirectDepositAllocation(isDirectDepositAllocation);
-    	requestIdDTO.setAbaNumber(virtualAccountABANUmber);
-    	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
-    	if(callbackURL != null) {
-	    	requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
-	    	requestIdDTO.setEmploymentCallbackUrls(callbackURL.getEmploymentCallbackUrls());
-	    	requestIdDTO.setIncomeCallbackUrls(callbackURL.getIncomeCallbackUrls());
-	    	requestIdDTO.setAllocationCallbackUrls(callbackURL.getAllocationCallbackUrls());
-	    	requestIdDTO.setInsufficientFundCallbackUrls(callbackURL.getInsufficientFundCallbackUrls());
-			requestIdDTO.setNotificationUrls(callbackURL.getNotificationUrls());
-    	}
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.add("x-request-id", requestId);
@@ -220,6 +206,32 @@ public class CustomerServiceHelper {
 		log.info("response from  updateRequestIdDetails : " + requestIdResponse);
 		return requestIdResponse;
 	}
+    
+    public RequestIdDTO setRequestIdDetails(String customerId, String virtualAccount, String virtualAccountId,
+			CallbackURL callbackURL,boolean isDepositAllocation, String accountABANumber) {
+    	
+    	RequestIdDTO requestIdDTO = new RequestIdDTO();
+    	try {
+        	requestIdDTO.setUserId(customerId);
+        	requestIdDTO.setVirtualAccountNumber(virtualAccount);
+        	requestIdDTO.setVirtualAccountId(virtualAccountId);
+        	requestIdDTO.setDirectDepositAllocation(isDepositAllocation);
+        	requestIdDTO.setAbaNumber(accountABANumber);
+        	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
+        	if(callbackURL != null) {
+    	    	requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
+    	    	requestIdDTO.setEmploymentCallbackUrls(callbackURL.getEmploymentCallbackUrls());
+    	    	requestIdDTO.setIncomeCallbackUrls(callbackURL.getIncomeCallbackUrls());
+    	    	requestIdDTO.setAllocationCallbackUrls(callbackURL.getAllocationCallbackUrls());
+    	    	requestIdDTO.setInsufficientFundCallbackUrls(callbackURL.getInsufficientFundCallbackUrls());
+    			requestIdDTO.setNotificationUrls(callbackURL.getNotificationUrls());
+        	}
+    	}
+    	catch(Exception e) {
+    		throw new GeneralCustomException("ERROR", "Exception occured while updating the request Id details");
+    	}
+    	return requestIdDTO;
+    }
     
     public String getLinkFromLinkVerificationService(String requestId,String domainNameForLink, RestTemplate restTemplate, String createLinkUri) {
     	log.info("Inside getLinkFromLinkVerificationService");
@@ -307,6 +319,29 @@ public class CustomerServiceHelper {
 		}
 		log.info("updateMobileNoInFineract response : " + fineractUpdateLenderResponseDTO);
 		return fineractUpdateLenderResponseDTO;
+	}
+	
+	public EmployerSearchDetailsDTO getEmployerDetailsBasedOnEmployerId(String employerId, String requestId) {
+    	log.info("Inside getEmployerDetailsBasedOnEmployerId");
+    	EmployerSearchDetailsDTO employerSearchDetailsDTO = new EmployerSearchDetailsDTO();
+		try {
+			ObjectMapper objMapper= new ObjectMapper();
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.add("x-request-id", requestId);
+			HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+			
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(searchEmployerUri + employerId + "?pdSupported=true");
+			log.info("uriBuilder url formed: " + uriBuilder.toUriString());
+			employerSearchDetailsDTO = restTemplate
+					.exchange(uriBuilder.toUriString(), HttpMethod.POST, requestEntity, EmployerSearchDetailsDTO.class)
+					.getBody();
+		} catch (Exception ex) {
+			log.error("Exception occured while getting employer details for given employerID" + ex.getMessage());
+			throw new GeneralCustomException("ERROR",ex.getMessage());
+		}
+		log.info("getEmployerDetailsBasedOnEmployerId response : " + employerSearchDetailsDTO);
+		return employerSearchDetailsDTO;
 	}
 
 }
