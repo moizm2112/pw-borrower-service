@@ -321,6 +321,12 @@ public class CustomerServiceHelper {
 		return fineractUpdateLenderResponseDTO;
 	}
 	
+	/**
+	 * This method searches the employer based on provided employerID and updates the data to request details table.
+	 * @param employerId
+	 * @param requestId
+	 * @return
+	 */
 	public EmployerSearchDetailsDTO getEmployerDetailsBasedOnEmployerId(String employerId, String requestId) {
     	log.info("Inside getEmployerDetailsBasedOnEmployerId");
     	EmployerSearchDetailsDTO employerSearchDetailsDTO = new EmployerSearchDetailsDTO();
