@@ -322,7 +322,7 @@ public class CustomerServiceHelper {
 	}
 	
 	/**
-	 * This method searches the employer based on provided employerID and updates the data to request details table.
+	 * This method searches the employer based on provided employerID and updates the data to request details table. 
 	 * @param employerId
 	 * @param requestId
 	 * @return
