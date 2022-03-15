@@ -191,22 +191,6 @@ public class CustomerService {
         }
     }
     
-    
-    public void getEmployerDetailsBasedOnEmployerId(String employerId, String requestId) {
-    	
-    	try {
-    		
-    		
-    		
-    		
-    		
-    	}
-    	catch(Exception e) {
-    		
-    	}
-    	
-    }
-    
     /** 
      * Method create a customer with fineract virtual savings account.
      * @param customer
@@ -253,7 +237,6 @@ public class CustomerService {
 	    		//Validation of direct deposit allocation request
 	    		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
         	}
-        	
         	// Setup made to get int field in request and if null set it to default to 0.
         	if(customer.getTotalNoOfRepayment() == null)
         		customer.setTotalNoOfRepayment(0);

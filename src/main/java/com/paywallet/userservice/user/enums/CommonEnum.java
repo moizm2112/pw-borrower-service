@@ -14,7 +14,7 @@ public enum CommonEnum {
     UPDATE_MOBILENO_SUCCESS_STATUS_MSG("Customer Mobile number updated Successfully"),
     UPDATE_EMAILID_SUCCESS_STATUS_MSG("Customer Email updated Successfully"),
     UPDATE_CUSTOMER_CREDENTIALS_SUCCESS_STATUS_MSG("Customer credentials updated successfully"),
-    DEPOSIT_ALLOCATION_SUCCESS_STATUS_MSG("Deposit allocation success"),
+    DEPOSIT_ALLOCATION_SUCCESS_STATUS_MSG("Deposit allocation process initiated"),
     CUSTOMER_CREATED("CUSTOMER_CREATED"),
     PAY_CYCLE("paycycle"),
     FAILED_STATUS_MSG("FAILED"),
