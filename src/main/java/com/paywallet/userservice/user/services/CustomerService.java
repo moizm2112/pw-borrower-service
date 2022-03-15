@@ -191,22 +191,6 @@ public class CustomerService {
         }
     }
     
-    
-    public void getEmployerDetailsBasedOnEmployerId(String employerId, String requestId) {
-    	
-    	try {
-    		
-    		
-    		
-    		
-    		
-    	}
-    	catch(Exception e) {
-    		
-    	}
-    	
-    }
-    
     /** 
      * Method create a customer with fineract virtual savings account.
      * @param customer
