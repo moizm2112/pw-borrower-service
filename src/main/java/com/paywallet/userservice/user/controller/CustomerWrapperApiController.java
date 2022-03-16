@@ -4,6 +4,7 @@ import static com.paywallet.userservice.user.constant.AppConstants.BASE_PATH;
 import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_CREDENTIALS;
 import static com.paywallet.userservice.user.constant.AppConstants.INITIATE_DEPOSIT_ALLOCATION;
+import static com.paywallet.userservice.user.constant.AppConstants.INITIATE_EMPLOYMENT_VERIFICATION;
 
 import java.util.Optional;
 
@@ -28,6 +29,8 @@ import com.paywallet.userservice.user.model.UpdateCustomerCredentialsModel;
 import com.paywallet.userservice.user.model.UpdateCustomerCredentialsResponse;
 import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationResponseWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationResponseWrapperModel;
 import com.paywallet.userservice.user.services.CustomerWrapperAPIService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -58,8 +61,20 @@ public class CustomerWrapperApiController {
 		log.info("Inside inititateDepositAllocation " + depositAllocationRequestWrapperModel);
 		DepositAllocationResponseWrapperModel depositAllocationResponse = customerWrapperAPIService.initiateDepositAllocation(depositAllocationRequestWrapperModel,
 				requestId);
-		Optional.ofNullable(depositAllocationResponse).orElseThrow(() -> new GeneralCustomException("ERROR", ""));
+		Optional.ofNullable(depositAllocationResponse).orElseThrow(() -> new GeneralCustomException("ERROR", "Exception occured while deposit allocation"));
 		return customerWrapperAPIService.prepareUpdateResponse(depositAllocationResponse, 
 				CommonEnum.DEPOSIT_ALLOCATION_SUCCESS_STATUS_MSG.getMessage(), HttpStatus.OK.value(), request.getRequestURI());
 	}
+	
+	/*@PostMapping(INITIATE_EMPLOYMENT_VERIFICATION)
+	public ResponseEntity<Object> inititateEmploymentVerification(@Valid @RequestBody EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel,
+			@RequestHeader(REQUEST_ID) String requestId, HttpServletRequest request) throws MethodArgumentNotValidException, RequestIdNotFoundException {
+		
+		log.info("Inside inititateEmploymentVerification " + employmentVerificationRequestWrapperModel);
+		EmploymentVerificationResponseWrapperModel employmentVerificationResponse = customerWrapperAPIService.inititateEmploymentVerification(employmentVerificationRequestWrapperModel,
+				requestId);
+		Optional.ofNullable(employmentVerificationResponse).orElseThrow(() -> new GeneralCustomException("ERROR", "Exception occured while employment verification"));
+		return customerWrapperAPIService.prepareUpdateResponse(employmentVerificationResponse, 
+				CommonEnum.EMPLOYMENT_VERIFICATION_SUCCESS_STATUS_MSG.getMessage(), HttpStatus.OK.value(), request.getRequestURI());
+	}*/
 }

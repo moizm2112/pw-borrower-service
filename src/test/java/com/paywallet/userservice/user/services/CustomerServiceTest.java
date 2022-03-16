@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
 
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.helper.CustomerDataTest;
 import com.paywallet.userservice.user.model.CustomerAccountResponseDTO;
 import com.paywallet.userservice.user.model.CustomerResponseDTO;
@@ -32,7 +33,7 @@ class CustomerServiceTest {
         CustomerResponseDTO customerResponse = customerDataTest.createCustomerResponse();
         CustomerService mockCustomerService = mock(CustomerService.class);
         DepositAllocationRequestWrapperModel depositAllocationRequest = new DepositAllocationRequestWrapperModel();
-        when(mockCustomerService.createCustomer(customerDataTest.createCustomerRequest(),"",depositAllocationRequest,false))
+        when(mockCustomerService.createCustomer(customerDataTest.createCustomerRequest(),"",depositAllocationRequest,FlowTypeEnum.GENERAL))
         		.thenReturn(customerResponse.getData());
 
         assertEquals("61822f23019cba309dd5b070",customerResponse.getData().getCustomerId());

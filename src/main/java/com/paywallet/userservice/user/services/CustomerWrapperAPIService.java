@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.entities.PersonalProfile;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.CreateCustomerException;
 import com.paywallet.userservice.user.exception.CustomerNotFoundException;
 import com.paywallet.userservice.user.exception.FineractAPIException;
@@ -42,6 +43,8 @@ import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationResponseWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationResponseWrapperModel;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.util.KafkaPublisherUtil;
 
@@ -187,10 +190,22 @@ public class CustomerWrapperAPIService {
 		CreateCustomerRequest customer = new CreateCustomerRequest();
 		setCustomerRequest(depositAllocationRequestWrapperModel, customer);
 		
-		CustomerDetails customerDetails = customerService.createCustomer(customer, requestId, depositAllocationRequestWrapperModel, true);
+		CustomerDetails customerDetails = customerService.createCustomer(customer, requestId, depositAllocationRequestWrapperModel, FlowTypeEnum.DEPOSIT_ALLOCATION);
 		DepositAllocationResponseWrapperModel depositAllocationResponse = setDepositAllocationResponse(customerDetails);
 		return depositAllocationResponse;
 	}
+	
+	/*public EmploymentVerificationResponseWrapperModel initiateEmploymentVerification(EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel,
+			String requestId) throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, 
+				SMSAndEmailNotificationException {
+		
+		CreateCustomerRequest customer = new CreateCustomerRequest();
+		setCustomerRequest(employmentVerificationRequestWrapperModel, customer);
+		
+		CustomerDetails customerDetails = customerService.createCustomer(customer, requestId, employmentVerificationRequestWrapperModel, true);
+		EmploymentVerificationResponseWrapperModel employmentVerificationResponse = setDepositAllocationResponse(customerDetails);
+		return employmentVerificationResponse;
+	}*/
 	
 	public DepositAllocationResponseWrapperModel setDepositAllocationResponse(CustomerDetails customerDetails) {
 		DepositAllocationResponseWrapperModel depositAllocationResponseModel = new DepositAllocationResponseWrapperModel();

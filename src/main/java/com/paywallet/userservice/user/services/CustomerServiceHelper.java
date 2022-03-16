@@ -3,6 +3,7 @@ package com.paywallet.userservice.user.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.entities.PersonalProfile;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.FineractAPIException;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
@@ -207,16 +208,16 @@ public class CustomerServiceHelper {
 		return requestIdResponse;
 	}
     
-    public RequestIdDTO setRequestIdDetails(String customerId, String virtualAccount, String virtualAccountId,
-			CallbackURL callbackURL,boolean isDepositAllocation, String accountABANumber) {
+    public RequestIdDTO setRequestIdDetails(CustomerDetails saveCustomer, CallbackURL callbackURL, FlowTypeEnum flowType) {
     	
     	RequestIdDTO requestIdDTO = new RequestIdDTO();
     	try {
-        	requestIdDTO.setUserId(customerId);
-        	requestIdDTO.setVirtualAccountNumber(virtualAccount);
-        	requestIdDTO.setVirtualAccountId(virtualAccountId);
-        	requestIdDTO.setDirectDepositAllocation(isDepositAllocation);
-        	requestIdDTO.setAbaNumber(accountABANumber);
+        	requestIdDTO.setUserId(saveCustomer.getCustomerId());
+        	requestIdDTO.setVirtualAccountNumber(saveCustomer.getVirtualAccount());
+        	requestIdDTO.setVirtualAccountId(saveCustomer.getVirtualAccountId());
+        	if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION))
+        		requestIdDTO.setDirectDepositAllocation(true);
+        	requestIdDTO.setAbaNumber(saveCustomer.getAccountABANumber());
         	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
         	if(callbackURL != null) {
     	    	requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
