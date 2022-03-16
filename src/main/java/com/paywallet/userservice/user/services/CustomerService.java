@@ -1287,7 +1287,7 @@ public class CustomerService {
                 kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), flowType);
 	            log.info("Customer got created successfully");
 	        }
-            checkAndSavePayAllocation(requestIdDtls,customer, isDepositAllocation);
+            checkAndSavePayAllocation(requestIdDtls,customer, flowType);
     	}
         catch(GeneralCustomException e) {
         	log.error("Customerservice createcustomer generalCustomException");
