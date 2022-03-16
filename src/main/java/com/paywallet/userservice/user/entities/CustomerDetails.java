@@ -35,6 +35,7 @@ public class CustomerDetails {
     private String status="";
     private String lender;
     private String virtualAccount;
+    private String employer;
     @JsonIgnore
     private String requestId;
     @JsonIgnore

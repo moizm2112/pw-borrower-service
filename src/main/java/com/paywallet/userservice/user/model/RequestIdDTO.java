@@ -48,4 +48,5 @@ public class RequestIdDTO {
     private List<String> insufficientFundCallbackUrls;
     private List<String> notificationUrls;
     private boolean isDirectDepositAllocation;
+    private String flowType;
 }

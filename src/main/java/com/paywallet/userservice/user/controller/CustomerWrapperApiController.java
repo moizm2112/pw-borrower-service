@@ -66,15 +66,15 @@ public class CustomerWrapperApiController {
 				CommonEnum.DEPOSIT_ALLOCATION_SUCCESS_STATUS_MSG.getMessage(), HttpStatus.OK.value(), request.getRequestURI());
 	}
 	
-	/*@PostMapping(INITIATE_EMPLOYMENT_VERIFICATION)
-	public ResponseEntity<Object> inititateEmploymentVerification(@Valid @RequestBody EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel,
+	@PostMapping(INITIATE_EMPLOYMENT_VERIFICATION)
+	public ResponseEntity<Object> initiateEmploymentVerification(@Valid @RequestBody EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel,
 			@RequestHeader(REQUEST_ID) String requestId, HttpServletRequest request) throws MethodArgumentNotValidException, RequestIdNotFoundException {
 		
 		log.info("Inside inititateEmploymentVerification " + employmentVerificationRequestWrapperModel);
-		EmploymentVerificationResponseWrapperModel employmentVerificationResponse = customerWrapperAPIService.inititateEmploymentVerification(employmentVerificationRequestWrapperModel,
+		EmploymentVerificationResponseWrapperModel employmentVerificationResponse = customerWrapperAPIService.initiateEmploymentVerification(employmentVerificationRequestWrapperModel,
 				requestId);
 		Optional.ofNullable(employmentVerificationResponse).orElseThrow(() -> new GeneralCustomException("ERROR", "Exception occured while employment verification"));
 		return customerWrapperAPIService.prepareUpdateResponse(employmentVerificationResponse, 
 				CommonEnum.EMPLOYMENT_VERIFICATION_SUCCESS_STATUS_MSG.getMessage(), HttpStatus.OK.value(), request.getRequestURI());
-	}*/
+	}
 }

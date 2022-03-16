@@ -34,6 +34,7 @@ public class KafkaPublisherUtil {
                     .employer(requestIdDtls.getEmployer())
                     .installmentAmount(String.valueOf(installmentAmount))
                     .payCycle(CommonEnum.PAY_CYCLE.getMessage())
+                    .flowType(flowType)
                     .isDirectDepositAllocation(isDepositAllocation).build();
             StatusEnum statusEnum = kafkaProducerService.publishLinkServiceInfo(linkServiceInfo);
             log.info(" requestId : {}  publish status  : {} ", requestIdDtls.getRequestId(), statusEnum);

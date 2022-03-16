@@ -32,6 +32,7 @@ import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
 import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
+import com.paywallet.userservice.user.model.CallbackURL;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.CustomerRequestFields;
 import com.paywallet.userservice.user.model.LenderConfigInfo;
@@ -184,6 +185,34 @@ public class CustomerWrapperAPIService {
 		}
 	}
 	
+	public void setCustomerRequestForEmployment(EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel, CreateCustomerRequest customer) {
+		if(employmentVerificationRequestWrapperModel != null) {
+			customer.setFirstName(employmentVerificationRequestWrapperModel.getFirstName());
+			customer.setLastName(employmentVerificationRequestWrapperModel.getLastName());
+			customer.setMobileNo(employmentVerificationRequestWrapperModel.getMobileNo());
+			customer.setEmailId(employmentVerificationRequestWrapperModel.getEmailId());
+			if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getEmploymentCallbackUrl())) {
+				CallbackURL callbackURL = new CallbackURL();
+				List<String> employmentCallbackUrls =  new ArrayList<String>();
+				employmentCallbackUrls.add(employmentVerificationRequestWrapperModel.getEmploymentCallbackUrl());
+				callbackURL.setEmploymentCallbackUrls(employmentCallbackUrls);
+				customer.setCallbackURLs(callbackURL);
+			}
+			customer.setFirstDateOfPayment(StringUtils.EMPTY);
+			customer.setRepaymentFrequency(StringUtils.EMPTY);
+			customer.setTotalNoOfRepayment(0);
+			customer.setInstallmentAmount(0);
+			customer.setZip(StringUtils.EMPTY);
+			customer.setState(StringUtils.EMPTY);
+			customer.setAddressLine1(StringUtils.EMPTY);
+			customer.setAddressLine2(StringUtils.EMPTY);
+			customer.setMiddleName(StringUtils.EMPTY);
+			customer.setCity(StringUtils.EMPTY);
+			customer.setLast4TIN(StringUtils.EMPTY);
+			customer.setDateOfBirth(StringUtils.EMPTY);
+		}
+	}
+	
 	public DepositAllocationResponseWrapperModel initiateDepositAllocation(DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel, String requestId)
 			throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, SMSAndEmailNotificationException {
 		
@@ -195,17 +224,17 @@ public class CustomerWrapperAPIService {
 		return depositAllocationResponse;
 	}
 	
-	/*public EmploymentVerificationResponseWrapperModel initiateEmploymentVerification(EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel,
+	public EmploymentVerificationResponseWrapperModel initiateEmploymentVerification(EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel,
 			String requestId) throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, 
 				SMSAndEmailNotificationException {
 		
 		CreateCustomerRequest customer = new CreateCustomerRequest();
-		setCustomerRequest(employmentVerificationRequestWrapperModel, customer);
+		setCustomerRequestForEmployment(employmentVerificationRequestWrapperModel, customer);
 		
-		CustomerDetails customerDetails = customerService.createCustomer(customer, requestId, employmentVerificationRequestWrapperModel, true);
-		EmploymentVerificationResponseWrapperModel employmentVerificationResponse = setDepositAllocationResponse(customerDetails);
+		CustomerDetails customerDetails = customerService.createCustomer(customer, requestId, employmentVerificationRequestWrapperModel, FlowTypeEnum.EMPLOYMENT_VERIFICATION);
+		EmploymentVerificationResponseWrapperModel employmentVerificationResponse = setEmploymentVerificationResponse(customerDetails, employmentVerificationRequestWrapperModel);
 		return employmentVerificationResponse;
-	}*/
+	}
 	
 	public DepositAllocationResponseWrapperModel setDepositAllocationResponse(CustomerDetails customerDetails) {
 		DepositAllocationResponseWrapperModel depositAllocationResponseModel = new DepositAllocationResponseWrapperModel();
@@ -217,6 +246,18 @@ public class CustomerWrapperAPIService {
 		depositAllocationResponseModel.setTotalNoOfRepayment(customerDetails.getTotalNoOfRepayment());
 		depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
 		return depositAllocationResponseModel;
+	}
+	
+	public EmploymentVerificationResponseWrapperModel setEmploymentVerificationResponse(CustomerDetails customerDetails, EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel) {
+		EmploymentVerificationResponseWrapperModel employmentVerificationResponseModel = new EmploymentVerificationResponseWrapperModel();
+		employmentVerificationResponseModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
+		employmentVerificationResponseModel.setMobileNo(customerDetails.getPersonalProfile().getMobileNo());
+		employmentVerificationResponseModel.setLenderName(customerDetails.getLender());
+		employmentVerificationResponseModel.setEmployer(customerDetails.getEmployer());
+		employmentVerificationResponseModel.setEmploymentCallbackUrl(employmentVerificationRequestWrapperModel.getEmploymentCallbackUrl());
+		employmentVerificationResponseModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
+		employmentVerificationResponseModel.setLastName(customerDetails.getPersonalProfile().getLastName());
+		return employmentVerificationResponseModel;
 	}
 	
 	
