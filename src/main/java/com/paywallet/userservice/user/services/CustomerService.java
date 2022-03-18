@@ -89,7 +89,7 @@ public class CustomerService {
     private static final String GENERAL = "GENERAL";
     private static final String EMPLOYMENT_VERIFICATION = "EMPLOYMENT_VERIFICATION";
     private static final String INCOME_VERIFICATION = "INCOME_VERIFICATION";
-    private static final String IDENTITY_VERIFICATION = "INDENTITY_VERIFICATION";
+    private static final String IDENTITY_VERIFICATION = "IDENTITY_VERIFICATION";
 
     @Autowired
     CustomerRepository customerRepository;
