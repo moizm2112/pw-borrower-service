@@ -31,6 +31,7 @@ public final class AppConstants {
 	public static final String STATE_VALIDATION_MESSAGE="State must contain maximum of 2 characters. Eg: For Arizona - AZ";
 	public static final String STATE_NOT_VALID_MESSAGE="State entered is not valid. Eg: For Arizona - AZ";
 	public static final String ZIP_VALIDATION_MESSAGE="Zip should contain only numeric characters";
+	public static final String NO_OF_MONTHS_REQUESTED_VALIDATION_MESSAGE="Number of months requested should contain only numeric characters";
 	public static final String ZIP_LENGTH_VALIDATION_MESSAGE="Zip must be 5 digits long";
 	public static final String LAST4TIN_VALIDATION_MESSAGE="Last4TIN should contain only numeric characters";
 	public static final String LAST4TIN_LENGTH_VALIDATION_MESSAGE="Last4TIN must be 4 digits long";

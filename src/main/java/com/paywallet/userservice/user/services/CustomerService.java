@@ -1153,7 +1153,7 @@ public class CustomerService {
 		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(employmentVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 		    		}
 		    		// VALIDATION PENDING
-		    		
+		    		customerWrapperAPIService.validateEmploymentVerificationRequest(employmentVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
 		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
 		    		break;
 		    	}
@@ -1169,7 +1169,7 @@ public class CustomerService {
 		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(incomeVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 		    		}
 		    		// VALIDATION PENDING
-		    		
+		    		customerWrapperAPIService.validateIncomeVerificationRequest(incomeVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
 		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
 		    		break;
 		    	}
@@ -1185,7 +1185,7 @@ public class CustomerService {
 		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(identityVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 		    		}
 		    		// VALIDATION PENDING
-		    		
+		    		customerWrapperAPIService.validateIdentityVerificationRequest(identityVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
 		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
 		    		break;
 		    	}
