@@ -45,5 +45,6 @@ public class RequestIdDetails {
     private List<String> insufficientFundCallbackUrls;
     private int accountValidationAttempt;
     private List<String> notificationUrls;
+    private String flowType;
 
 }

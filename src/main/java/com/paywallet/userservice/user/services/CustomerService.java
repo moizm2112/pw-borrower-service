@@ -1093,7 +1093,7 @@ public class CustomerService {
 		    		
 		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
 		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
-		    			getEmployerDetailsBasedOnEmplyerIdFromRequest(depositAllocationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
+		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(depositAllocationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 		    		}
 		    		//Validation of direct deposit allocation request
 		    		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
@@ -1108,7 +1108,7 @@ public class CustomerService {
 		    		
 		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
 		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
-		    			getEmployerDetailsBasedOnEmplyerIdFromRequest(employmentVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
+		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(employmentVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 		    		}
 		    		break;
 		    	}
@@ -1125,6 +1125,7 @@ public class CustomerService {
 	            saveCustomer.setExistingCustomer(true);
 	            saveCustomer.setInstallmentAmount(customer.getInstallmentAmount());
 	            saveCustomer.setTotalNoOfRepayment(customer.getTotalNoOfRepayment());
+	            saveCustomer.setEmployer(requestIdDtls.getEmployer());
 	            
 	            if(requestIdDtls.getClientName() != null) 
 	            	saveCustomer.setLender(requestIdDtls.getClientName());
@@ -1193,6 +1194,7 @@ public class CustomerService {
 	        	
 	            if(requestIdDtls.getClientName() != null) 
 	            	customerEntity.setLender(requestIdDtls.getClientName());
+	            saveCustomer.setEmployer(requestIdDtls.getEmployer());
 	            saveCustomer = customerRepository.save(customerEntity);
 	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(false);
@@ -1238,7 +1240,7 @@ public class CustomerService {
         return saveCustomer;
     }
     
-    public void getEmployerDetailsBasedOnEmplyerIdFromRequest(String employerId, String requestId, RequestIdDetails requestIdDtls) {
+    public RequestIdDetails getEmployerDetailsBasedOnEmplyerIdFromRequest(String employerId, String requestId, RequestIdDetails requestIdDtls) {
     	try {
     		EmployerSearchDetailsDTO employerSearchDetailsDTO = customerServiceHelper.getEmployerDetailsBasedOnEmployerId(employerId, requestId);
 			if(employerSearchDetailsDTO == null || (employerSearchDetailsDTO != null && employerSearchDetailsDTO.getId() == null)) {
@@ -1255,6 +1257,7 @@ public class CustomerService {
     		log.error("Create customer - getEmployerDetailsBasedOnEmplyerIdFromRequest Exception" + e.getMessage());
         	throw new GeneralCustomException(ERROR ,e.getMessage());
     	}
+    	return requestIdDtls;
     }
 
 }
