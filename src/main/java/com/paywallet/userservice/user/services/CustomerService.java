@@ -1198,6 +1198,8 @@ public class CustomerService {
             customerEntity.setEmployer(requestIdDtls.getEmployer());
             if(!customerEntity.isExistingCustomer())
             	saveCustomer = customerRepository.save(customerEntity);
+            else
+            	saveCustomer = customerEntity;
             saveCustomer.setRequestId(requestId);
             
             RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer, customer.getCallbackURLs(), flowType);
