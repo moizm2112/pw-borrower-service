@@ -60,6 +60,8 @@ import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
 import com.paywallet.userservice.user.model.ValidateAccountRequest;
 import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository;
 import com.paywallet.userservice.user.util.CustomerServiceUtil;
@@ -1057,22 +1059,27 @@ public class CustomerService {
     public <T> CustomerDetails createCustomer(CreateCustomerRequest customer, String requestId, T obj, FlowTypeEnum flowType) 
     		throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, SMSAndEmailNotificationException {
         log.info("Inside createCustomer of CustomerService class");
+        int virtualAccount = -1;
+        CustomerDetails saveCustomer = new CustomerDetails();
+        RequestIdDetails requestIdDtls = null;
         boolean isDepositAllocation = true;
+        CustomerDetails customerEntity = new CustomerDetails();
         DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel = null;
         EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel = null;
+        IdentityVerificationRequestWrapperModel identityVerificationRequestWrapperModel = null;
+        IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel = null;
         
         if(!flowType.name().equals(FlowTypeEnum.GENERAL.name())) {
 	        if(obj.getClass().getSimpleName().equals((DepositAllocationRequestWrapperModel.class).getSimpleName()))
 	        	depositAllocationRequestWrapperModel = (DepositAllocationRequestWrapperModel) obj;
 	        else if(obj.getClass().getSimpleName().equals((EmploymentVerificationRequestWrapperModel.class).getSimpleName()))
 	        	employmentVerificationRequestWrapperModel = (EmploymentVerificationRequestWrapperModel) obj;
+	        else if(obj.getClass().getSimpleName().equals((IncomeVerificationRequestWrapperModel.class).getSimpleName()))
+	        	incomeVerificationRequestWrapperModel = (IncomeVerificationRequestWrapperModel) obj;
+	        else if(obj.getClass().getSimpleName().equals((IdentityVerificationRequestWrapperModel.class).getSimpleName()))
+	        	identityVerificationRequestWrapperModel = (IdentityVerificationRequestWrapperModel) obj;
         }
-        
         generalCustomerRequestConfig(customer);
-        
-        int virtualAccount = -1;
-        CustomerDetails saveCustomer = new CustomerDetails();
-        RequestIdDetails requestIdDtls = null;
         try 
         {
         	requestIdDtls = customerServiceHelper.validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
@@ -1081,6 +1088,19 @@ public class CustomerService {
 		    switch(flowType.name()) {
 		    	case GENERAL: {
 		    		validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
+		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+		    		if(!customerEntity.isExistingCustomer()) {
+			    		if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+			    			customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
+			    			customerEntity.setAccountABANumber(ROUTING_NUMBER);
+				            log.info("Virtual fineract account created successfully ");
+		        		}
+		    		}
+		    		else {
+		    			if(StringUtils.isBlank(customerEntity.getAccountABANumber()) && StringUtils.isNotBlank(customerEntity.getVirtualAccount())) {
+		    				customerEntity.setAccountABANumber(ROUTING_NUMBER);
+			            }
+		    		}
 		    		break;
 		    	}
 		    	case DEPOSIT_ALLOCATION:{
@@ -1097,6 +1117,28 @@ public class CustomerService {
 		    		}
 		    		//Validation of direct deposit allocation request
 		    		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
+		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+		    		if(!customerEntity.isExistingCustomer()) {
+		    			if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) && 
+			        			StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
+			        		customerEntity.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+							customerEntity.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+			        	}
+		            	else if(StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) || 
+			        			StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
+			        		if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+				        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
+				        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
+					            log.info("Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
+			        		}
+			        	}
+		    		}
+		    		else {
+		    			if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
+		            		saveCustomer.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+		            	if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))
+		            		saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		    		}
 		    		break;
 		    	}
 		    	case EMPLOYMENT_VERIFICATION: {
@@ -1110,103 +1152,62 @@ public class CustomerService {
 		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
 		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(employmentVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 		    		}
+		    		// VALIDATION PENDING
+		    		
+		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+		    		break;
+		    	}
+		    	case INCOME_VERIFICATION: {
+		    		if(lenderConfigInfo.getPublishIncomeInfo().equals(StateStatus.NO)) { 
+						throw new GeneralCustomException("ERROR","Income verification is not allowed for the lender"); 
+					}
+		    		if (!incomeVerificationRequestWrapperModel.getMobileNo().startsWith("+1") && incomeVerificationRequestWrapperModel.getMobileNo().length()==10)
+		    			incomeVerificationRequestWrapperModel.setMobileNo("+1".concat(incomeVerificationRequestWrapperModel.getMobileNo()));
+		    		
+		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
+		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
+		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(incomeVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
+		    		}
+		    		// VALIDATION PENDING
+		    		
+		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+		    		break;
+		    	}
+		    	case IDENTITY_VERIFICATION: {
+		    		if(lenderConfigInfo.getPublishIdentityInfo().equals(StateStatus.NO)) { 
+						throw new GeneralCustomException("ERROR","Identity verification is not allowed for the lender"); 
+					}
+		    		if (!identityVerificationRequestWrapperModel.getMobileNo().startsWith("+1") && identityVerificationRequestWrapperModel.getMobileNo().length()==10)
+		    			identityVerificationRequestWrapperModel.setMobileNo("+1".concat(identityVerificationRequestWrapperModel.getMobileNo()));
+		    		
+		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
+		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
+		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(identityVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
+		    		}
+		    		// VALIDATION PENDING
+		    		
+		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
 		    		break;
 		    	}
 		    	default: {
 		    	}
 		    }
 		    
-        	//Check if customer already exist for the given request (thro' mobileno)
-	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
-	        if (byMobileNo.isPresent()) {
-	        	log.info("Exsiting customer with new requestID : " + requestId);
-	            saveCustomer = byMobileNo.get();
-	            saveCustomer.setRequestId(requestId);
-	            saveCustomer.setExistingCustomer(true);
-	            saveCustomer.setInstallmentAmount(customer.getInstallmentAmount());
-	            saveCustomer.setTotalNoOfRepayment(customer.getTotalNoOfRepayment());
-	            saveCustomer.setEmployer(requestIdDtls.getEmployer());
-	            
-	            if(requestIdDtls.getClientName() != null) 
-	            	saveCustomer.setLender(requestIdDtls.getClientName());
-	            
-	            switch(flowType.name()) {
-		            case GENERAL: {
-		            	if(StringUtils.isBlank(saveCustomer.getAccountABANumber()) && StringUtils.isNotBlank(saveCustomer.getVirtualAccount())) {
-			            	saveCustomer.setAccountABANumber(ROUTING_NUMBER);
-			            }
-		            	break;
-		            }
-		            case DEPOSIT_ALLOCATION: {
-		            	if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
-		            		saveCustomer.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-		            	if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))
-		            		saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
-		            	break;
-		            }
-		            case EMPLOYMENT_VERIFICATION: {
-		            	break;
-		            }
-		            default :{
-		            }
-	            }
-	            
-	            RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer,customer.getCallbackURLs(), flowType);
-            	/* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
-            	customerServiceHelper.updateRequestIdDetails(requestId,requestIdDTO, identifyProviderServiceUri, 
-        	            	restTemplate);
-            	
-	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
-	           // String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), flowType);
-	        } else {
-	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
-	        	CustomerDetails customerEntity = customerServiceHelper.buildCustomerDetails(customer);
-	        	
-	        	switch(flowType.name()) {
-		            case GENERAL: {
-		            	if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
-			        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
-			        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
-				            log.info("Virtual fineract account created successfully ");
-		        		}
-		            	break;
-		            }
-		            case DEPOSIT_ALLOCATION: {
-		            	if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) && 
-			        			StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
-			        		customerEntity.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-							customerEntity.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
-			        	}
-		            	else if(StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) || 
-			        			StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
-			        		if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
-				        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
-				        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
-					            log.info("Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
-			        		}
-			        	}
-		            	break;
-		            }
-		            default :{
-		            }
-	            }
-	        	
-	            if(requestIdDtls.getClientName() != null) 
-	            	customerEntity.setLender(requestIdDtls.getClientName());
-	            saveCustomer.setEmployer(requestIdDtls.getEmployer());
-	            saveCustomer = customerRepository.save(customerEntity);
-	            saveCustomer.setRequestId(requestId);
-	            saveCustomer.setExistingCustomer(false);
-	            
-	            RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer, customer.getCallbackURLs(), flowType);
-            	/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
-	            customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri, restTemplate);
-	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
-	            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-                kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), flowType);
-	            log.info("Customer got created successfully");
-	        }
+	        if(requestIdDtls.getClientName() != null) 
+            	customerEntity.setLender(requestIdDtls.getClientName());
+            customerEntity.setEmployer(requestIdDtls.getEmployer());
+            if(!customerEntity.isExistingCustomer())
+            	saveCustomer = customerRepository.save(customerEntity);
+            saveCustomer.setRequestId(requestId);
+            
+            RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer, customer.getCallbackURLs(), flowType);
+        	/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
+            customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri, restTemplate);
+            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
+            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
+            kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), flowType);
+            log.info("Customer got created successfully");
+            
             checkAndSavePayAllocation(requestIdDtls,customer, flowType);
     	}
         catch(GeneralCustomException e) {
@@ -1259,6 +1260,33 @@ public class CustomerService {
     	}
     	return requestIdDtls;
     }
-
+    
+    public CustomerDetails checkAndReturnIfCustomerAlreadyExist(CreateCustomerRequest customer, LenderConfigInfo lenderConfigInfo, 
+    		String requestId) {
+    	log.info("Inside checkAndReturnIfCustomerAlreadyExist :" + customer);
+    	CustomerDetails customerReponse = new CustomerDetails();
+    	try {
+    		Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
+	        if (byMobileNo.isPresent()) {
+	        	log.info("Exsiting customer with new requestID : " + requestId);
+	        	customerReponse = byMobileNo.get();
+	        	customerReponse.setExistingCustomer(true);
+	        	customerReponse.setInstallmentAmount(customer.getInstallmentAmount());
+	        	customerReponse.setTotalNoOfRepayment(customer.getTotalNoOfRepayment());
+	            
+            	if(StringUtils.isBlank(customerReponse.getAccountABANumber()) && StringUtils.isNotBlank(customerReponse.getVirtualAccount())) {
+            		customerReponse.setAccountABANumber(ROUTING_NUMBER);
+	            }
+	        }
+	        else {
+	        	customerReponse = customerServiceHelper.buildCustomerDetails(customer);
+	        	customerReponse.setExistingCustomer(false);
+	        }
+    	}catch(Exception e) {
+    		throw new GeneralCustomException("ERROR", e.getMessage());
+    	}
+    	return customerReponse;
+    }
+    
 }
 

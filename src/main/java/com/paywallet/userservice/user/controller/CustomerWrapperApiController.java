@@ -1,10 +1,12 @@
 package com.paywallet.userservice.user.controller;
 
 import static com.paywallet.userservice.user.constant.AppConstants.BASE_PATH;
-import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
-import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_CREDENTIALS;
 import static com.paywallet.userservice.user.constant.AppConstants.INITIATE_DEPOSIT_ALLOCATION;
 import static com.paywallet.userservice.user.constant.AppConstants.INITIATE_EMPLOYMENT_VERIFICATION;
+import static com.paywallet.userservice.user.constant.AppConstants.INITIATE_IDENTITY_VERIFICATION;
+import static com.paywallet.userservice.user.constant.AppConstants.INITIATE_INCOME_VERIFICATION;
+import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
+import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_CREDENTIALS;
 
 import java.util.Optional;
 
@@ -31,6 +33,10 @@ import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestW
 import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationResponseWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationResponseWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationResponseWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationResponseWrapperModel;
 import com.paywallet.userservice.user.services.CustomerWrapperAPIService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -77,4 +83,29 @@ public class CustomerWrapperApiController {
 		return customerWrapperAPIService.prepareUpdateResponse(employmentVerificationResponse, 
 				CommonEnum.EMPLOYMENT_VERIFICATION_SUCCESS_STATUS_MSG.getMessage(), HttpStatus.OK.value(), request.getRequestURI());
 	}
+	
+	@PostMapping(INITIATE_INCOME_VERIFICATION)
+	public ResponseEntity<Object> initiateIncomeVerification(@Valid @RequestBody IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel,
+			@RequestHeader(REQUEST_ID) String requestId, HttpServletRequest request) throws MethodArgumentNotValidException, RequestIdNotFoundException {
+		
+		log.info("Inside inititateIncomeVerification " + incomeVerificationRequestWrapperModel);
+		IncomeVerificationResponseWrapperModel incomeVerificationResponse = customerWrapperAPIService.initiateIncomeVerification(incomeVerificationRequestWrapperModel,
+				requestId);
+		Optional.ofNullable(incomeVerificationResponse).orElseThrow(() -> new GeneralCustomException("ERROR", "Exception occured while Income verification"));
+		return customerWrapperAPIService.prepareUpdateResponse(incomeVerificationResponse, 
+				CommonEnum.INCOME_VERIFICATION_SUCCESS_STATUS_MSG.getMessage(), HttpStatus.OK.value(), request.getRequestURI());
+	}
+	
+	@PostMapping(INITIATE_IDENTITY_VERIFICATION)
+	public ResponseEntity<Object> initiateIdentityVerification(@Valid @RequestBody IdentityVerificationRequestWrapperModel identityVerificationRequestWrapperModel,
+			@RequestHeader(REQUEST_ID) String requestId, HttpServletRequest request) throws MethodArgumentNotValidException, RequestIdNotFoundException {
+		
+		log.info("Inside inititateIdentityVerification " + identityVerificationRequestWrapperModel);
+		IdentityVerificationResponseWrapperModel identityVerificationResponse = customerWrapperAPIService.initiateIdentityVerification(identityVerificationRequestWrapperModel,
+				requestId);
+		Optional.ofNullable(identityVerificationResponse).orElseThrow(() -> new GeneralCustomException("ERROR", "Exception occured while Identity verification"));
+		return customerWrapperAPIService.prepareUpdateResponse(identityVerificationResponse, 
+				CommonEnum.IDENTITY_VERIFICATION_SUCCESS_STATUS_MSG.getMessage(), HttpStatus.OK.value(), request.getRequestURI());
+	}
+	
 }

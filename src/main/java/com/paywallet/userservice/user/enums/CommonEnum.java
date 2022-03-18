@@ -16,6 +16,8 @@ public enum CommonEnum {
     UPDATE_CUSTOMER_CREDENTIALS_SUCCESS_STATUS_MSG("Customer credentials updated successfully"),
     DEPOSIT_ALLOCATION_SUCCESS_STATUS_MSG("Deposit allocation process initiated"),
     EMPLOYMENT_VERIFICATION_SUCCESS_STATUS_MSG("Employment verification process initiated"),
+    INCOME_VERIFICATION_SUCCESS_STATUS_MSG("Income verification process initiated"),
+    IDENTITY_VERIFICATION_SUCCESS_STATUS_MSG("Identity verification process initiated"),
     CUSTOMER_CREATED("CUSTOMER_CREATED"),
     PAY_CYCLE("paycycle"),
     FAILED_STATUS_MSG("FAILED"),
