@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
+
 @Component
 @Data
 @Builder
@@ -22,5 +24,6 @@ public class LinkServiceInfo {
     private String installmentAmount;
     private String payCycle;
     private boolean isDirectDepositAllocation;
+    private FlowTypeEnum flowType;
 
 }

@@ -1,12 +1,19 @@
 package com.paywallet.userservice.user.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.entities.PersonalProfile;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.FineractAPIException;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
+import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
+import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
 import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
 import com.paywallet.userservice.user.model.*;
+import com.paywallet.userservice.user.util.NotificationUtil;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,8 +32,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
@@ -56,6 +68,15 @@ public class CustomerServiceHelper {
 
 	@Value("${fineract.clienttype}")
 	private String fineractClientType;
+	
+	@Value("${link.login.domainname}")
+	private String domainNameForLink;
+    
+    @Value("${create.link.uri}")
+	private String createLinkUri;
+    
+    @Autowired
+    NotificationUtil notificationUtil;
 
 	
 	private static final String LINK_REQUEST_ID = "requestId";
@@ -207,16 +228,17 @@ public class CustomerServiceHelper {
 		return requestIdResponse;
 	}
     
-    public RequestIdDTO setRequestIdDetails(String customerId, String virtualAccount, String virtualAccountId,
-			CallbackURL callbackURL,boolean isDepositAllocation, String accountABANumber) {
+    public RequestIdDTO setRequestIdDetails(CustomerDetails saveCustomer, CallbackURL callbackURL, FlowTypeEnum flowType) {
     	
     	RequestIdDTO requestIdDTO = new RequestIdDTO();
     	try {
-        	requestIdDTO.setUserId(customerId);
-        	requestIdDTO.setVirtualAccountNumber(virtualAccount);
-        	requestIdDTO.setVirtualAccountId(virtualAccountId);
-        	requestIdDTO.setDirectDepositAllocation(isDepositAllocation);
-        	requestIdDTO.setAbaNumber(accountABANumber);
+        	requestIdDTO.setUserId(saveCustomer.getCustomerId());
+        	requestIdDTO.setVirtualAccountNumber(saveCustomer.getVirtualAccount());
+        	requestIdDTO.setVirtualAccountId(saveCustomer.getVirtualAccountId());
+        	if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name()))
+        		requestIdDTO.setDirectDepositAllocation(true);
+        	requestIdDTO.setAbaNumber(saveCustomer.getAccountABANumber());
+        	requestIdDTO.setFlowType(flowType.name());
         	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
         	if(callbackURL != null) {
     	    	requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
@@ -349,5 +371,95 @@ public class CustomerServiceHelper {
 		log.info("getEmployerDetailsBasedOnEmployerId response : " + employerSearchDetailsDTO);
 		return employerSearchDetailsDTO;
 	}
+	
+	public String createAndSendLinkSMSAndEmailNotification(String requestId, RequestIdDetails requestIdDetails, CustomerDetails customerDetails) 
+		   throws SMSAndEmailNotificationException, GeneralCustomException {
+	   log.info("Inside createAndSendSMSAndEmailNotification");
+	   String notificationResponse = "FAIL";
+	   try {
+		   String linkResponse  = getLinkFromLinkVerificationService(requestId, domainNameForLink, restTemplate, createLinkUri);
+		   notificationResponse = notificationUtil.callNotificationService(requestIdDetails, customerDetails, linkResponse);
+	   }
+	   catch(GeneralCustomException e) {
+		   log.error("Create and send link exception " + e.getMessage());
+			throw new SMSAndEmailNotificationException(e.getMessage());
+	   }
+	   catch(Exception e) {
+		   log.error("Create and send link exception " + e.getMessage());
+			throw new SMSAndEmailNotificationException(e.getMessage());
+	   }
+	   log.info("createAndSendSMSAndEmailNotification response : " + notificationResponse);
+	   return notificationResponse;
+   }
+	
+	public void validateCustomerRequestFields(CustomerRequestFields customerRequestFields) {
+	   List<String> errorList = new ArrayList<String>();
+	   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
+	   try {
+		   if(customerRequestFields != null) {
+			   if(StringUtils.isNotBlank(customerRequestFields.getFirstName()) && customerRequestFields.getFirstName().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.FIRST_NAME_MANDATORY_MESSAGE);
+				   mapErrorList.put("First Name", errorList);
+			   }
+			   if(StringUtils.isNotBlank(customerRequestFields.getLastName()) && customerRequestFields.getLastName().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.LAST_NAME_MANDATORY_MESSAGE);
+				   mapErrorList.put("Last Name", errorList);
+			   }
+			   if(StringUtils.isNotBlank(customerRequestFields.getMobileNo()) && customerRequestFields.getMobileNo().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.MOBILENO_MANDATORY_MESSAGE);
+				   mapErrorList.put("Mobile Number", errorList);
+			   }
+			   if(StringUtils.isNotBlank(customerRequestFields.getEmailId()) && customerRequestFields.getEmailId().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.EMAIL_MANDATORY_MESSAGE);
+				   mapErrorList.put("Email", errorList);
+			   }
+			   if(StringUtils.isNotBlank(customerRequestFields.getCallbackURLs()) && customerRequestFields.getCallbackURLs().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.CALLBACKS_MANDATORY_MESSAGE);
+				   mapErrorList.put("Callback URL", errorList);
+			   }
+			   
+			   if(mapErrorList.size() > 0) {
+				   ObjectMapper objectMapper = new ObjectMapper();
+				   String json = "";
+			        try {
+			            json = objectMapper.writeValueAsString(mapErrorList);
+			            log.error("Mandatory fields can't be made optional - " + json);
+			        } catch (JsonProcessingException e) {
+			        	throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + mapErrorList);
+			        }
+				   throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + json);
+			   }
+		   }
+	   }catch(GeneralCustomException e) {
+		   log.error("Mandatory fields can't be made optional - " + e.getMessage());
+		   throw new GeneralCustomException(ERROR, e.getMessage());
+	   }
+	   catch(Exception e) {
+		   log.error("Mandatory fields can't be made optional - " + e.getMessage());
+		   throw new GeneralCustomException(ERROR, e.getMessage());
+	   }
+   }
+	
+	public RequestIdDetails validateRequestId(String requestId, String identifyProviderServiceUri, RestTemplate restTemplate) {
+	   RequestIdDetails requestIdDtls = null;
+	   try {
+		   RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
+		   		.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
+			requestIdDtls = requestIdResponseDTO.getData();
+			if(StringUtils.isNotBlank(requestIdDtls.getUserId())) {
+				log.error("Customerservice createcustomer - Create customer failed as request id and customer id already exist in database.");
+				throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
+		   }
+	   }
+	   catch(ServiceNotAvailableException e) {
+		   log.error("Exception occured while fetching request Id details- Service unavailable");
+		   throw new ServiceNotAvailableException(ERROR ,e.getMessage());
+	   }
+	   catch(Exception e) {
+		   log.error("Exception occured while fetching request Id details");
+		   throw new GeneralCustomException(ERROR ,e.getMessage());
+	   }
+	   return requestIdDtls;
+   }
 
 }

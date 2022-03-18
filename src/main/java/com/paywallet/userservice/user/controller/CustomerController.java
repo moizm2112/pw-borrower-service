@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.CommonEnum;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.CreateCustomerException;
 import com.paywallet.userservice.user.exception.CustomerAccountException;
 import com.paywallet.userservice.user.exception.CustomerNotFoundException;
@@ -76,7 +77,7 @@ public class CustomerController {
     		HttpServletRequest request)
     		throws MethodArgumentNotValidException, CreateCustomerException, RequestIdNotFoundException {
         log.debug("Inside Create Customer controller " + customer);
-        CustomerDetails customerDetails = customerService.createCustomer(customer, requestId, null, false);
+        CustomerDetails customerDetails = customerService.createCustomer(customer, requestId, null, FlowTypeEnum.GENERAL);
         if(customerDetails.isExistingCustomer())
         	return customerService.prepareResponse(customerDetails, CommonEnum.CUSTOMER_EXIST_SUCCESS_MSG.getMessage(),
         			HttpStatus.OK.value(), request.getRequestURI());
