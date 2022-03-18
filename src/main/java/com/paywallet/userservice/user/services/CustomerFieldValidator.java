@@ -363,6 +363,15 @@ public class CustomerFieldValidator {
 		return errorList;
 	}
 	
+	public List<String> validateNoOfMonthsRequested(String noOfMonthsRequested) {
+		List<String> errorList = new ArrayList<String>();
+		String regex = "[0-9]+";
+		if (!checkFieldForValidPattern(regex, noOfMonthsRequested)) {
+			errorList.add(NO_OF_MONTHS_REQUESTED_VALIDATION_MESSAGE);
+		}
+		return errorList;
+	}
+	
 	
 	public boolean checkForEmptyStringInArray(List<String> lsCallBackUrls) {
 		

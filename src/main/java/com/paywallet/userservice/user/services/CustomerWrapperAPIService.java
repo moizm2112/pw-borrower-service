@@ -374,104 +374,229 @@ public class CustomerWrapperAPIService {
 	
 	
 	public void validateDepositAllocationRequest(DepositAllocationRequestWrapperModel allocationRequest, String requestId, RequestIdDetails requestIdDetails, LenderConfigInfo lenderConfigInfo){
+	   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
+	   try {
+		   
+		   String lender = requestIdDetails.getClientName();
+		   String employerPWId = requestIdDetails.getEmployerPWId();
+		   
+		   if(StringUtils.isNotBlank(allocationRequest.getFirstName())) {
+			   List<String> errorList = customerFieldValidator.validateFirstName(allocationRequest.getFirstName());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("First Name", errorList);
+		   } 
+		   if(StringUtils.isNotBlank(allocationRequest.getLastName())) {
+			   List<String> errorList = customerFieldValidator.validateLastName(allocationRequest.getLastName());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("Last Name", errorList);
+		   }
+		   if(StringUtils.isNotBlank(allocationRequest.getMobileNo()) || StringUtils.isBlank(allocationRequest.getMobileNo())) {
+			   List<String> errorList = customerFieldValidator.validateMobileNo(allocationRequest.getMobileNo());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("Mobile Number", errorList);
+		   }
+		   if(StringUtils.isNotBlank(allocationRequest.getEmployerId()) || StringUtils.isBlank(allocationRequest.getEmployerId())) {
+			   List<String> errorList = customerFieldValidator.validateEmployerId(allocationRequest.getEmployerId(), employerPWId);
+			   if(errorList.size() > 0)
+				   mapErrorList.put("EmployerId", errorList);
+		   }
+		   if(StringUtils.isNotBlank(allocationRequest.getAchPullRequest())) {
+			   List<String> errorList = customerFieldValidator.validateACHPullRequest(allocationRequest.getAchPullRequest());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("ACH Pull Request", errorList);
+		   }
+		   if(StringUtils.isNotBlank(allocationRequest.getAccountVerificationOverride())) {
+			   List<String> errorList = customerFieldValidator.validateAccountValidationOverride(allocationRequest.getAccountVerificationOverride());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("Account verfication override", errorList);
+		   }
+		   if(StringUtils.isNotBlank(allocationRequest.getExternalVirtualAccountABANumber())) {
+			   List<String> errorList = customerFieldValidator.validateExternalVirtualAccountABANumber(allocationRequest.getExternalVirtualAccountABANumber());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("External virtual account ABA number", errorList);
+		   }
+		   if(StringUtils.isNotBlank(allocationRequest.getEmailId()) || StringUtils.isBlank(allocationRequest.getEmailId())) {
+			   List<String> errorList = customerFieldValidator.validateEmailId(allocationRequest.getEmailId(), customerRepository, allocationRequest.getMobileNo());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("EmailId", errorList);
+		   }
+		   if(StringUtils.isNotBlank(allocationRequest.getLender())) {
+			   if(!lender.equalsIgnoreCase(allocationRequest.getLender())) {
+				   List<String> errorList = new ArrayList<String>();
+				   errorList.add(AppConstants.LENDER_NAME_NO_MATCH);
+				   mapErrorList.put("Lender", errorList);
+			   }
+		   }
+		   if(StringUtils.isNotBlank(allocationRequest.getFirstDateOfPayment())) {
+			   List<String> errorList = customerFieldValidator.validateFirstDateOfPayment(allocationRequest.getFirstDateOfPayment(), lender);
+			   if(errorList.size() > 0)
+				   mapErrorList.put("First Date Of Payment", errorList);
+		   }
+		   if(StringUtils.isNotBlank(allocationRequest.getRepaymentFrequency())) {
+			   List<String> errorList = customerFieldValidator.validateRepaymentFrequency(allocationRequest.getRepaymentFrequency());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("Repayment Frequency", errorList);
+		   }
+		   if(allocationRequest.getTotalNoOfRepayment() == null || allocationRequest.getTotalNoOfRepayment() != null){
+			   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(allocationRequest.getTotalNoOfRepayment());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("Total Number Of Repayment", errorList);
+		   }else {
+			   if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+				   List<String> errorList = new ArrayList<String>();
+				   if (allocationRequest.getTotalNoOfRepayment() == null || allocationRequest.getTotalNoOfRepayment() <= 0) {
+					   errorList.add(AppConstants.TOTALNOOFREPAYMENT_MANDATORY_MESSAGE);
+					   mapErrorList.put("Total Number Of Repayment", errorList);
+				   }
+			   }
+			   else if(allocationRequest.getTotalNoOfRepayment() != null || allocationRequest.getTotalNoOfRepayment() >= 0) {
+				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(allocationRequest.getTotalNoOfRepayment());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Total Number Of Repayment", errorList);
+			   }
+		   }
+		   if(allocationRequest.getInstallmentAmount() == null || allocationRequest.getInstallmentAmount() != null) {
+			   List<String> errorList = customerFieldValidator.validateInstallmentAmount(allocationRequest.getInstallmentAmount());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("Installment Amount", errorList);
+		   }else {
+			   if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+				   List<String> errorList = new ArrayList<String>();
+				   if (allocationRequest.getInstallmentAmount() == null || allocationRequest.getInstallmentAmount() <= 0) {
+					   errorList.add(AppConstants.INSTALLMENTAMOUNT_MANDATORY_MESSAGE);
+					   mapErrorList.put("Installment amount", errorList);
+				   }
+			   }
+			   else if(allocationRequest.getInstallmentAmount() != null || allocationRequest.getInstallmentAmount() >= 0) {
+				   List<String> errorList = customerFieldValidator.validateInstallmentAmount(allocationRequest.getInstallmentAmount());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Installment Amount", errorList);
+			   }
+		   }
+		   
+		   if(mapErrorList.size() > 0) {
+			   ObjectMapper objectMapper = new ObjectMapper();
+			   String json = "";
+		        try {
+		            json = objectMapper.writeValueAsString(mapErrorList);
+		            log.error("Invalid data in customer request - " + json);
+		        } catch (JsonProcessingException e) {
+		        	throw new GeneralCustomException("ERROR", "Invalid data in customer request - " + mapErrorList);
+		        }
+			   throw new GeneralCustomException("ERROR", "Invalid data in customer request - " + json);
+		   }
+	   } catch(GeneralCustomException e) {
+		   throw e;
+	   } catch(Exception e) {
+		   log.error("Exception occured while validating the deposit allocation request");
+		   throw e;
+	   }
+   }
+	
+	public void validateEmploymentVerificationRequest(EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel, 
+		String requestId, RequestIdDetails requestIdDetails, LenderConfigInfo lenderConfigInfo){
+	   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
+	   try {
+		   
+		   String lender = requestIdDetails.getClientName();
+		   String employerPWId = requestIdDetails.getEmployerPWId();
+		   
+		   if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getFirstName())) {
+			   List<String> errorList = customerFieldValidator.validateFirstName(employmentVerificationRequestWrapperModel.getFirstName());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("First Name", errorList);
+		   } 
+		   if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getLastName())) {
+			   List<String> errorList = customerFieldValidator.validateLastName(employmentVerificationRequestWrapperModel.getLastName());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("Last Name", errorList);
+		   }
+		   if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getMobileNo()) || StringUtils.isBlank(employmentVerificationRequestWrapperModel.getMobileNo())) {
+			   List<String> errorList = customerFieldValidator.validateMobileNo(employmentVerificationRequestWrapperModel.getMobileNo());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("Mobile Number", errorList);
+		   }
+		   if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getEmployerId()) || StringUtils.isBlank(employmentVerificationRequestWrapperModel.getEmployerId())) {
+			   List<String> errorList = customerFieldValidator.validateEmployerId(employmentVerificationRequestWrapperModel.getEmployerId(), employerPWId);
+			   if(errorList.size() > 0)
+				   mapErrorList.put("EmployerId", errorList);
+		   }
+		   if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getEmailId()) || StringUtils.isBlank(employmentVerificationRequestWrapperModel.getEmailId())) {
+			   List<String> errorList = customerFieldValidator.validateEmailId(employmentVerificationRequestWrapperModel.getEmailId(), customerRepository, employmentVerificationRequestWrapperModel.getMobileNo());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("EmailId", errorList);
+		   }
+		   if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getLender())) {
+			   if(!lender.equalsIgnoreCase(employmentVerificationRequestWrapperModel.getLender())) {
+				   List<String> errorList = new ArrayList<String>();
+				   errorList.add(AppConstants.LENDER_NAME_NO_MATCH);
+				   mapErrorList.put("Lender", errorList);
+			   }
+		   }
+		   
+		   if(mapErrorList.size() > 0) {
+			   ObjectMapper objectMapper = new ObjectMapper();
+			   String json = "";
+		        try {
+		            json = objectMapper.writeValueAsString(mapErrorList);
+		            log.error("Invalid data in employment verification request - " + json);
+		        } catch (JsonProcessingException e) {
+		        	throw new GeneralCustomException("ERROR", "Invalid data in employment verification request - " + mapErrorList);
+		        }
+			   throw new GeneralCustomException("ERROR", "Invalid data in employment verification request - " + json);
+		   }
+	   } catch(GeneralCustomException e) {
+		   throw e;
+	   } catch(Exception e) {
+		   log.error("Exception occured while validating the deposit allocation request");
+		   throw e;
+	   }
+   }
+	
+	public void validateIncomeVerificationRequest(IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel, 
+			String requestId, RequestIdDetails requestIdDetails, LenderConfigInfo lenderConfigInfo){
 		   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
 		   try {
 			   
 			   String lender = requestIdDetails.getClientName();
 			   String employerPWId = requestIdDetails.getEmployerPWId();
 			   
-			   if(StringUtils.isNotBlank(allocationRequest.getFirstName())) {
-				   List<String> errorList = customerFieldValidator.validateFirstName(allocationRequest.getFirstName());
+			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getFirstName())) {
+				   List<String> errorList = customerFieldValidator.validateFirstName(incomeVerificationRequestWrapperModel.getFirstName());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("First Name", errorList);
 			   } 
-			   if(StringUtils.isNotBlank(allocationRequest.getLastName())) {
-				   List<String> errorList = customerFieldValidator.validateLastName(allocationRequest.getLastName());
+			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getLastName())) {
+				   List<String> errorList = customerFieldValidator.validateLastName(incomeVerificationRequestWrapperModel.getLastName());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Last Name", errorList);
 			   }
-			   if(StringUtils.isNotBlank(allocationRequest.getMobileNo()) || StringUtils.isBlank(allocationRequest.getMobileNo())) {
-				   List<String> errorList = customerFieldValidator.validateMobileNo(allocationRequest.getMobileNo());
+			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getMobileNo()) || StringUtils.isBlank(incomeVerificationRequestWrapperModel.getMobileNo())) {
+				   List<String> errorList = customerFieldValidator.validateMobileNo(incomeVerificationRequestWrapperModel.getMobileNo());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Mobile Number", errorList);
 			   }
-			   if(StringUtils.isNotBlank(allocationRequest.getEmployerId()) || StringUtils.isBlank(allocationRequest.getEmployerId())) {
-				   List<String> errorList = customerFieldValidator.validateEmployerId(allocationRequest.getEmployerId(), employerPWId);
+			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getEmployerId()) || StringUtils.isBlank(incomeVerificationRequestWrapperModel.getEmployerId())) {
+				   List<String> errorList = customerFieldValidator.validateEmployerId(incomeVerificationRequestWrapperModel.getEmployerId(), employerPWId);
 				   if(errorList.size() > 0)
 					   mapErrorList.put("EmployerId", errorList);
 			   }
-			   if(StringUtils.isNotBlank(allocationRequest.getAchPullRequest())) {
-				   List<String> errorList = customerFieldValidator.validateACHPullRequest(allocationRequest.getAchPullRequest());
-				   if(errorList.size() > 0)
-					   mapErrorList.put("ACH Pull Request", errorList);
-			   }
-			   if(StringUtils.isNotBlank(allocationRequest.getAccountVerificationOverride())) {
-				   List<String> errorList = customerFieldValidator.validateAccountValidationOverride(allocationRequest.getAccountVerificationOverride());
-				   if(errorList.size() > 0)
-					   mapErrorList.put("Account verfication override", errorList);
-			   }
-			   if(StringUtils.isNotBlank(allocationRequest.getExternalVirtualAccountABANumber())) {
-				   List<String> errorList = customerFieldValidator.validateExternalVirtualAccountABANumber(allocationRequest.getExternalVirtualAccountABANumber());
-				   if(errorList.size() > 0)
-					   mapErrorList.put("External virtual account ABA number", errorList);
-			   }
-			   if(StringUtils.isNotBlank(allocationRequest.getEmailId()) || StringUtils.isBlank(allocationRequest.getEmailId())) {
-				   List<String> errorList = customerFieldValidator.validateEmailId(allocationRequest.getEmailId(), customerRepository, allocationRequest.getMobileNo());
+			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getEmailId()) || StringUtils.isBlank(incomeVerificationRequestWrapperModel.getEmailId())) {
+				   List<String> errorList = customerFieldValidator.validateEmailId(incomeVerificationRequestWrapperModel.getEmailId(), customerRepository, incomeVerificationRequestWrapperModel.getMobileNo());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("EmailId", errorList);
 			   }
-			   if(StringUtils.isNotBlank(allocationRequest.getLender())) {
-				   if(!lender.equalsIgnoreCase(allocationRequest.getLender())) {
+			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getLender())) {
+				   if(!lender.equalsIgnoreCase(incomeVerificationRequestWrapperModel.getLender())) {
 					   List<String> errorList = new ArrayList<String>();
 					   errorList.add(AppConstants.LENDER_NAME_NO_MATCH);
 					   mapErrorList.put("Lender", errorList);
 				   }
 			   }
-			   if(StringUtils.isNotBlank(allocationRequest.getFirstDateOfPayment())) {
-				   List<String> errorList = customerFieldValidator.validateFirstDateOfPayment(allocationRequest.getFirstDateOfPayment(), lender);
+			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getNumberOfMonthsRequested())) {
+				   List<String> errorList = customerFieldValidator.validateNoOfMonthsRequested(incomeVerificationRequestWrapperModel.getNumberOfMonthsRequested());
 				   if(errorList.size() > 0)
-					   mapErrorList.put("First Date Of Payment", errorList);
-			   }
-			   if(StringUtils.isNotBlank(allocationRequest.getRepaymentFrequency())) {
-				   List<String> errorList = customerFieldValidator.validateRepaymentFrequency(allocationRequest.getRepaymentFrequency());
-				   if(errorList.size() > 0)
-					   mapErrorList.put("Repayment Frequency", errorList);
-			   }
-			   if(allocationRequest.getTotalNoOfRepayment() == null || allocationRequest.getTotalNoOfRepayment() != null){
-				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(allocationRequest.getTotalNoOfRepayment());
-				   if(errorList.size() > 0)
-					   mapErrorList.put("Total Number Of Repayment", errorList);
-			   }else {
-				   if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
-					   List<String> errorList = new ArrayList<String>();
-					   if (allocationRequest.getTotalNoOfRepayment() == null || allocationRequest.getTotalNoOfRepayment() <= 0) {
-						   errorList.add(AppConstants.TOTALNOOFREPAYMENT_MANDATORY_MESSAGE);
-						   mapErrorList.put("Total Number Of Repayment", errorList);
-					   }
-				   }
-				   else if(allocationRequest.getTotalNoOfRepayment() != null || allocationRequest.getTotalNoOfRepayment() >= 0) {
-					   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(allocationRequest.getTotalNoOfRepayment());
-					   if(errorList.size() > 0)
-						   mapErrorList.put("Total Number Of Repayment", errorList);
-				   }
-			   }
-			   if(allocationRequest.getInstallmentAmount() == null || allocationRequest.getInstallmentAmount() != null) {
-				   List<String> errorList = customerFieldValidator.validateInstallmentAmount(allocationRequest.getInstallmentAmount());
-				   if(errorList.size() > 0)
-					   mapErrorList.put("Installment Amount", errorList);
-			   }else {
-				   if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
-					   List<String> errorList = new ArrayList<String>();
-					   if (allocationRequest.getInstallmentAmount() == null || allocationRequest.getInstallmentAmount() <= 0) {
-						   errorList.add(AppConstants.INSTALLMENTAMOUNT_MANDATORY_MESSAGE);
-						   mapErrorList.put("Installment amount", errorList);
-					   }
-				   }
-				   else if(allocationRequest.getInstallmentAmount() != null || allocationRequest.getInstallmentAmount() >= 0) {
-					   List<String> errorList = customerFieldValidator.validateInstallmentAmount(allocationRequest.getInstallmentAmount());
-					   if(errorList.size() > 0)
-						   mapErrorList.put("Installment Amount", errorList);
-				   }
+					   mapErrorList.put("Number of months requested", errorList);
 			   }
 			   
 			   if(mapErrorList.size() > 0) {
@@ -479,19 +604,110 @@ public class CustomerWrapperAPIService {
 				   String json = "";
 			        try {
 			            json = objectMapper.writeValueAsString(mapErrorList);
-			            log.error("Invalid data in customer request - " + json);
+			            log.error("Invalid data in income verification request - " + json);
 			        } catch (JsonProcessingException e) {
-			        	throw new GeneralCustomException("ERROR", "Invalid data in customer request - " + mapErrorList);
+			        	throw new GeneralCustomException("ERROR", "Invalid data in income verification request - " + mapErrorList);
 			        }
-				   throw new GeneralCustomException("ERROR", "Invalid data in customer request - " + json);
+				   throw new GeneralCustomException("ERROR", "Invalid data in income verification request - " + json);
 			   }
 		   } catch(GeneralCustomException e) {
 			   throw e;
 		   } catch(Exception e) {
-			   log.error("Exception occured while validating the deposit allocation request");
+			   log.error("Exception occured while validating the income verification request");
 			   throw e;
 		   }
 	   }
+	
+	public void validateIdentityVerificationRequest(IdentityVerificationRequestWrapperModel identityVerificationRequestWrapperModel,
+			String requestId, RequestIdDetails requestIdDetails, LenderConfigInfo lenderConfigInfo){
+		   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
+		   try {
+			   
+			   String lender = requestIdDetails.getClientName();
+			   String employerPWId = requestIdDetails.getEmployerPWId();
+			   
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getFirstName())) 
+			   {
+				   List<String> errorList = customerFieldValidator.validateFirstName(identityVerificationRequestWrapperModel.getFirstName());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("First Name", errorList);
+			   } 
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getLastName())) {
+				   List<String> errorList = customerFieldValidator.validateLastName(identityVerificationRequestWrapperModel.getLastName());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Last Name", errorList);
+			   }
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getMobileNo())) {
+				   List<String> errorList = customerFieldValidator.validateMobileNo(identityVerificationRequestWrapperModel.getMobileNo());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Mobile Number", errorList);
+			   }
+			   
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getAddressLine1())) {
+				   List<String> errorList = customerFieldValidator.validateAddressLine1(identityVerificationRequestWrapperModel.getAddressLine1());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Address Line1", errorList);
+			   }
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getAddressLine2())) {
+				   List<String> errorList = customerFieldValidator.validateAddressLine2(identityVerificationRequestWrapperModel.getAddressLine2());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Address Line2", errorList);
+			   }
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getCity())) {
+				   List<String> errorList = customerFieldValidator.validateCity(identityVerificationRequestWrapperModel.getCity());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("City", errorList);
+			   }
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getState())) {
+				   List<String> errorList = customerFieldValidator.validateState(identityVerificationRequestWrapperModel.getState());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("State", errorList);
+			   }
+			   if(StringUtils.isNotEmpty(identityVerificationRequestWrapperModel.getZip())) {
+				   List<String> errorList = customerFieldValidator.validateZip(identityVerificationRequestWrapperModel.getZip());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Zip", errorList);
+			   }
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getLast4TIN())) {
+				   List<String> errorList = customerFieldValidator.validateLast4TIN(identityVerificationRequestWrapperModel.getLast4TIN());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Last 4TIN", errorList);
+			   }
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getDateOfBirth())) {
+				   List<String> errorList = customerFieldValidator.validateDateOfBirth(identityVerificationRequestWrapperModel.getDateOfBirth());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Date Of Birth", errorList);
+			   }
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getEmailId())) {
+				   List<String> errorList = customerFieldValidator.validateEmailId(identityVerificationRequestWrapperModel.getEmailId(), customerRepository, identityVerificationRequestWrapperModel.getMobileNo());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Email Id", errorList);
+			   }
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getEmployerId()) || StringUtils.isBlank(identityVerificationRequestWrapperModel.getEmployerId())) {
+				   List<String> errorList = customerFieldValidator.validateEmployerId(identityVerificationRequestWrapperModel.getEmployerId(), employerPWId);
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Employer Id", errorList);
+			   }
+			   
+			   if(mapErrorList.size() > 0) {
+				   ObjectMapper objectMapper = new ObjectMapper();
+				   String json = "";
+			        try {
+			            json = objectMapper.writeValueAsString(mapErrorList);
+			            log.error("Invalid data in identity verification - " + json);
+			        } catch (JsonProcessingException e) {
+			        	throw new GeneralCustomException("ERROR", "Invalid data in identity verification request - " + mapErrorList);
+			        }
+				   throw new GeneralCustomException("ERROR", "Invalid data in identity verification request - " + json);
+			   }
+			   
+	   } catch(GeneralCustomException e) {
+		   throw e;
+	   } catch(Exception e) {
+		   log.error("Exception occured while validating the identity verification request");
+		   throw e;
+	   }
+   }
 	
 	
 }
