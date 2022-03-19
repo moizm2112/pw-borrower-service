@@ -46,5 +46,6 @@ public class RequestIdDetails {
     private int accountValidationAttempt;
     private List<String> notificationUrls;
     private String flowType;
+    private String loginSdkStatus;
 
 }
