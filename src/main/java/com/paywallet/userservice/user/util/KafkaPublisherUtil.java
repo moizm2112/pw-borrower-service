@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.CommonEnum;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.enums.StatusEnum;
 import com.paywallet.userservice.user.model.LinkServiceInfo;
 import com.paywallet.userservice.user.model.RequestIdDetails;
@@ -19,8 +20,11 @@ public class KafkaPublisherUtil {
     @Autowired
     KafkaProducerService kafkaProducerService;
 
-    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails, int installmentAmount, boolean isDepositAllocation) {
+    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails, int installmentAmount, FlowTypeEnum flowType) {
         try {
+        	boolean isDepositAllocation = false;
+        	if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION))
+        		isDepositAllocation = true;
             LinkServiceInfo linkServiceInfo = LinkServiceInfo.builder()
                     .requestId(requestIdDtls.getRequestId())
                     .eventType(CommonEnum.CUSTOMER_CREATED.getMessage())
@@ -30,6 +34,7 @@ public class KafkaPublisherUtil {
                     .employer(requestIdDtls.getEmployer())
                     .installmentAmount(String.valueOf(installmentAmount))
                     .payCycle(CommonEnum.PAY_CYCLE.getMessage())
+                    .flowType(flowType)
                     .isDirectDepositAllocation(isDepositAllocation).build();
             StatusEnum statusEnum = kafkaProducerService.publishLinkServiceInfo(linkServiceInfo);
             log.info(" requestId : {}  publish status  : {} ", requestIdDtls.getRequestId(), statusEnum);

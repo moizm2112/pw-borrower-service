@@ -80,7 +80,7 @@ class CustomerControllerTest {
 
         CustomerResponseDTO customerResponse = customerDataTest.createCustomerResponse();
         CustomerDetails customerDetails =  customerResponse.getData();
-        when(customerService.createCustomer(any(), Mockito.anyString(),any(),Mockito.anyBoolean())).thenReturn(customerDetails);
+        when(customerService.createCustomer(any(), Mockito.anyString(),any(),any())).thenReturn(customerDetails);
         when(customerService.prepareResponseDTO(Mockito.any(),Mockito.anyString(),Mockito.anyInt(),Mockito.anyString())).thenReturn(customerResponse);
         
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isOk());

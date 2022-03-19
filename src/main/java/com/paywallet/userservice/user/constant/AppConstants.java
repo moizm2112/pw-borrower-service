@@ -13,8 +13,11 @@ public final class AppConstants {
 	public static final String UPDATE_CUSTOMER_MOBILENO = "/customer/update/mobileNo";
 	public static final String UPDATE_CUSTOMER_EMAILID = "/customer/update/emailId";
 	public static final String ADD_REQUIRED_FIELDS = "/customer/addFields";
-	public static final String UPDATE_CUSTOMER_CREDENTIALS = "/customer/update/credentials";
+	public static final String UPDATE_CUSTOMER_CREDENTIALS = "/customer/contact-info";
 	public static final String INITIATE_DEPOSIT_ALLOCATION = "/deposit/allocation";
+	public static final String INITIATE_EMPLOYMENT_VERIFICATION = "/employment-verification";
+	public static final String INITIATE_INCOME_VERIFICATION = "/income-verification";
+	public static final String INITIATE_IDENTITY_VERIFICATION = "/identity-verification";
 	
 	//=============Validation Errors------------------------
 	public static final String FIRST_NAME_VALIDATION_MESSAGE="First Name should contain at least one alphabet.";
@@ -28,6 +31,7 @@ public final class AppConstants {
 	public static final String STATE_VALIDATION_MESSAGE="State must contain maximum of 2 characters. Eg: For Arizona - AZ";
 	public static final String STATE_NOT_VALID_MESSAGE="State entered is not valid. Eg: For Arizona - AZ";
 	public static final String ZIP_VALIDATION_MESSAGE="Zip should contain only numeric characters";
+	public static final String NO_OF_MONTHS_REQUESTED_VALIDATION_MESSAGE="Number of months requested should contain only numeric characters";
 	public static final String ZIP_LENGTH_VALIDATION_MESSAGE="Zip must be 5 digits long";
 	public static final String LAST4TIN_VALIDATION_MESSAGE="Last4TIN should contain only numeric characters";
 	public static final String LAST4TIN_LENGTH_VALIDATION_MESSAGE="Last4TIN must be 4 digits long";

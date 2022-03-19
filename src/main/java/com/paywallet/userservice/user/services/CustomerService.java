@@ -29,6 +29,7 @@ import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.entities.OfferPayAllocationRequest;
 import com.paywallet.userservice.user.entities.OfferPayAllocationResponse;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
 import com.paywallet.userservice.user.enums.StateStatus;
 import com.paywallet.userservice.user.exception.CreateCustomerException;
@@ -58,6 +59,9 @@ import com.paywallet.userservice.user.model.UpdateCustomerMobileNoDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
 import com.paywallet.userservice.user.model.ValidateAccountRequest;
 import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository;
 import com.paywallet.userservice.user.util.CustomerServiceUtil;
@@ -81,7 +85,11 @@ public class CustomerService {
     private static final String STATUS_DESC = "statusDescription";
     private static final String VALID_RTN = "validRtn";
     private static final String ACCEPT = "Accept";
-    
+    private static final String DEPOSIT_ALLOCATION = "DEPOSIT_ALLOCATION";
+    private static final String GENERAL = "GENERAL";
+    private static final String EMPLOYMENT_VERIFICATION = "EMPLOYMENT_VERIFICATION";
+    private static final String INCOME_VERIFICATION = "INCOME_VERIFICATION";
+    private static final String IDENTITY_VERIFICATION = "IDENTITY_VERIFICATION";
 
     @Autowired
     CustomerRepository customerRepository;
@@ -98,9 +106,6 @@ public class CustomerService {
     @Autowired
     LyonsService lyonsService;
     
-    @Autowired
-    NotificationUtil notificationUtil;
-
     @Autowired
     RequestIdUtil requestIdUtil;
     
@@ -127,12 +132,6 @@ public class CustomerService {
      */
     @Value("${identifyProviderService.eureka.uri}")
 	private String identifyProviderServiceUri;
-    
-    @Value("${link.login.domainname}")
-	private String domainNameForLink;
-    
-    @Value("${create.link.uri}")
-	private String createLinkUri;
     
     @Value("${fineract.clienttype}")
 	private String fineractClientType;
@@ -201,7 +200,7 @@ public class CustomerService {
      * @throws ServiceNotAvailableException
      * @throws RequestIdNotFoundException
      */
-    public CustomerDetails createCustomer(CreateCustomerRequest customer, String requestId, DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel, 
+    /*public CustomerDetails createCustomer(CreateCustomerRequest customer, String requestId, DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel, 
     		boolean isDepositAllocation) 
     		throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, SMSAndEmailNotificationException {
         log.info("Inside createCustomer of CustomerService class");
@@ -213,21 +212,21 @@ public class CustomerService {
         RequestIdDetails requestIdDtls = null;
         try 
         {
-        	requestIdDtls = validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
+        	requestIdDtls = customerServiceHelper.validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
 		    lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDtls.getClientName());
 		    lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validating callback urls"));
         	if(!isDepositAllocation)
         		validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
         	else {
         		/* Validating the request against lender configuration to check whether it is a valid deposit allocation request    */
-				if(lenderConfigInfo.getInvokeAndPublishDepositAllocation().equals(StateStatus.NO)) { 
+/*				if(lenderConfigInfo.getInvokeAndPublishDepositAllocation().equals(StateStatus.NO)) { 
 					throw new GeneralCustomException("ERROR","Deposit allocation is not allowed for the lender"); 
 				}
 	    		if (!depositAllocationRequestWrapperModel.getMobileNo().startsWith("+1") && depositAllocationRequestWrapperModel.getMobileNo().length()==10)
 	    			depositAllocationRequestWrapperModel.setMobileNo("+1".concat(depositAllocationRequestWrapperModel.getMobileNo()));
 	    		
 	    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
-	    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
+/*	    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
 	    			EmployerSearchDetailsDTO employerSearchDetailsDTO = customerServiceHelper.getEmployerDetailsBasedOnEmployerId(depositAllocationRequestWrapperModel.getEmployerId(), requestId);
 	    			if(employerSearchDetailsDTO == null || (employerSearchDetailsDTO != null && employerSearchDetailsDTO.getId() == null)) {
 	    				throw new GeneralCustomException("ERROR","Fetch employer details and update request table in create customer failed");
@@ -260,21 +259,27 @@ public class CustomerService {
 	            	// Set external virtual account only if it provided in the request for direct deposit allocation wrapper api
 	            	if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
 	            		saveCustomer.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-		            saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+	            	if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))
+	            		saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+	            }
+	            else {
+	            	if(StringUtils.isBlank(saveCustomer.getAccountABANumber()) && StringUtils.isNotBlank(saveCustomer.getVirtualAccount())) {
+		            	saveCustomer.setAccountABANumber(ROUTING_NUMBER);
+		            }
 	            }
 	            
 	            RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer.getCustomerId(),saveCustomer.getVirtualAccount(), saveCustomer.getVirtualAccountId(),
 						customer.getCallbackURLs(), isDepositAllocation, saveCustomer.getAccountABANumber());
             	/* UPDATE REQUEST TABLE with customerID and virtual account from the existing customer information */
-            	customerServiceHelper.updateRequestIdDetails(requestId,requestIdDTO, identifyProviderServiceUri, 
+/*            	customerServiceHelper.updateRequestIdDetails(requestId,requestIdDTO, identifyProviderServiceUri, 
         	            	restTemplate);
             	
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	           // String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
+/*	           kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
 	        } else {
 	        	/* CREATE VIRTUAL ACCOUNT IN FINERACT THORUGH ACCOUNT SERVICE*/
-	        	CustomerDetails customerEntity = customerServiceHelper.buildCustomerDetails(customer);
+/*	        	CustomerDetails customerEntity = customerServiceHelper.buildCustomerDetails(customer);
 	        	
 	        	// Create customer normal flow -  direct deposit allocation is FALSE
 	        	if(!isDepositAllocation) {
@@ -309,10 +314,10 @@ public class CustomerService {
 	            RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer.getCustomerId(),saveCustomer.getVirtualAccount(),
 	            		saveCustomer.getVirtualAccountId(), customer.getCallbackURLs(), isDepositAllocation, saveCustomer.getAccountABANumber());
             	/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
-	            customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri, restTemplate);
+/*	            customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri, restTemplate);
 	            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 	            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-                kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
+/*                kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), isDepositAllocation);
 	            log.info("Customer got created successfully");
 	        }
             checkAndSavePayAllocation(requestIdDtls,customer, isDepositAllocation);
@@ -346,7 +351,7 @@ public class CustomerService {
         	throw new GeneralCustomException(ERROR ,e.getMessage());
         }
         return saveCustomer;
-    }
+    }*/
 
     /**
      * Methods gets customer account details by mobileNo.
@@ -837,26 +842,6 @@ public class CustomerService {
                 .build();
     }
 
-   public String createAndSendLinkSMSAndEmailNotification(String requestId, RequestIdDetails requestIdDetails, CustomerDetails customerDetails) 
-		   throws SMSAndEmailNotificationException, GeneralCustomException {
-	   log.info("Inside createAndSendSMSAndEmailNotification");
-	   String notificationResponse = "FAIL";
-	   try {
-		   String linkResponse  = customerServiceHelper.getLinkFromLinkVerificationService(requestId, domainNameForLink, restTemplate, createLinkUri);
-		   notificationResponse = notificationUtil.callNotificationService(requestIdDetails, customerDetails, linkResponse);
-	   }
-	   catch(GeneralCustomException e) {
-		   log.error("Create and send link exception " + e.getMessage());
-			throw new SMSAndEmailNotificationException(e.getMessage());
-	   }
-	   catch(Exception e) {
-		   log.error("Create and send link exception " + e.getMessage());
-			throw new SMSAndEmailNotificationException(e.getMessage());
-	   }
-	   log.info("createAndSendSMSAndEmailNotification response : " + notificationResponse);
-	   return notificationResponse;
-   }
-   
    public void validateCreateCustomerRequest(CreateCustomerRequest customerRequest, String requestId, String lender){
 	   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
 	   try {
@@ -1011,32 +996,10 @@ public class CustomerService {
 	   }
    }
    
-   public RequestIdDetails validateRequestId(String requestId, String identifyProviderServiceUri, RestTemplate restTemplate) {
-	   RequestIdDetails requestIdDtls = null;
-	   try {
-		   RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
-		   		.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
-			requestIdDtls = requestIdResponseDTO.getData();
-			if(StringUtils.isNotBlank(requestIdDtls.getUserId())) {
-				log.error("Customerservice createcustomer - Create customer failed as request id and customer id already exist in database.");
-				throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
-		   }
-	   }
-	   catch(ServiceNotAvailableException e) {
-		   log.error("Exception occured while fetching request Id details- Service unavailable");
-		   throw new ServiceNotAvailableException(ERROR ,e.getMessage());
-	   }
-	   catch(Exception e) {
-		   log.error("Exception occured while fetching request Id details");
-		   throw new GeneralCustomException(ERROR ,e.getMessage());
-	   }
-	   return requestIdDtls;
-   }
-   
    public boolean addCustomerRequiredFields(CustomerRequestFields customerRequestFields) {
 	   boolean isSuccess = false;
 	   try {
-		   validateCustomerRequestFields(customerRequestFields);
+		   customerServiceHelper.validateCustomerRequestFields(customerRequestFields);
 		   Optional<CustomerRequestFields> optCustomerRequestFields =  customerRequestFieldsRepository.findByLender(customerRequestFields.getLender());
 		   if(optCustomerRequestFields.isPresent()) {
 			   CustomerRequestFields customerRequestFieldsResp = optCustomerRequestFields.get();
@@ -1057,57 +1020,14 @@ public class CustomerService {
 	   return isSuccess;
    }
    
-   public void validateCustomerRequestFields(CustomerRequestFields customerRequestFields) {
-	   List<String> errorList = new ArrayList<String>();
-	   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
-	   try {
-		   if(customerRequestFields != null) {
-			   if(StringUtils.isNotBlank(customerRequestFields.getFirstName()) && customerRequestFields.getFirstName().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.FIRST_NAME_MANDATORY_MESSAGE);
-				   mapErrorList.put("First Name", errorList);
-			   }
-			   if(StringUtils.isNotBlank(customerRequestFields.getLastName()) && customerRequestFields.getLastName().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.LAST_NAME_MANDATORY_MESSAGE);
-				   mapErrorList.put("Last Name", errorList);
-			   }
-			   if(StringUtils.isNotBlank(customerRequestFields.getMobileNo()) && customerRequestFields.getMobileNo().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.MOBILENO_MANDATORY_MESSAGE);
-				   mapErrorList.put("Mobile Number", errorList);
-			   }
-			   if(StringUtils.isNotBlank(customerRequestFields.getEmailId()) && customerRequestFields.getEmailId().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.EMAIL_MANDATORY_MESSAGE);
-				   mapErrorList.put("Email", errorList);
-			   }
-			   if(StringUtils.isNotBlank(customerRequestFields.getCallbackURLs()) && customerRequestFields.getCallbackURLs().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.CALLBACKS_MANDATORY_MESSAGE);
-				   mapErrorList.put("Callback URL", errorList);
-			   }
-			   
-			   if(mapErrorList.size() > 0) {
-				   ObjectMapper objectMapper = new ObjectMapper();
-				   String json = "";
-			        try {
-			            json = objectMapper.writeValueAsString(mapErrorList);
-			            log.error("Mandatory fields can't be made optional - " + json);
-			        } catch (JsonProcessingException e) {
-			        	throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + mapErrorList);
-			        }
-				   throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + json);
-			   }
-		   }
-	   }catch(GeneralCustomException e) {
-		   log.error("Mandatory fields can't be made optional - " + e.getMessage());
-		   throw new GeneralCustomException(ERROR, e.getMessage());
-	   }
-	   catch(Exception e) {
-		   log.error("Mandatory fields can't be made optional - " + e.getMessage());
-		   throw new GeneralCustomException(ERROR, e.getMessage());
-	   }
-   }
+   
 
-    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer, boolean isDepositAllocation) {
+    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer, FlowTypeEnum flowtype) {
         String requestId = requestIdDetails.getRequestId();
         log.info(" Inside check And SavePayAllocation : Request ID : {} ",requestId);
+        boolean isDepositAllocation = false;
+        if(flowtype.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name()))
+        	isDepositAllocation = true;
         try {
             StateControllerInfo stateControllerInfo = linkServiceUtil.getStateInfo(requestId, requestIdDetails.getClientName());
             log.info(" response from stateControllerInfo {} : Request id : {} ",stateControllerInfo,requestId);
@@ -1123,6 +1043,252 @@ public class CustomerService {
         }
 
     }
+    
+    
+    public void generalCustomerRequestConfig(CreateCustomerRequest customer) {
+    	if (!customer.getMobileNo().startsWith("+1") && customer.getMobileNo().length()==10)
+            customer.setMobileNo("+1".concat(customer.getMobileNo()));
 
+     // Setup made to get integer field in request and if null set it to default to 0.
+    	if(customer.getTotalNoOfRepayment() == null)
+    		customer.setTotalNoOfRepayment(0);
+    	if(customer.getInstallmentAmount() ==null)
+    		customer.setInstallmentAmount(0);
+    }
+    
+    public <T> CustomerDetails createCustomer(CreateCustomerRequest customer, String requestId, T obj, FlowTypeEnum flowType) 
+    		throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, SMSAndEmailNotificationException {
+        log.info("Inside createCustomer of CustomerService class");
+        int virtualAccount = -1;
+        CustomerDetails saveCustomer = new CustomerDetails();
+        RequestIdDetails requestIdDtls = null;
+        boolean isDepositAllocation = true;
+        CustomerDetails customerEntity = new CustomerDetails();
+        DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel = null;
+        EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel = null;
+        IdentityVerificationRequestWrapperModel identityVerificationRequestWrapperModel = null;
+        IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel = null;
+        
+        if(!flowType.name().equals(FlowTypeEnum.GENERAL.name())) {
+	        if(obj.getClass().getSimpleName().equals((DepositAllocationRequestWrapperModel.class).getSimpleName()))
+	        	depositAllocationRequestWrapperModel = (DepositAllocationRequestWrapperModel) obj;
+	        else if(obj.getClass().getSimpleName().equals((EmploymentVerificationRequestWrapperModel.class).getSimpleName()))
+	        	employmentVerificationRequestWrapperModel = (EmploymentVerificationRequestWrapperModel) obj;
+	        else if(obj.getClass().getSimpleName().equals((IncomeVerificationRequestWrapperModel.class).getSimpleName()))
+	        	incomeVerificationRequestWrapperModel = (IncomeVerificationRequestWrapperModel) obj;
+	        else if(obj.getClass().getSimpleName().equals((IdentityVerificationRequestWrapperModel.class).getSimpleName()))
+	        	identityVerificationRequestWrapperModel = (IdentityVerificationRequestWrapperModel) obj;
+        }
+        generalCustomerRequestConfig(customer);
+        try 
+        {
+        	requestIdDtls = customerServiceHelper.validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
+		    lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDtls.getClientName());
+		    lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validating callback urls"));
+		    switch(flowType.name()) {
+		    	case GENERAL: {
+		    		validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
+		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+		    		if(!customerEntity.isExistingCustomer()) {
+			    		if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+			    			customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
+			    			customerEntity.setAccountABANumber(ROUTING_NUMBER);
+				            log.info("Virtual fineract account created successfully ");
+		        		}
+		    		}
+		    		else {
+		    			if(StringUtils.isBlank(customerEntity.getAccountABANumber()) && StringUtils.isNotBlank(customerEntity.getVirtualAccount())) {
+		    				customerEntity.setAccountABANumber(ROUTING_NUMBER);
+			            }
+		    		}
+		    		break;
+		    	}
+		    	case DEPOSIT_ALLOCATION:{
+		    		/* Validating the request against lender configuration to check whether it is a valid deposit allocation request    */
+					if(lenderConfigInfo.getInvokeAndPublishDepositAllocation().equals(StateStatus.NO)) { 
+						throw new GeneralCustomException("ERROR","Deposit allocation is not allowed for the lender"); 
+					}
+		    		if (!depositAllocationRequestWrapperModel.getMobileNo().startsWith("+1") && depositAllocationRequestWrapperModel.getMobileNo().length()==10)
+		    			depositAllocationRequestWrapperModel.setMobileNo("+1".concat(depositAllocationRequestWrapperModel.getMobileNo()));
+		    		
+		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
+		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
+		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(depositAllocationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
+		    		}
+		    		//Validation of direct deposit allocation request
+		    		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
+		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+		    		if(!customerEntity.isExistingCustomer()) {
+		    			if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) && 
+			        			StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
+			        		customerEntity.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+							customerEntity.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+			        	}
+		            	else if(StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) || 
+			        			StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
+			        		if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+				        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
+				        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
+					            log.info("Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
+			        		}
+			        	}
+		    		}
+		    		else {
+		    			if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
+		            		saveCustomer.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+		            	if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))
+		            		saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		    		}
+		    		break;
+		    	}
+		    	case EMPLOYMENT_VERIFICATION: {
+		    		if(lenderConfigInfo.getPublishEmploymentInfo().equals(StateStatus.NO)) { 
+						throw new GeneralCustomException("ERROR","Employment verification is not allowed for the lender"); 
+					}
+		    		if (!employmentVerificationRequestWrapperModel.getMobileNo().startsWith("+1") && employmentVerificationRequestWrapperModel.getMobileNo().length()==10)
+		    			employmentVerificationRequestWrapperModel.setMobileNo("+1".concat(employmentVerificationRequestWrapperModel.getMobileNo()));
+		    		
+		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
+		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
+		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(employmentVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
+		    		}
+		    		// VALIDATION PENDING
+		    		customerWrapperAPIService.validateEmploymentVerificationRequest(employmentVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
+		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+		    		break;
+		    	}
+		    	case INCOME_VERIFICATION: {
+		    		if(lenderConfigInfo.getPublishIncomeInfo().equals(StateStatus.NO)) { 
+						throw new GeneralCustomException("ERROR","Income verification is not allowed for the lender"); 
+					}
+		    		if (!incomeVerificationRequestWrapperModel.getMobileNo().startsWith("+1") && incomeVerificationRequestWrapperModel.getMobileNo().length()==10)
+		    			incomeVerificationRequestWrapperModel.setMobileNo("+1".concat(incomeVerificationRequestWrapperModel.getMobileNo()));
+		    		
+		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
+		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
+		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(incomeVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
+		    		}
+		    		// VALIDATION PENDING
+		    		customerWrapperAPIService.validateIncomeVerificationRequest(incomeVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
+		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+		    		break;
+		    	}
+		    	case IDENTITY_VERIFICATION: {
+		    		if(lenderConfigInfo.getPublishIdentityInfo().equals(StateStatus.NO)) { 
+						throw new GeneralCustomException("ERROR","Identity verification is not allowed for the lender"); 
+					}
+		    		if (!identityVerificationRequestWrapperModel.getMobileNo().startsWith("+1") && identityVerificationRequestWrapperModel.getMobileNo().length()==10)
+		    			identityVerificationRequestWrapperModel.setMobileNo("+1".concat(identityVerificationRequestWrapperModel.getMobileNo()));
+		    		
+		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
+		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
+		    			requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(identityVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
+		    		}
+		    		// VALIDATION PENDING
+		    		customerWrapperAPIService.validateIdentityVerificationRequest(identityVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
+		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+		    		break;
+		    	}
+		    	default: {
+		    	}
+		    }
+		    
+	        if(requestIdDtls.getClientName() != null) 
+            	customerEntity.setLender(requestIdDtls.getClientName());
+            customerEntity.setEmployer(requestIdDtls.getEmployer());
+            if(!customerEntity.isExistingCustomer())
+            	saveCustomer = customerRepository.save(customerEntity);
+            else
+            	saveCustomer = customerEntity;
+            saveCustomer.setRequestId(requestId);
+            
+            RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer, customer.getCallbackURLs(), flowType);
+        	/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
+            customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri, restTemplate);
+            /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
+            //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
+            kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), flowType);
+            log.info("Customer got created successfully");
+            
+            checkAndSavePayAllocation(requestIdDtls,customer, flowType);
+    	}
+        catch(GeneralCustomException e) {
+        	log.error("Customerservice createcustomer generalCustomException" + e.getMessage());
+        	throw new GeneralCustomException(ERROR ,e.getMessage());
+        }catch(CreateCustomerException e1) {
+        	log.error("Customerservice createcustomer createCustomerException" + e1.getMessage());
+        	if(virtualAccount != -1)
+        		throw new CreateCustomerException(e1.getMessage());
+        }
+        catch(RequestIdNotFoundException e) {
+        	log.error("Customerservice createcustomer RequestIdNotFoundException" + e.getMessage());
+        	throw new RequestIdNotFoundException(e.getMessage());
+        }
+        catch(ServiceNotAvailableException e) {
+        	log.error("Customerservice createcustomer ServiceNotAvailableException" + e.getMessage());
+        	throw new ServiceNotAvailableException(ERROR, e.getMessage());
+        }
+        catch(FineractAPIException e) {
+        	log.error("Customerservice createcustomer FineractAPIException" + e.getMessage());
+        	throw new FineractAPIException(e.getMessage());
+        }
+        catch(SMSAndEmailNotificationException e) {
+        	log.error("Customerservice createcustomer SMSAndEmailNotificationException"+ e.getMessage());
+        	throw new SMSAndEmailNotificationException(e.getMessage());
+        }
+        catch(Exception e) {
+        	log.error("Customerservice createcustomer Exception" + e.getMessage());
+        	throw new GeneralCustomException(ERROR ,e.getMessage());
+        }
+        return saveCustomer;
+    }
+    
+    public RequestIdDetails getEmployerDetailsBasedOnEmplyerIdFromRequest(String employerId, String requestId, RequestIdDetails requestIdDtls) {
+    	try {
+    		EmployerSearchDetailsDTO employerSearchDetailsDTO = customerServiceHelper.getEmployerDetailsBasedOnEmployerId(employerId, requestId);
+			if(employerSearchDetailsDTO == null || (employerSearchDetailsDTO != null && employerSearchDetailsDTO.getId() == null)) {
+				throw new GeneralCustomException("ERROR","Fetch employer details and update request table in create customer failed");
+			}
+			requestIdDtls = customerServiceHelper.validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
+			log.info("Employer search and select from create customer :" + employerSearchDetailsDTO);
+    	}
+    	catch(GeneralCustomException e) {
+    		log.error("Create customer -  getEmployerDetailsBasedOnEmplyerIdFromRequest Exception" + e.getMessage());
+        	throw new GeneralCustomException(ERROR ,e.getMessage());
+    	}
+    	catch(Exception e) {
+    		log.error("Create customer - getEmployerDetailsBasedOnEmplyerIdFromRequest Exception" + e.getMessage());
+        	throw new GeneralCustomException(ERROR ,e.getMessage());
+    	}
+    	return requestIdDtls;
+    }
+    
+    public CustomerDetails checkAndReturnIfCustomerAlreadyExist(CreateCustomerRequest customer, LenderConfigInfo lenderConfigInfo, 
+    		String requestId) {
+    	log.info("Inside checkAndReturnIfCustomerAlreadyExist :" + customer);
+    	CustomerDetails customerReponse = new CustomerDetails();
+    	try {
+    		Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
+	        if (byMobileNo.isPresent()) {
+	        	log.info("Exsiting customer with new requestID : " + requestId);
+	        	customerReponse = byMobileNo.get();
+	        	customerReponse.setExistingCustomer(true);
+	        	customerReponse.setInstallmentAmount(customer.getInstallmentAmount());
+	        	customerReponse.setTotalNoOfRepayment(customer.getTotalNoOfRepayment());
+	            
+            	if(StringUtils.isBlank(customerReponse.getAccountABANumber()) && StringUtils.isNotBlank(customerReponse.getVirtualAccount())) {
+            		customerReponse.setAccountABANumber(ROUTING_NUMBER);
+	            }
+	        }
+	        else {
+	        	customerReponse = customerServiceHelper.buildCustomerDetails(customer);
+	        	customerReponse.setExistingCustomer(false);
+	        }
+    	}catch(Exception e) {
+    		throw new GeneralCustomException("ERROR", e.getMessage());
+    	}
+    	return customerReponse;
+    }
+    
 }
 
