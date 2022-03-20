@@ -52,10 +52,10 @@ public class EmploymentVerificationWrapperAPIController {
 			employmentResponseInfo = employmentRetryWrapperAPIService.retryEmploymentVerification(requestId, empVerificationRequestDTO);
 		} catch (ResourceAccessException | RequestIdNotFoundException | GeneralCustomException | RetryException e) {
 			return employmentRetryWrapperAPIService.prepareResponseDTO(null, CommonEnum.FAILED_STATUS_MSG.getMessage(),
-	                HttpStatus.OK.value(), request.getRequestURI(), CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage());			
+	                HttpStatus.OK.value(), request.getRequestURI(), CommonEnum.COMMON_RETRY_FALED_MSG.getMessage());			
 		}
         return employmentRetryWrapperAPIService.prepareResponseDTO(employmentResponseInfo, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
-                HttpStatus.UNAUTHORIZED.value(), request.getRequestURI(), CommonEnum.COMMON_RETRY_FALED_MSG.getMessage());
+                HttpStatus.UNAUTHORIZED.value(), request.getRequestURI(), CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage());
     }
 
 

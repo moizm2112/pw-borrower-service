@@ -17,8 +17,7 @@ public class EmploymentVerificationResponseDTO {
 
     private EmploymentResponseInfo data;
     private String message;
-    private String code;
-    private int status;
+    private String status;
     private Date timeStamp;
     private String path;
 

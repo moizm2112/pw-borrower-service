@@ -52,10 +52,9 @@ public class EmploymentRetryWrapperAPIService {
         return EmploymentVerificationResponseDTO.builder()
                 .data(employmentResponseInfo)
                 .message(message)
-                .code(code)
                 .path(requestURI)
                 .timeStamp(new Date())
-                .status(value)
+                .status(code)
                 .build();
     }
 }
