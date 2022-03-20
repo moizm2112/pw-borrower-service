@@ -48,10 +48,11 @@ public class EmploymentRetryWrapperAPIService {
                 .build();
     }
 
-    public EmploymentVerificationResponseDTO prepareResponseDTO(EmploymentResponseInfo employmentResponseInfo, String message, int value, String requestURI) {
+    public EmploymentVerificationResponseDTO prepareResponseDTO(EmploymentResponseInfo employmentResponseInfo, String code, int value, String requestURI, String message) {
         return EmploymentVerificationResponseDTO.builder()
                 .data(employmentResponseInfo)
                 .message(message)
+                .code(code)
                 .path(requestURI)
                 .timeStamp(new Date())
                 .status(value)
