@@ -2,6 +2,7 @@ package com.paywallet.userservice.user.controller.wrapperAPI;
 
 import com.paywallet.userservice.user.enums.CommonEnum;
 import com.paywallet.userservice.user.exception.CreateCustomerException;
+import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
 import com.paywallet.userservice.user.model.wrapperAPI.identity.IdentityResponseInfo;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.ResourceAccessException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -41,12 +43,17 @@ public class IdentityVerificationWrapperAPIController {
     @PostMapping(IDENTITY_VERIFICATION_RETRY)
     public IdentityVerificationResponseDTO retryIdentityVerification(@RequestHeader(REQUEST_ID) String requestId,
                                                                      @RequestBody IdentityVerificationRequestDTO identityVerificationRequestDTO,
-                                                                     HttpServletRequest request) throws RequestIdNotFoundException, RetryException {
+                                                                     HttpServletRequest request) throws RequestIdNotFoundException {
 
         log.debug("Identity Verification retry request received : {}  request ID : {} ", identityVerificationRequestDTO, requestId);
-        IdentityResponseInfo identityResponseInfo = identityRetryWrapperAPIService.retryIdentityVerification(requestId, identityVerificationRequestDTO);
-        return identityRetryWrapperAPIService.prepareResponseDTO(identityResponseInfo, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
-                HttpStatus.OK.value(), request.getRequestURI());
+        IdentityResponseInfo identityResponseInfo;
+		try {
+			identityResponseInfo = identityRetryWrapperAPIService.retryIdentityVerification(requestId, identityVerificationRequestDTO);
+		} catch (ResourceAccessException | RequestIdNotFoundException | GeneralCustomException | RetryException e) {
+			// TODO Auto-generated catch block
+			return identityRetryWrapperAPIService.prepareResponseDTO(null,CommonEnum.COMMON_RETRY_FALED_MSG.getMessage(), CommonEnum.FAILED_STATUS_MSG.getMessage(), request.getRequestURI());
+		}
+        return identityRetryWrapperAPIService.prepareResponseDTO(identityResponseInfo,CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage(), CommonEnum.SUCCESS_STATUS_MSG.getMessage(), request.getRequestURI());
 
     }
 

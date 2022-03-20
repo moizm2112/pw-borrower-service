@@ -17,7 +17,7 @@ public class IdentityVerificationResponseDTO {
 
     private IdentityResponseInfo data;
     private String message;
-    private int status;
+    private String status;
     private Date timeStamp;
     private String path;
 

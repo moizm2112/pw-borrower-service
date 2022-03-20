@@ -50,13 +50,13 @@ public class IncomeRetryWrapperAPIService {
                 .build();
     }
 
-    public IncomeVerificationResponseDTO prepareResponseDTO(IncomeResponseInfo incomeResponseInfo, String message, int value, String requestURI) {
+    public IncomeVerificationResponseDTO prepareResponseDTO(IncomeResponseInfo incomeResponseInfo, String status, String requestURI, String message) {
         return IncomeVerificationResponseDTO.builder()
                 .data(incomeResponseInfo)
                 .message(message)
                 .path(requestURI)
                 .timeStamp(new Date())
-                .status(value)
+                .status(status)
                 .build();
     }
 }

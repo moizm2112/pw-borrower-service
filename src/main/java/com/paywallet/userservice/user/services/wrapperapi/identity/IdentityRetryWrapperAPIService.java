@@ -48,7 +48,7 @@ public class IdentityRetryWrapperAPIService {
                 .build();
     }
 
-    public IdentityVerificationResponseDTO prepareResponseDTO(IdentityResponseInfo identityResponseInfo, String message, int value, String requestURI) {
+    public IdentityVerificationResponseDTO prepareResponseDTO(IdentityResponseInfo identityResponseInfo, String message, String  value, String requestURI) {
         return IdentityVerificationResponseDTO.builder()
                 .data(identityResponseInfo)
                 .message(message)
