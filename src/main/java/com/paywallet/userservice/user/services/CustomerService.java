@@ -811,14 +811,14 @@ public class CustomerService {
         body.put("timestamp", new Date());
         body.put("path", path);
         body.put("requestId", customerDetails.getRequestId());
-        if(customerDetails.isEmailNotificationSuccess())
-        	body.put("Email Notification", EMAIL_NOTIFICATION_SUCCESS);
-        else
-        	body.put("Email Notification", customerDetails.getPersonalProfile().getEmailId() + " - " + EMAIL_NOTIFICATION_FAILED);
-        if(customerDetails.isSmsNotificationSuccess())
-        	body.put("SMS Notification", SMS_NOTIFICATION_SUCCESS);
-        else
-        	body.put("SMS Notification", customerDetails.getPersonalProfile().getCellPhone() + " - " + SMS_NOTIFICATION_FAILED);
+//        if(customerDetails.isEmailNotificationSuccess())
+//        	body.put("Email Notification", EMAIL_NOTIFICATION_SUCCESS);
+//        else
+//        	body.put("Email Notification", customerDetails.getPersonalProfile().getEmailId() + " - " + EMAIL_NOTIFICATION_FAILED);
+//        if(customerDetails.isSmsNotificationSuccess())
+//        	body.put("SMS Notification", SMS_NOTIFICATION_SUCCESS);
+//        else
+//        	body.put("SMS Notification", customerDetails.getPersonalProfile().getCellPhone() + " - " + SMS_NOTIFICATION_FAILED);
         
         if(status == 201) {
         	return new ResponseEntity<>(body, HttpStatus.CREATED);
