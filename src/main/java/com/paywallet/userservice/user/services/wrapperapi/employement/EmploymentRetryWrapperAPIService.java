@@ -53,18 +53,20 @@ public class EmploymentRetryWrapperAPIService {
     public EmploymentResponseInfo retryEmploymentVerification(String requestId, EmploymentVerificationRequestDTO empVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
 
         RequestIdDetails requestIdDetails= requestIdUtil.fetchRequestIdDetails(requestId);
+        //Check whether retry can be initiated.
         allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
         // initiate retry code logic -> need to add
-        initiateEmploymentVerification(requestIdDetails);
+        initiateEmploymentVerification(requestIdDetails, requestId , empVerificationRequestDTO);
         return this.prepareEmploymentResponseInfo(empVerificationRequestDTO);
 
     }
 
-    public void initiateEmploymentVerification(RequestIdDetails requestIdDetails) {
+    public void initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, EmploymentVerificationRequestDTO empVerificationRequestDTO) {
     	log.info(" Inside initiateEmploymentVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
     	log.info(" Received the CustomerDetails ::" , customer);
+    	validateInput( customer, requestId,  requestIdDetails, empVerificationRequestDTO) ;
     	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.EMPLOYMENT_VERIFICATION);
     }
 
@@ -85,5 +87,19 @@ public class EmploymentRetryWrapperAPIService {
                 .timeStamp(new Date())
                 .status(code)
                 .build();
+    }
+    
+    public void validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
+    		EmploymentVerificationRequestDTO empVerificationRequestDTO) {
+    	log.info("Inside validateInput");
+    	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
+    	if(! requestIdDetails.getEmployer().equals(empVerificationRequestDTO.getEmployerId())) {
+    		log.info("Employer Changed. Updating the new employer");
+    		customerService.getEmployerDetailsBasedOnEmplyerIdFromRequest(empVerificationRequestDTO.getEmployerId(),requestId,  requestIdDetails);
+    	}
+    	if(! customer.getPersonalProfile().getMobileNo().equals(empVerificationRequestDTO.getMobileNo()) ||
+    			!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getMobileNo())) {
+    		throw new  GeneralCustomException("ERROR", "The Customer Email or Cell Number cannot be changed");
+    	}
     }
 }
