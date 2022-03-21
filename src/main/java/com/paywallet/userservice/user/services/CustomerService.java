@@ -1118,6 +1118,7 @@ public class CustomerService {
 		    		//Validation of direct deposit allocation request
 		    		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
 		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+		    		customerEntity.setLoanAmount(depositAllocationRequestWrapperModel.getLoanAmount());
 		    		if(!customerEntity.isExistingCustomer()) {
 		    			if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) && 
 			        			StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
