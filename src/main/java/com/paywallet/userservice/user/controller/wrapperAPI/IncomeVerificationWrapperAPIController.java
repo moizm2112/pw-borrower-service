@@ -48,10 +48,10 @@ public class IncomeVerificationWrapperAPIController {
 		try {
 			incomeResponseInfo = incomeRetryWrapperAPIService.retryIncomeVerification(requestId, incomeVerificationRequestDTO);
 		} catch (ResourceAccessException | RequestIdNotFoundException | GeneralCustomException | RetryException e) {
-			return incomeRetryWrapperAPIService.prepareResponseDTO(null, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
+			return incomeRetryWrapperAPIService.prepareResponseDTO(null, CommonEnum.FAILED_STATUS_MSG.getMessage(),
 	                request.getRequestURI(), CommonEnum.COMMON_RETRY_FALED_MSG.getMessage());
 		}
-        return incomeRetryWrapperAPIService.prepareResponseDTO(incomeResponseInfo, CommonEnum.FAILED_STATUS_MSG.getMessage(),
+        return incomeRetryWrapperAPIService.prepareResponseDTO(incomeResponseInfo, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
                 request.getRequestURI(), CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage());
 
     }

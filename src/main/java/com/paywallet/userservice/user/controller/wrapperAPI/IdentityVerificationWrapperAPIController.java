@@ -51,9 +51,11 @@ public class IdentityVerificationWrapperAPIController {
 			identityResponseInfo = identityRetryWrapperAPIService.retryIdentityVerification(requestId, identityVerificationRequestDTO);
 		} catch (ResourceAccessException | RequestIdNotFoundException | GeneralCustomException | RetryException e) {
 			// TODO Auto-generated catch block
-			return identityRetryWrapperAPIService.prepareResponseDTO(null,CommonEnum.COMMON_RETRY_FALED_MSG.getMessage(), CommonEnum.FAILED_STATUS_MSG.getMessage(), request.getRequestURI());
+			return identityRetryWrapperAPIService.prepareResponseDTO(null,CommonEnum.COMMON_RETRY_FALED_MSG.getMessage(),
+					CommonEnum.FAILED_STATUS_MSG.getMessage(), request.getRequestURI());
 		}
-        return identityRetryWrapperAPIService.prepareResponseDTO(identityResponseInfo,CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage(), CommonEnum.SUCCESS_STATUS_MSG.getMessage(), request.getRequestURI());
+        return identityRetryWrapperAPIService.prepareResponseDTO(identityResponseInfo,CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage(), 
+        		CommonEnum.SUCCESS_STATUS_MSG.getMessage(), request.getRequestURI());
 
     }
 
