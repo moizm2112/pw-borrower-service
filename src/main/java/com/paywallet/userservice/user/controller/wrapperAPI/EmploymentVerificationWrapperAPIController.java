@@ -2,8 +2,10 @@ package com.paywallet.userservice.user.controller.wrapperAPI;
 
 import com.paywallet.userservice.user.enums.CommonEnum;
 import com.paywallet.userservice.user.exception.CreateCustomerException;
+import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
+import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationResponseDTO;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.ResourceAccessException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -41,12 +44,19 @@ public class EmploymentVerificationWrapperAPIController {
      */
     @PostMapping(EMP_VERIFICATION_RETRY)
     public EmploymentVerificationResponseDTO retryEmploymentVerification(@RequestHeader(REQUEST_ID) String requestId,
-                                                                         @RequestBody EmploymentVerificationRequestDTO empVerificationRequestDTO,
-                                                                         HttpServletRequest request) throws RequestIdNotFoundException, RetryException {
+                                                                         @RequestBody EmploymentVerificationRequestWrapperModel empVerificationRequestDTO,
+                                                                         HttpServletRequest request) throws RequestIdNotFoundException {
         log.debug("Employment Verification retry request received : {}  request ID : {} ", empVerificationRequestDTO, requestId);
-        EmploymentResponseInfo employmentResponseInfo = employmentRetryWrapperAPIService.retryEmploymentVerification(requestId, empVerificationRequestDTO);
+        
+        EmploymentResponseInfo employmentResponseInfo;
+		try {
+			employmentResponseInfo = employmentRetryWrapperAPIService.retryEmploymentVerification(requestId, empVerificationRequestDTO);
+		} catch (ResourceAccessException | RequestIdNotFoundException  | RetryException e) {
+			return employmentRetryWrapperAPIService.prepareResponseDTO(null, CommonEnum.FAILED_STATUS_MSG.getMessage(),
+	                HttpStatus.OK.value(), request.getRequestURI(), CommonEnum.COMMON_RETRY_FALED_MSG.getMessage());			
+		}
         return employmentRetryWrapperAPIService.prepareResponseDTO(employmentResponseInfo, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
-                HttpStatus.OK.value(), request.getRequestURI());
+                HttpStatus.UNAUTHORIZED.value(), request.getRequestURI(), CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage());
     }
 
 

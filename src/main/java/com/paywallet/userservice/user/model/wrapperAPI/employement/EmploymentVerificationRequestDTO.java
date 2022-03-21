@@ -1,10 +1,10 @@
 package com.paywallet.userservice.user.model.wrapperAPI.employement;
 
-import com.paywallet.userservice.user.model.CallbackURL;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import com.paywallet.userservice.user.model.CallbackURL;
+
+import lombok.Data;
 
 @Data
 @Component
