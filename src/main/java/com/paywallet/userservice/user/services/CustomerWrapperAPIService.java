@@ -169,6 +169,14 @@ public class CustomerWrapperAPIService {
 	
 	public void setCustomerRequest(DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel, CreateCustomerRequest customer) {
 		if(depositAllocationRequestWrapperModel != null) {
+			
+			if(depositAllocationRequestWrapperModel.getNumberOfInstallments() == null)
+				depositAllocationRequestWrapperModel.setNumberOfInstallments(0);
+	    	if(depositAllocationRequestWrapperModel.getInstallmentAmount() ==null)
+	    		depositAllocationRequestWrapperModel.setInstallmentAmount(0);
+	    	if(depositAllocationRequestWrapperModel.getLoanAmount() ==null)
+	    		depositAllocationRequestWrapperModel.setLoanAmount(0);
+			
 			customer.setFirstName(depositAllocationRequestWrapperModel.getFirstName());
 			customer.setLastName(depositAllocationRequestWrapperModel.getLastName());
 			customer.setCellPhone(depositAllocationRequestWrapperModel.getCellPhone());
@@ -455,15 +463,17 @@ public class CustomerWrapperAPIService {
 					   mapErrorList.put("Number of installements", errorList);
 			   }
 		   }
-		   if(allocationRequest.getLoanAmount() != null) {
-			   if(allocationRequest.getInstallmentAmount() != null) {
+		   if(allocationRequest.getLoanAmount() != null && allocationRequest.getLoanAmount() > 0) {
+			   if(allocationRequest.getInstallmentAmount() != null && allocationRequest.getInstallmentAmount() > 0) {
 				   List<String> errorList = new ArrayList<String>();
 				   errorList.add("Provide either loan amount or installment amount to process");
 				   mapErrorList.put("Loan Amount/Installment Amount", errorList);
 			   }
-			   List<String> errorList = customerFieldValidator.validateLoanAmount(allocationRequest.getLoanAmount());
-			   if(errorList.size() > 0)
-				   mapErrorList.put("Loan Amount", errorList);
+			   else {
+				   List<String> errorList = customerFieldValidator.validateLoanAmount(allocationRequest.getLoanAmount());
+				   if(errorList.size() > 0)
+					   mapErrorList.put("Loan Amount", errorList);
+			   }
 		   }
 		   else {
 			   if(allocationRequest.getInstallmentAmount() == null) {
