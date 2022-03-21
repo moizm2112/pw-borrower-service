@@ -177,6 +177,7 @@ public class CustomerWrapperAPIService {
 			customer.setRepaymentFrequency(depositAllocationRequestWrapperModel.getRepaymentFrequency());
 			customer.setNumberOfInstallments(depositAllocationRequestWrapperModel.getNumberOfInstallments());
 			customer.setInstallmentAmount(depositAllocationRequestWrapperModel.getInstallmentAmount());
+			customer.setLoanAmount(depositAllocationRequestWrapperModel.getLoanAmount());
 			customer.setCallbackURLs(depositAllocationRequestWrapperModel.getCallbackURLs());
 			customer.setZip(StringUtils.EMPTY);
 			customer.setState(StringUtils.EMPTY);
@@ -330,7 +331,10 @@ public class CustomerWrapperAPIService {
 		depositAllocationResponseModel.setVirtualAccountABANumber(customerDetails.getAccountABANumber());
 		depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
 		depositAllocationResponseModel.setNumberOfInstallments(customerDetails.getNumberOfInstallments());
-		depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
+		if(customerDetails.getInstallmentAmount() != null && customerDetails.getInstallmentAmount() >= 0)
+			depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
+		else if(customerDetails.getLoanAmount() != null && customerDetails.getLoanAmount() >= 0)
+			depositAllocationResponseModel.setLoanAmount(customerDetails.getLoanAmount());
 		return depositAllocationResponseModel;
 	}
 	
