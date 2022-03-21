@@ -1,8 +1,10 @@
 package com.paywallet.userservice.user.controller.wrapperAPI;
 
 import com.paywallet.userservice.user.enums.CommonEnum;
+import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
+import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationResponseDTO;
@@ -11,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.ResourceAccessException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import static com.paywallet.userservice.user.constant.AppConstants.BASE_PATH;
 import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
@@ -38,13 +42,19 @@ public class IncomeVerificationWrapperAPIController {
      */
     @PostMapping(INCOME_VERIFICATION_RETRY)
     public IncomeVerificationResponseDTO retryIncomeVerification(@RequestHeader(REQUEST_ID) String requestId,
-                                                                 @RequestBody IncomeVerificationRequestDTO incomeVerificationRequestDTO,
-                                                                 HttpServletRequest request) throws RequestIdNotFoundException, RetryException {
+                                                                 @Valid @RequestBody IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO,
+                                                                 HttpServletRequest request) throws RequestIdNotFoundException {
 
         log.debug("Income Verification retry request received : {}  request ID : {} ", incomeVerificationRequestDTO, requestId);
-        IncomeResponseInfo incomeResponseInfo = incomeRetryWrapperAPIService.retryIncomeVerification(requestId, incomeVerificationRequestDTO);
+        IncomeResponseInfo incomeResponseInfo;
+		try {
+			incomeResponseInfo = incomeRetryWrapperAPIService.retryIncomeVerification(requestId, incomeVerificationRequestDTO);
+		} catch (ResourceAccessException | RequestIdNotFoundException | GeneralCustomException | RetryException e) {
+			return incomeRetryWrapperAPIService.prepareResponseDTO(null, CommonEnum.FAILED_STATUS_MSG.getMessage(),
+	                request.getRequestURI(), CommonEnum.COMMON_RETRY_FALED_MSG.getMessage());
+		}
         return incomeRetryWrapperAPIService.prepareResponseDTO(incomeResponseInfo, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
-                HttpStatus.OK.value(), request.getRequestURI());
+                request.getRequestURI(), CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage());
 
     }
 }
