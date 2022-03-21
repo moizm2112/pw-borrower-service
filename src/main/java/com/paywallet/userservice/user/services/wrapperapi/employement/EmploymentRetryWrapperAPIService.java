@@ -99,7 +99,7 @@ public class EmploymentRetryWrapperAPIService {
     	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
     	if(! requestIdDetails.getEmployerPWId().equals(empVerificationRequestDTO.getEmployerId())) {
     		log.info("Employer Changed. Updating the new employer");
-    		customerService.getEmployerDetailsBasedOnEmplyerIdFromRequest(empVerificationRequestDTO.getEmployerId(),requestId,  requestIdDetails);
+    		customerServiceHelper.getEmployerDetailsBasedOnEmployerId(empVerificationRequestDTO.getEmployerId(),requestId);
     	}
     	if(! customer.getPersonalProfile().getMobileNo().equals(empVerificationRequestDTO.getMobileNo()) ||
     			!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId())) {
