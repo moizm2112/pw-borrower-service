@@ -66,7 +66,7 @@ public class EmploymentRetryWrapperAPIService {
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
     	log.info(" Received the CustomerDetails ::" , customer);
-    	validateInput( customer, requestId,  requestIdDetails, empVerificationRequestDTO) ;
+    	requestIdDetails = validateInput( customer, requestId,  requestIdDetails, empVerificationRequestDTO) ;
     	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.EMPLOYMENT_VERIFICATION);
     }
 
@@ -89,7 +89,7 @@ public class EmploymentRetryWrapperAPIService {
                 .build();
     }
     
-    public void validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
+    public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
     		EmploymentVerificationRequestDTO empVerificationRequestDTO) {
     	log.info("Inside validateInput");
     	log.info(customer.getPersonalProfile().getMobileNo());
@@ -100,10 +100,14 @@ public class EmploymentRetryWrapperAPIService {
     	if(! requestIdDetails.getEmployerPWId().equals(empVerificationRequestDTO.getEmployerId())) {
     		log.info("Employer Changed. Updating the new employer");
     		customerServiceHelper.getEmployerDetailsBasedOnEmployerId(empVerificationRequestDTO.getEmployerId(),requestId);
+    		requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
     	}
     	if(! customer.getPersonalProfile().getMobileNo().equals(empVerificationRequestDTO.getMobileNo()) ||
     			!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId())) {
     		throw new  GeneralCustomException("ERROR", "The Customer Email or Cell Number cannot be changed");
-    	}
+    	} 
+    	return requestIdDetails;
+    	
+    	
     }
 }
