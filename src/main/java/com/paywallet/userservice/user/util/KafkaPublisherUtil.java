@@ -20,7 +20,7 @@ public class KafkaPublisherUtil {
     @Autowired
     KafkaProducerService kafkaProducerService;
 
-    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails, int installmentAmount, FlowTypeEnum flowType) {
+    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails, double installmentAmount, FlowTypeEnum flowType) {
         try {
         	boolean isDepositAllocation = false;
         	if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION))

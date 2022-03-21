@@ -64,10 +64,10 @@ import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationReque
 import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository;
+import com.paywallet.userservice.user.util.CommonUtil;
 import com.paywallet.userservice.user.util.CustomerServiceUtil;
 import com.paywallet.userservice.user.util.KafkaPublisherUtil;
 import com.paywallet.userservice.user.util.LinkServiceUtil;
-import com.paywallet.userservice.user.util.NotificationUtil;
 import com.paywallet.userservice.user.util.RequestIdUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -151,6 +151,9 @@ public class CustomerService {
     private LenderConfigInfo lenderConfigInfo;
     
     public static final String ROUTING_NUMBER = "284073808";
+    
+    @Autowired
+    CommonUtil commonUtil;
     
     /**
      * Method fetches customer details by cellPhone
@@ -1068,6 +1071,7 @@ public class CustomerService {
         EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel = null;
         IdentityVerificationRequestWrapperModel identityVerificationRequestWrapperModel = null;
         IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel = null;
+        double directDepositAllocationInstallmentAmount = 0;
         
         if(!flowType.name().equals(FlowTypeEnum.GENERAL.name())) {
 	        if(obj.getClass().getSimpleName().equals((DepositAllocationRequestWrapperModel.class).getSimpleName()))
@@ -1117,8 +1121,12 @@ public class CustomerService {
 		    		}
 		    		//Validation of direct deposit allocation request
 		    		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
+		    		if(depositAllocationRequestWrapperModel.getLoanAmount() > 0) {
+		    			double installmentAmount = getInstallmentAmount(depositAllocationRequestWrapperModel.getLoanAmount(),
+		    					depositAllocationRequestWrapperModel.getInstallmentAmount(), depositAllocationRequestWrapperModel.getNumberOfInstallments());
+		    			directDepositAllocationInstallmentAmount = installmentAmount;
+		    		}
 		    		customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
-		    		customerEntity.setLoanAmount(depositAllocationRequestWrapperModel.getLoanAmount());
 		    		if(!customerEntity.isExistingCustomer()) {
 		    			if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) && 
 			        			StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
@@ -1208,7 +1216,10 @@ public class CustomerService {
             customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri, restTemplate);
             /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
             //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
-            kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,customer.getInstallmentAmount(), flowType);
+            if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name()) && directDepositAllocationInstallmentAmount > 0)
+            	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,directDepositAllocationInstallmentAmount, flowType);
+            else
+            	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,(double) customer.getInstallmentAmount(), flowType);
             log.info("Customer got created successfully");
             
             checkAndSavePayAllocation(requestIdDtls,customer, flowType);
@@ -1290,6 +1301,18 @@ public class CustomerService {
     	}
     	return customerReponse;
     }
+    
+    public double getInstallmentAmount(int iLoanAmount, int iInstallmentAmount, int numberOfInstallment) {
+		double loanAmount = commonUtil.convertToDouble(String.valueOf(iLoanAmount));
+		double installmentAmount = commonUtil.convertToDouble(String.valueOf(iInstallmentAmount));
+		if (installmentAmount > 0) {
+			installmentAmount = commonUtil.convertToDouble(String.valueOf(iInstallmentAmount));
+		} else {
+			installmentAmount = Math.ceil(loanAmount / numberOfInstallment);
+
+		}
+		return installmentAmount;
+	}
     
 }
 

@@ -144,6 +144,4 @@ public class CommonUtil {
 		return result;
 	}
 
-
-
 }
