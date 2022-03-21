@@ -14,6 +14,7 @@ import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
 import com.paywallet.userservice.user.model.RequestIdDetails;
+import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationResponseDTO;
@@ -51,7 +52,7 @@ public class EmploymentRetryWrapperAPIService {
     /**
      * checking for allow retry status, if retry is allowed, then re-initiating employment verification
      **/
-    public EmploymentResponseInfo retryEmploymentVerification(String requestId, EmploymentVerificationRequestDTO empVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
+    public EmploymentResponseInfo retryEmploymentVerification(String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
 
         RequestIdDetails requestIdDetails= requestIdUtil.fetchRequestIdDetails(requestId);
         //Check whether retry can be initiated.
@@ -62,7 +63,7 @@ public class EmploymentRetryWrapperAPIService {
 
     }
 
-    public void initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, EmploymentVerificationRequestDTO empVerificationRequestDTO) {
+    public void initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) {
     	log.info(" Inside initiateEmploymentVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
@@ -71,7 +72,7 @@ public class EmploymentRetryWrapperAPIService {
     	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.EMPLOYMENT_VERIFICATION);
     }
 
-    public EmploymentResponseInfo prepareEmploymentResponseInfo(EmploymentVerificationRequestDTO empVerificationRequestDTO){
+    public EmploymentResponseInfo prepareEmploymentResponseInfo(EmploymentVerificationRequestWrapperModel empVerificationRequestDTO){
        // Need to change the reading fields from request
         return EmploymentResponseInfo.builder()
                 .employer(empVerificationRequestDTO.getEmployerId())
@@ -91,7 +92,7 @@ public class EmploymentRetryWrapperAPIService {
     }
     
     public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
-    		EmploymentVerificationRequestDTO empVerificationRequestDTO) {
+    		EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) {
     	log.info("Inside validateInput");
     	log.info(customer.getPersonalProfile().getMobileNo());
     	log.info(customer.getPersonalProfile().getEmailId());

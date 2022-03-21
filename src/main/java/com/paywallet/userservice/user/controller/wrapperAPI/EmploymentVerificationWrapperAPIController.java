@@ -5,6 +5,7 @@ import com.paywallet.userservice.user.exception.CreateCustomerException;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
+import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationResponseDTO;
@@ -43,7 +44,7 @@ public class EmploymentVerificationWrapperAPIController {
      */
     @PostMapping(EMP_VERIFICATION_RETRY)
     public EmploymentVerificationResponseDTO retryEmploymentVerification(@RequestHeader(REQUEST_ID) String requestId,
-                                                                         @RequestBody EmploymentVerificationRequestDTO empVerificationRequestDTO,
+                                                                         @RequestBody EmploymentVerificationRequestWrapperModel empVerificationRequestDTO,
                                                                          HttpServletRequest request) throws RequestIdNotFoundException {
         log.debug("Employment Verification retry request received : {}  request ID : {} ", empVerificationRequestDTO, requestId);
         

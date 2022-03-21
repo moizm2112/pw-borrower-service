@@ -5,6 +5,7 @@ import com.paywallet.userservice.user.exception.CreateCustomerException;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
+import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.identity.IdentityResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.identity.IdentityVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.identity.IdentityVerificationResponseDTO;
@@ -42,7 +43,7 @@ public class IdentityVerificationWrapperAPIController {
      */
     @PostMapping(IDENTITY_VERIFICATION_RETRY)
     public IdentityVerificationResponseDTO retryIdentityVerification(@RequestHeader(REQUEST_ID) String requestId,
-                                                                     @RequestBody IdentityVerificationRequestDTO identityVerificationRequestDTO,
+                                                                     @RequestBody IdentityVerificationRequestWrapperModel identityVerificationRequestDTO,
                                                                      HttpServletRequest request) throws RequestIdNotFoundException {
 
         log.debug("Identity Verification retry request received : {}  request ID : {} ", identityVerificationRequestDTO, requestId);

@@ -13,6 +13,7 @@ import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
 import com.paywallet.userservice.user.model.RequestIdDetails;
+import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationResponseDTO;
@@ -47,7 +48,7 @@ public class IncomeRetryWrapperAPIService {
     /**
      * checking for allow retry status, if retry is allowed, then re-initiating income verification
      **/
-    public IncomeResponseInfo retryIncomeVerification(String requestId, IncomeVerificationRequestDTO incomeVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
+    public IncomeResponseInfo retryIncomeVerification(String requestId, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
 
         RequestIdDetails requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
         allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
@@ -57,7 +58,7 @@ public class IncomeRetryWrapperAPIService {
 
     }
 
-    public void initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, IncomeVerificationRequestDTO incomeVerificationRequestDTO) {
+    public void initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
     	log.info(" Inside initiateIncomeVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
@@ -66,7 +67,7 @@ public class IncomeRetryWrapperAPIService {
     	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.EMPLOYMENT_VERIFICATION);
     }
 
-    public IncomeResponseInfo prepareIncomeResponseInfo(IncomeVerificationRequestDTO incomeVerificationRequestDTO) {
+    public IncomeResponseInfo prepareIncomeResponseInfo(IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
         // Need to change the reading fields from request
         return IncomeResponseInfo.builder()
                 .employer(incomeVerificationRequestDTO.getEmployerId())
@@ -86,7 +87,7 @@ public class IncomeRetryWrapperAPIService {
     }
     
     public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
-    		IncomeVerificationRequestDTO incomeVerificationRequestDTO) {
+    		IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
     	log.info("Inside validateInput");
     	log.info(customer.getPersonalProfile().getMobileNo());
     	log.info(customer.getPersonalProfile().getEmailId());

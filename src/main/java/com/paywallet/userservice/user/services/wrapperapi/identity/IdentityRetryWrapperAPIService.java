@@ -13,6 +13,7 @@ import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
 import com.paywallet.userservice.user.model.RequestIdDetails;
+import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.identity.IdentityResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.identity.IdentityVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.identity.IdentityVerificationResponseDTO;
@@ -46,7 +47,7 @@ public class IdentityRetryWrapperAPIService {
     /**
      * checking for allow retry status, if retry is allowed, then re-initiating identity verification
      **/
-    public IdentityResponseInfo retryIdentityVerification(String requestId, IdentityVerificationRequestDTO identityVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
+    public IdentityResponseInfo retryIdentityVerification(String requestId, IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
 
         RequestIdDetails requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
         allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
@@ -56,7 +57,7 @@ public class IdentityRetryWrapperAPIService {
 
     }
     
-    public void initiateIdentityVerification(RequestIdDetails requestIdDetails, String requestId, IdentityVerificationRequestDTO identityVerificationRequestDTO) {
+    public void initiateIdentityVerification(RequestIdDetails requestIdDetails, String requestId, IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) {
     	log.info(" Inside initiateIdentityVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
@@ -66,7 +67,7 @@ public class IdentityRetryWrapperAPIService {
     }
 
 
-    public IdentityResponseInfo prepareIdentityResponseInfo(IdentityVerificationRequestDTO identityVerReqDTO) {
+    public IdentityResponseInfo prepareIdentityResponseInfo(IdentityVerificationRequestWrapperModel identityVerReqDTO) {
         // Need to change the reading fields from request
         return IdentityResponseInfo.builder()
                 .employer(identityVerReqDTO.getEmployerId())
@@ -86,7 +87,7 @@ public class IdentityRetryWrapperAPIService {
     }
     
     public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
-    		IdentityVerificationRequestDTO identityVerificationRequestDTO) {
+    		IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) {
     	log.info("Inside validateInput");
     	log.info(customer.getPersonalProfile().getMobileNo());
     	log.info(customer.getPersonalProfile().getEmailId());
