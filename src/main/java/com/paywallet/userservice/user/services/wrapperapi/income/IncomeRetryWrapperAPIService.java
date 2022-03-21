@@ -1,13 +1,18 @@
 package com.paywallet.userservice.user.services.wrapperapi.income;
 
+import java.util.Date;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
+
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
 import com.paywallet.userservice.user.model.RequestIdDetails;
-import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentResponseInfo;
-import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationResponseDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationResponseDTO;
@@ -16,13 +21,8 @@ import com.paywallet.userservice.user.services.CustomerServiceHelper;
 import com.paywallet.userservice.user.services.allowretry.AllowRetryAPIUtil;
 import com.paywallet.userservice.user.util.KafkaPublisherUtil;
 import com.paywallet.userservice.user.util.RequestIdUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.ResourceAccessException;
 
-import java.util.Date;
-import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -52,16 +52,17 @@ public class IncomeRetryWrapperAPIService {
         RequestIdDetails requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
         allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
         // initiate retry code logic -> need to add
-        initiateIncomeVerification(requestIdDetails);
+        initiateIncomeVerification(requestIdDetails, requestId, incomeVerificationRequestDTO);
         return this.prepareIncomeResponseInfo(incomeVerificationRequestDTO);
 
     }
 
-    public void initiateIncomeVerification(RequestIdDetails requestIdDetails) {
+    public void initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, IncomeVerificationRequestDTO incomeVerificationRequestDTO) {
     	log.info(" Inside initiateIncomeVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
     	log.info(" Received the CustomerDetails ::" , customer);
+    	requestIdDetails = validateInput( customer, requestId,  requestIdDetails,  incomeVerificationRequestDTO) ;
     	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.EMPLOYMENT_VERIFICATION);
     }
 
@@ -82,5 +83,25 @@ public class IncomeRetryWrapperAPIService {
                 .timeStamp(new Date())
                 .status(status)
                 .build();
+    }
+    
+    public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
+    		IncomeVerificationRequestDTO incomeVerificationRequestDTO) {
+    	log.info("Inside validateInput");
+    	log.info(customer.getPersonalProfile().getMobileNo());
+    	log.info(customer.getPersonalProfile().getEmailId());
+    	log.info(incomeVerificationRequestDTO.getMobileNo());
+    	log.info(incomeVerificationRequestDTO.getEmailId());
+    	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
+    	if(! requestIdDetails.getEmployerPWId().equals(incomeVerificationRequestDTO.getEmployerId())) {
+    		log.info("Employer Changed. Updating the new employer");
+    		customerServiceHelper.getEmployerDetailsBasedOnEmployerId(incomeVerificationRequestDTO.getEmployerId(),requestId);
+    		requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
+    	}
+    	if(! customer.getPersonalProfile().getMobileNo().equals(incomeVerificationRequestDTO.getMobileNo()) ||
+    			!customer.getPersonalProfile().getEmailId().equals(incomeVerificationRequestDTO.getEmailId())) {
+    		throw new  GeneralCustomException("ERROR", "The Customer Email or Cell Number cannot be changed");
+    	} 
+    	return requestIdDetails;
     }
 }

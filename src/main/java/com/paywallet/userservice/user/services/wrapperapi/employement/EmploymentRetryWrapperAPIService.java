@@ -1,12 +1,19 @@
 package com.paywallet.userservice.user.services.wrapperapi.employement;
 
+import java.util.Date;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
+
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
 import com.paywallet.userservice.user.model.RequestIdDetails;
-import com.paywallet.userservice.user.model.RequestIdResponseDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationResponseDTO;
@@ -15,14 +22,8 @@ import com.paywallet.userservice.user.services.CustomerServiceHelper;
 import com.paywallet.userservice.user.services.allowretry.AllowRetryAPIUtil;
 import com.paywallet.userservice.user.util.KafkaPublisherUtil;
 import com.paywallet.userservice.user.util.RequestIdUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.ResourceAccessException;
 
-import java.util.Date;
-import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
