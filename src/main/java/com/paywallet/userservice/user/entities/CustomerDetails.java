@@ -49,8 +49,6 @@ public class CustomerDetails {
     @JsonIgnore
     private int installmentAmount;
     @JsonIgnore
-    private int loanAmount;
-    @JsonIgnore
     private boolean emailNotificationSuccess;
     @JsonIgnore
     private boolean smsNotificationSuccess;

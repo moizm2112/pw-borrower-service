@@ -509,7 +509,7 @@ public class CustomerService {
         Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileCellPhone(updateCustomerRequest.getCellPhone());
 
         if(customerDetailsByMobileNo.isPresent()){
-            log.debug("Customer with the mobile no " + customerDetailsByMobileNo.get().getPersonalProfile().getCellPhone() + " already exists");
+            log.debug("Customer with the cellphone no " + customerDetailsByMobileNo.get().getPersonalProfile().getCellPhone() + " already exists");
             log.info("Customer details are getting updated...");
 
             if (updateCustomerRequest.getSalaryProfile()!=null)
@@ -517,8 +517,8 @@ public class CustomerService {
             log.info("Customer details are updated successfully");
             return customerRepository.save(customerDetailsByMobileNo.get());
         } else {
-            log.error("Customer do not exists with the cellPhone: "+updateCustomerRequest.getCellPhone()+" to update");
-            throw new CustomerNotFoundException("Customer do not exists with the cellPhone: "+updateCustomerRequest.getCellPhone()+" to update");
+            log.error("Customer does not exists with the cellPhone: "+updateCustomerRequest.getCellPhone()+" to update");
+            throw new CustomerNotFoundException("Customer does not exists with the cellPhone: "+updateCustomerRequest.getCellPhone()+" to update");
         }
     }
     
@@ -562,18 +562,18 @@ public class CustomerService {
 		                	Optional<CustomerDetails> checkForMobileNumberinDB= customerRepository.findByPersonalProfileCellPhone(updateCustomerMobileNoDTO.getNewCellPhone());
 			                if(!checkForMobileNumberinDB.isPresent()){
 			                	
-			                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getCellPhone() + " already exists");
+			                    log.debug("Customer with the cellphone no " + custDetails.getPersonalProfile().getCellPhone() + " already exists");
 			                    log.info("Customer details are getting updated...");
 			                    
 			                    
 			                    if(!custDetails.getPersonalProfile().getCellPhone().equalsIgnoreCase(updateCustomerMobileNoDTO.getCellPhone())) {
-			                    	log.error("Customer does nor exist for the given mobileNumber");
+			                    	log.error("Customer does nor exist for the given cellPhone number");
 			                        throw new CustomerNotFoundException("Provided CellPhone Number does not match the customer data. Please provide a valid CellPhone Number.");
 			                    }
 			                    
 			                    if(custDetails.getPersonalProfile().getCellPhone().equalsIgnoreCase(updateCustomerMobileNoDTO.getNewCellPhone())) {
-			                    	log.error("Updating CellPhone Number should be different from existing CellPhone Number");
-			                        throw new CustomerNotFoundException("Updating CellPhone Number (" + updateCustomerMobileNoDTO.getNewCellPhone() +") should be different from existing CellPhone Number");
+			                    	log.error("CellPhone Number to be updated should be different from existing CellPhone Number");
+			                        throw new CustomerNotFoundException("CellPhone Number to be updated (" + updateCustomerMobileNoDTO.getNewCellPhone() +") should be different from existing CellPhone Number");
 			                    }
 			                    
 			                	// Make an fineract call to update the external Id and cellPhone.
@@ -594,8 +594,8 @@ public class CustomerService {
 			                	isMobileNoUpdatedInCustomerDetails = true;
 			                }
 			                else {
-			                	log.error("Updating CellPhone Number "+updateCustomerMobileNoDTO.getNewCellPhone()+" exist in database");
-			                    throw new CustomerNotFoundException("Updating CellPhone Number "+updateCustomerMobileNoDTO.getNewCellPhone()+" exist in database");
+			                	log.error("CellPhone Number to be updated "+updateCustomerMobileNoDTO.getNewCellPhone()+" exist in database");
+			                    throw new CustomerNotFoundException("CellPhone Number to be updated "+updateCustomerMobileNoDTO.getNewCellPhone()+" exist in database");
 			                }
 	                	}
 	                	else {
@@ -675,7 +675,7 @@ public class CustomerService {
 			                	Optional<CustomerDetails> checkForEmailIdInDB= customerRepository.findByPersonalProfileEmailId(updateCustomerEmailIdDTO.getNewEmailId());
 				                if(!checkForEmailIdInDB.isPresent()) {
 				                	
-				                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getCellPhone() + " already exists");
+				                    log.debug("Customer with the cellphone no " + custDetails.getPersonalProfile().getCellPhone() + " already exists");
 				                    log.info("Customer details are getting updated...");
 				                    
 			                		if(!custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
@@ -718,8 +718,8 @@ public class CustomerService {
 		                    throw new CustomerNotFoundException("RequestId and cellPhone does not match. Please provide a valid requestId or cellPhone to update");
 		                }
 	                } else {
-	                    log.error("Customer do not exists with the cellPhone: "+updateCustomerEmailIdDTO.getCellPhone()+" to update");
-	                    throw new CustomerNotFoundException("Customer do not exists with the cellPhone: "+updateCustomerEmailIdDTO.getCellPhone()+" to update");
+	                    log.error("Customer does not exists with the cellPhone number: "+updateCustomerEmailIdDTO.getCellPhone()+" to update");
+	                    throw new CustomerNotFoundException("Customer does not exists with the cellPhone number: "+updateCustomerEmailIdDTO.getCellPhone()+" to update");
 	                }
 //        		}
 //    			else {
