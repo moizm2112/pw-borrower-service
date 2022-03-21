@@ -92,8 +92,9 @@ public class EmploymentRetryWrapperAPIService {
     public void validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
     		EmploymentVerificationRequestDTO empVerificationRequestDTO) {
     	log.info("Inside validateInput");
+    	
     	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
-    	if(! requestIdDetails.getEmployer().equals(empVerificationRequestDTO.getEmployerId())) {
+    	if(! requestIdDetails.getEmployerPWId().equals(empVerificationRequestDTO.getEmployerId())) {
     		log.info("Employer Changed. Updating the new employer");
     		customerService.getEmployerDetailsBasedOnEmplyerIdFromRequest(empVerificationRequestDTO.getEmployerId(),requestId,  requestIdDetails);
     	}
