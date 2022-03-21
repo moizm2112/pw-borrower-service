@@ -94,9 +94,9 @@ public class EmploymentRetryWrapperAPIService {
     public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
     		EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) {
     	log.info("Inside validateInput");
-    	log.info(customer.getPersonalProfile().getMobileNo());
+    	log.info(customer.getPersonalProfile().getCellPhone());
     	log.info(customer.getPersonalProfile().getEmailId());
-    	log.info(empVerificationRequestDTO.getMobileNo());
+    	log.info(empVerificationRequestDTO.getCellPhone());
     	log.info(empVerificationRequestDTO.getEmailId());
     	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
     	if(! requestIdDetails.getEmployerPWId().equals(empVerificationRequestDTO.getEmployerId())) {
@@ -104,7 +104,7 @@ public class EmploymentRetryWrapperAPIService {
     		customerServiceHelper.getEmployerDetailsBasedOnEmployerId(empVerificationRequestDTO.getEmployerId(),requestId);
     		requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
     	}
-    	if(! customer.getPersonalProfile().getMobileNo().equals(empVerificationRequestDTO.getMobileNo()) ||
+    	if(! customer.getPersonalProfile().getCellPhone().equals(empVerificationRequestDTO.getCellPhone()) ||
     			!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId())) {
     		throw new  GeneralCustomException("ERROR", "The Customer Email or Cell Number cannot be changed");
     	} 

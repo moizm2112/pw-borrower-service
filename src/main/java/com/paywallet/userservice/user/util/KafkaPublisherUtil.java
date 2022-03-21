@@ -49,7 +49,7 @@ public class KafkaPublisherUtil {
                     .requestId(requestIdDtls.getRequestId())
                     .eventType(CommonEnum.CUSTOMER_CREATED.getMessage())
                     .lenderName(requestIdDtls.getClientName())
-                    .phoneNumber(customerDetails.getPersonalProfile().getMobileNo())
+                    .phoneNumber(customerDetails.getPersonalProfile().getCellPhone())
                     .email(customerDetails.getPersonalProfile().getEmailId())
                     .employer(requestIdDtls.getEmployer())
                     .payCycle(CommonEnum.PAY_CYCLE.getMessage())

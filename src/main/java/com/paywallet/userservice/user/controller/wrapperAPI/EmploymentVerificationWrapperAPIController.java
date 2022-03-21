@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.ResourceAccessException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import static com.paywallet.userservice.user.constant.AppConstants.BASE_PATH;
 import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
@@ -44,7 +45,7 @@ public class EmploymentVerificationWrapperAPIController {
      */
     @PostMapping(EMP_VERIFICATION_RETRY)
     public EmploymentVerificationResponseDTO retryEmploymentVerification(@RequestHeader(REQUEST_ID) String requestId,
-                                                                         @RequestBody EmploymentVerificationRequestWrapperModel empVerificationRequestDTO,
+    															@Valid @RequestBody EmploymentVerificationRequestWrapperModel empVerificationRequestDTO,
                                                                          HttpServletRequest request) throws RequestIdNotFoundException {
         log.debug("Employment Verification retry request received : {}  request ID : {} ", empVerificationRequestDTO, requestId);
         

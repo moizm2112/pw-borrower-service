@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.ResourceAccessException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import static com.paywallet.userservice.user.constant.AppConstants.BASE_PATH;
 import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
@@ -41,7 +42,7 @@ public class IncomeVerificationWrapperAPIController {
      */
     @PostMapping(INCOME_VERIFICATION_RETRY)
     public IncomeVerificationResponseDTO retryIncomeVerification(@RequestHeader(REQUEST_ID) String requestId,
-                                                                 @RequestBody IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO,
+                                                                 @Valid @RequestBody IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO,
                                                                  HttpServletRequest request) throws RequestIdNotFoundException {
 
         log.debug("Income Verification retry request received : {}  request ID : {} ", incomeVerificationRequestDTO, requestId);
