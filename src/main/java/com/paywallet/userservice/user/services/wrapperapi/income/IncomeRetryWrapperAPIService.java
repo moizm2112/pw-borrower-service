@@ -64,7 +64,7 @@ public class IncomeRetryWrapperAPIService {
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
     	log.info(" Received the CustomerDetails ::" , customer);
     	requestIdDetails = validateInput( customer, requestId,  requestIdDetails,  incomeVerificationRequestDTO) ;
-    	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.EMPLOYMENT_VERIFICATION);
+    	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.INCOME_VERIFICATION);
     }
 
     public IncomeResponseInfo prepareIncomeResponseInfo(IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
