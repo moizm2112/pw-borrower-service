@@ -14,7 +14,7 @@ public final class AppConstants {
 	public static final String UPDATE_CUSTOMER_EMAILID = "/customer/update/emailId";
 	public static final String ADD_REQUIRED_FIELDS = "/customer/addFields";
 	public static final String UPDATE_CUSTOMER_CREDENTIALS = "/customer/contact-info";
-	public static final String INITIATE_DEPOSIT_ALLOCATION = "/deposit/allocation";
+	public static final String INITIATE_DEPOSIT_ALLOCATION = "/deposit/update-deposit";
 	public static final String INITIATE_EMPLOYMENT_VERIFICATION = "/employment-verification";
 	public static final String INITIATE_INCOME_VERIFICATION = "/income-verification";
 	public static final String INITIATE_IDENTITY_VERIFICATION = "/identity-verification";
