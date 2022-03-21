@@ -166,7 +166,7 @@ public class CustomerService {
         	return optionalCustDetails.get();
         }
         else {
-        	throw new CustomerNotFoundException("Customer not present with the customerId: "+customerId+" to fetch customer details");
+        	throw new CustomerNotFoundException("Customer not present with the Submitted Details ");
         }
     }
     
