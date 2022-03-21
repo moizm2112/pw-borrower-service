@@ -44,7 +44,7 @@ public class EmploymentRetryWrapperAPIService {
         return EmploymentResponseInfo.builder()
                 .employer(empVerificationRequestDTO.getEmployerId())
                 .emailId(empVerificationRequestDTO.getEmailId())
-                .mobileNo(empVerificationRequestDTO.getMobileNo())
+                .cellPhone(empVerificationRequestDTO.getCellPhone())
                 .build();
     }
 

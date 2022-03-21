@@ -60,12 +60,12 @@ public class CreateCustomerRequest {
 //    @NotBlank (message = EMAIL_NULL_VALIDATION_MESSAGE)
     private String emailId;
 
-//    @Pattern(regexp = "^(\\+9?1[0-9]{10})$", message = MOBILENO_FORMAT_VALIDATION_MESSAGE)
-//    @Pattern(regexp = "^(\\+\\d{1,2})?\\(?\\d{3}\\)?\\d{3}?\\d{4}$", message = MOBILENO_FORMAT_VALIDATION_MESSAGE)
-////    @Size(min = 12, max = 13, message = MOBILENO_LENGTH_VALIDATION_MESSAGE)
-//    @Size(min = 10, max = 13, message = MOBILENO_LENGTH_VALIDATION_MESSAGE)
-//    @NotBlank  (message = MOBILENO_NULL_VALIDATION_MESSAGE)
-    private String mobileNo;
+//    @Pattern(regexp = "^(\\+9?1[0-9]{10})$", message = CELLPHONE_FORMAT_VALIDATION_MESSAGE)
+//    @Pattern(regexp = "^(\\+\\d{1,2})?\\(?\\d{3}\\)?\\d{3}?\\d{4}$", message = CELLPHONE_FORMAT_VALIDATION_MESSAGE)
+////    @Size(min = 12, max = 13, message = CELLPHONE_LENGTH_VALIDATION_MESSAGE)
+//    @Size(min = 10, max = 13, message = CELLPHONE_LENGTH_VALIDATION_MESSAGE)
+//    @NotBlank  (message = CELLPHONE_NULL_VALIDATION_MESSAGE)
+    private String cellPhone;
     
     private CallbackURL callbackURLs;
     
@@ -79,7 +79,7 @@ public class CreateCustomerRequest {
     private String repaymentFrequency;
     
 //    @JsonInclude(JsonInclude.Include. NON_NULL)
-    private Integer totalNoOfRepayment;
+    private Integer numberOfInstallments;
     
 //    @JsonInclude(JsonInclude.Include. NON_NULL)
     private Integer installmentAmount;
@@ -100,11 +100,11 @@ public class CreateCustomerRequest {
                 .append("last4TIN").append(last4TIN).append(",")
                 .append("dateOfBirth").append(dateOfBirth).append(",")
                 .append("emailId").append(emailId).append(",")
-                .append("mobileNo").append(CustomerServiceUtil.mask(mobileNo)).append(",")
+                .append("cellPhone").append(CustomerServiceUtil.mask(cellPhone)).append(",")
                 .append("callbackURLs").append(callbackURLs).append(",")
                 .append("firstDateOfPayment").append(firstDateOfPayment).append(",")
                 .append("repaymentFrequency").append(repaymentFrequency).append(",")
-                .append("totalNoOfRepayment").append(totalNoOfRepayment).append(",")
+                .append("numberOfInstallments").append(numberOfInstallments).append(",")
                 .append("installmentAmount").append(installmentAmount).append("}")
                 .toString();
     }

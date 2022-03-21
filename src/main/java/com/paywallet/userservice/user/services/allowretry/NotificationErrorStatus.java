@@ -92,7 +92,7 @@ public class NotificationErrorStatus implements AllowRetryService {
         Optional<CustomerDetails> customerDetails = customerRepository.findById(requestIdDetails.getUserId());
         if (customerDetails.isPresent()) {
             Optional<String> customerEmailId = resolve(() -> customerDetails.get().getPersonalProfile().getEmailId());
-            Optional<String> customerMobile = resolve(() -> customerDetails.get().getPersonalProfile().getMobileNo());
+            Optional<String> customerMobile = resolve(() -> customerDetails.get().getPersonalProfile().getCellPhone());
             log.info(" customerEmailId : {} customerMobile : {}  ", customerEmailId, customerMobile);
             if (customerMobile.isPresent() && customerEmailId.isPresent()) {
                 if ((customerEmailId.get() + customerMobile.get()).equalsIgnoreCase(oldEmailId + oldMobile)) {

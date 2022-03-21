@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class UpdateCustomerDetailsResponseDTO {
 	@JsonInclude(JsonInclude.Include. NON_NULL)
-	private String mobileNo;
+	private String cellPhone;
 	@JsonInclude(JsonInclude.Include. NON_NULL)
 	private String emailId;
 	@JsonInclude(JsonInclude.Include. NON_NULL)

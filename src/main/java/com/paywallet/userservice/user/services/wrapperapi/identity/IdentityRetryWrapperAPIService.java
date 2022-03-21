@@ -44,7 +44,7 @@ public class IdentityRetryWrapperAPIService {
         return IdentityResponseInfo.builder()
                 .employer(identityVerReqDTO.getEmployerId())
                 .emailId(identityVerReqDTO.getEmailId())
-                .mobileNo(identityVerReqDTO.getMobileNo())
+                .cellPhone(identityVerReqDTO.getCellPhone())
                 .build();
     }
 

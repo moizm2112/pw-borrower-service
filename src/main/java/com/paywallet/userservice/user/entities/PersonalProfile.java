@@ -15,7 +15,7 @@ public class PersonalProfile {
     private String addressLine1;
     private String addressLine2;
     private String emailId;
-    private String mobileNo;
+    private String cellPhone;
     private String dateOfBirth;
     private String last4TIN;
     private String city;

@@ -101,13 +101,13 @@ public class CustomerServiceHelper {
 
 	public CustomerDetails buildCustomerDetails(CreateCustomerRequest customer) {
 		PersonalProfile personalProfile = PersonalProfile.builder().firstName(customer.getFirstName())
-				.lastName(customer.getLastName()).emailId(customer.getEmailId()).mobileNo(customer.getMobileNo())
+				.lastName(customer.getLastName()).emailId(customer.getEmailId()).cellPhone(customer.getCellPhone())
 				.middleName(customer.getMiddleName()).addressLine1(customer.getAddressLine1())
 				.addressLine2(customer.getAddressLine2()).zip(customer.getZip()).city(customer.getCity()).state(customer.getState())
 				.last4TIN(customer.getLast4TIN()).dateOfBirth(customer.getDateOfBirth()).build();
 
 		CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile).firstDateOfPayment(customer.getFirstDateOfPayment()).
-				repaymentFrequency(customer.getRepaymentFrequency()).totalNoOfRepayment(customer.getTotalNoOfRepayment()).installmentAmount(customer.getInstallmentAmount())
+				repaymentFrequency(customer.getRepaymentFrequency()).numberOfInstallments(customer.getNumberOfInstallments()).installmentAmount(customer.getInstallmentAmount())
 				.build();
 //         		.financedAmount(customer.getFinancedAmount()).financedAmount(customer.getFinancedAmount())
 //         		.abaOfSalaryAccount(customer.getBankABA()).salaryAccountNumber(customer.getBankAccountNumber()).build();
@@ -128,15 +128,15 @@ public class CustomerServiceHelper {
 		if(StringUtils.isNotBlank(customerEntity.getPersonalProfile().getFirstName()))
 			fineractCreateAccountDTO.setFirstname(customerEntity.getPersonalProfile().getFirstName());
 		else
-			fineractCreateAccountDTO.setFirstname(customerEntity.getPersonalProfile().getMobileNo());
+			fineractCreateAccountDTO.setFirstname(customerEntity.getPersonalProfile().getCellPhone());
 		
 		if(StringUtils.isNotBlank(customerEntity.getPersonalProfile().getLastName()))
 			fineractCreateAccountDTO.setLastname(customerEntity.getPersonalProfile().getLastName());
 		else
 			fineractCreateAccountDTO.setLastname(customerEntity.getPersonalProfile().getEmailId());
 //    	fineractCreateAccountDTO.setFullname(customerEntity.getPersonalProfile().getFirstName()+" "+ customerEntity.getPersonalProfile().getLastName());
-		fineractCreateAccountDTO.setExternalId(customerEntity.getPersonalProfile().getMobileNo());
-		fineractCreateAccountDTO.setMobileNo(customerEntity.getPersonalProfile().getMobileNo());
+		fineractCreateAccountDTO.setExternalId(customerEntity.getPersonalProfile().getCellPhone());
+		fineractCreateAccountDTO.setMobileNo(customerEntity.getPersonalProfile().getCellPhone());
 
 		fineractCreateAccountDTO.setDateFormat("dd MMMM yyyy");
 		fineractCreateAccountDTO.setLocale("en");
@@ -320,11 +320,11 @@ public class CustomerServiceHelper {
 		}
 	}
 	
-	public FineractUpdateLenderResponseDTO updateMobileNoInFineract(String mobileNo, String clientId) {
+	public FineractUpdateLenderResponseDTO updateMobileNoInFineract(String cellPhone, String clientId) {
     	log.info("Inside getLinkFromLinkVerificationService");
     	FineractUpdateLenderAccountDTO fineractUpdateRequest = new FineractUpdateLenderAccountDTO();
-    	fineractUpdateRequest.setExternalId(mobileNo);
-    	fineractUpdateRequest.setMobileNo(mobileNo);
+    	fineractUpdateRequest.setExternalId(cellPhone);
+    	fineractUpdateRequest.setMobileNo(cellPhone);
     	FineractUpdateLenderResponseDTO fineractUpdateLenderResponseDTO = null;
 		
 		try {
@@ -336,7 +336,7 @@ public class CustomerServiceHelper {
 					.exchange(uriBuilder.toUriString(), HttpMethod.PUT, requestEntity, FineractUpdateLenderResponseDTO.class)
 					.getBody();
 		} catch (Exception ex) {
-			log.error("Exception occured while updating mobileNo for given client in fineract" + ex.getMessage());
+			log.error("Exception occured while updating cellPhone for given client in fineract" + ex.getMessage());
 			throw new FineractAPIException(ex.getMessage());
 		}
 		log.info("updateMobileNoInFineract response : " + fineractUpdateLenderResponseDTO);
@@ -405,9 +405,9 @@ public class CustomerServiceHelper {
 				   errorList.add(AppConstants.LAST_NAME_MANDATORY_MESSAGE);
 				   mapErrorList.put("Last Name", errorList);
 			   }
-			   if(StringUtils.isNotBlank(customerRequestFields.getMobileNo()) && customerRequestFields.getMobileNo().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.MOBILENO_MANDATORY_MESSAGE);
-				   mapErrorList.put("Mobile Number", errorList);
+			   if(StringUtils.isNotBlank(customerRequestFields.getCellPhone()) && customerRequestFields.getCellPhone().equalsIgnoreCase("NO")) {
+				   errorList.add(AppConstants.CELLPHONE_MANDATORY_MESSAGE);
+				   mapErrorList.put("CellPhone Number", errorList);
 			   }
 			   if(StringUtils.isNotBlank(customerRequestFields.getEmailId()) && customerRequestFields.getEmailId().equalsIgnoreCase("NO")) {
 				   errorList.add(AppConstants.EMAIL_MANDATORY_MESSAGE);

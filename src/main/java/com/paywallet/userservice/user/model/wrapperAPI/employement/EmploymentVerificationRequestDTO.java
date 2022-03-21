@@ -12,7 +12,7 @@ public class EmploymentVerificationRequestDTO {
 
     private String employerId;
     private String emailId;
-    private String mobileNo;
+    private String cellPhone;
     private String firstName;
     private String lastName;
     private String middleName;

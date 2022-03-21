@@ -46,7 +46,7 @@ public class IncomeRetryWrapperAPIService {
         return IncomeResponseInfo.builder()
                 .employer(incomeVerificationRequestDTO.getEmployerId())
                 .emailId(incomeVerificationRequestDTO.getEmailId())
-                .mobileNo(incomeVerificationRequestDTO.getMobileNo())
+                .cellPhone(incomeVerificationRequestDTO.getCellPhone())
                 .build();
     }
 

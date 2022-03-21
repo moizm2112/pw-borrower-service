@@ -9,9 +9,9 @@ import lombok.Data;
 public class DepositAllocationResponseWrapperModel {
 
 	private String emailId;
-	private String mobileNo;
+	private String cellPhone;
 	private Integer installmentAmount;
-	private Integer totalNoOfRepayment;
+	private Integer numberOfInstallments;
 	private String virtualAccountNumber;
 	@JsonInclude(value = Include.NON_NULL)
 	private String virtualAccountABANumber;

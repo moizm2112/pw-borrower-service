@@ -97,14 +97,14 @@ public class CustomerWrapperAPIService {
 				updateCustomerCredentialsResponse.setEmailIdVerified(StringUtils.EMPTY);
 			}
 			
-			if(StringUtils.isNotBlank(customerCredentialsModel.getNewMobileNo())) {
+			if(StringUtils.isNotBlank(customerCredentialsModel.getNewCellPhone())) {
 				UpdateCustomerMobileNoDTO updateCustomerMobileNoDTO = setDTOForMobileNoUpdate(customerCredentialsModel);
 				updateCustomerDetailsResponse = customerService.updateCustomerMobileNo(updateCustomerMobileNoDTO, requestId);
 				setUpdateCustomerCredentialsMobileResponse(updateCustomerDetailsResponse, updateCustomerCredentialsResponse);
 			}
 			else {
-				updateCustomerCredentialsResponse.setMobileNo(updateCustomerDetailsResponse.getMobileNo());
-				updateCustomerCredentialsResponse.setMobileNoVerified(StringUtils.EMPTY);
+				updateCustomerCredentialsResponse.setCellPhone(updateCustomerDetailsResponse.getCellPhone());
+				updateCustomerCredentialsResponse.setCellPhoneVerified(StringUtils.EMPTY);
 			}
 			updateCustomerCredentialsResponse.setRequestId(requestId);
 		}
@@ -128,17 +128,17 @@ public class CustomerWrapperAPIService {
 	}
 	
 	public void setUpdateCustomerCredentialsMobileResponse(UpdateCustomerDetailsResponseDTO updateCustomerDetailsResponse, UpdateCustomerCredentialsResponse updateCustomerCredentialsResponse) {
-		updateCustomerCredentialsResponse.setMobileNo(updateCustomerDetailsResponse.getMobileNo());
+		updateCustomerCredentialsResponse.setCellPhone(updateCustomerDetailsResponse.getCellPhone());
 		
 		/* NEED TO UPDATE IT WITH ACTUAL VALUE AFTER UNDERSTANDING THE REQUIREMENTS */
-		updateCustomerCredentialsResponse.setMobileNoVerified(StringUtils.EMPTY);
+		updateCustomerCredentialsResponse.setCellPhoneVerified(StringUtils.EMPTY);
 	}
 	
 	public UpdateCustomerEmailIdDTO setDTOForEmailUpdate(UpdateCustomerCredentialsModel customerCredentialsModel) {
 		
 		UpdateCustomerEmailIdDTO updateCustomerEmailId = new UpdateCustomerEmailIdDTO();
 		
-		updateCustomerEmailId.setMobileNo(customerCredentialsModel.getMobileNo());
+		updateCustomerEmailId.setCellPhone(customerCredentialsModel.getCellPhone());
 		updateCustomerEmailId.setEmailId(customerCredentialsModel.getEmailId());
 		updateCustomerEmailId.setNewEmailId(customerCredentialsModel.getNewEmailId());
 		
@@ -149,8 +149,8 @@ public class CustomerWrapperAPIService {
 		
 		UpdateCustomerMobileNoDTO updateCustomerMobileNoDTO = new UpdateCustomerMobileNoDTO();
 		
-		updateCustomerMobileNoDTO.setMobileNo(customerCredentialsModel.getMobileNo());
-		updateCustomerMobileNoDTO.setNewMobileNo(customerCredentialsModel.getNewMobileNo());
+		updateCustomerMobileNoDTO.setCellPhone(customerCredentialsModel.getCellPhone());
+		updateCustomerMobileNoDTO.setNewCellPhone(customerCredentialsModel.getNewCellPhone());
 		
 		return updateCustomerMobileNoDTO;
 	}
@@ -171,11 +171,11 @@ public class CustomerWrapperAPIService {
 		if(depositAllocationRequestWrapperModel != null) {
 			customer.setFirstName(depositAllocationRequestWrapperModel.getFirstName());
 			customer.setLastName(depositAllocationRequestWrapperModel.getLastName());
-			customer.setMobileNo(depositAllocationRequestWrapperModel.getMobileNo());
+			customer.setCellPhone(depositAllocationRequestWrapperModel.getCellPhone());
 			customer.setEmailId(depositAllocationRequestWrapperModel.getEmailId());
 			customer.setFirstDateOfPayment(depositAllocationRequestWrapperModel.getFirstDateOfPayment());
 			customer.setRepaymentFrequency(depositAllocationRequestWrapperModel.getRepaymentFrequency());
-			customer.setTotalNoOfRepayment(depositAllocationRequestWrapperModel.getTotalNoOfRepayment());
+			customer.setNumberOfInstallments(depositAllocationRequestWrapperModel.getNumberOfInstallments());
 			customer.setInstallmentAmount(depositAllocationRequestWrapperModel.getInstallmentAmount());
 			customer.setCallbackURLs(depositAllocationRequestWrapperModel.getCallbackURLs());
 			customer.setZip(StringUtils.EMPTY);
@@ -193,7 +193,7 @@ public class CustomerWrapperAPIService {
 		if(employmentVerificationRequestWrapperModel != null) {
 			customer.setFirstName(employmentVerificationRequestWrapperModel.getFirstName());
 			customer.setLastName(employmentVerificationRequestWrapperModel.getLastName());
-			customer.setMobileNo(employmentVerificationRequestWrapperModel.getMobileNo());
+			customer.setCellPhone(employmentVerificationRequestWrapperModel.getCellPhone());
 			customer.setEmailId(employmentVerificationRequestWrapperModel.getEmailId());
 			if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getEmploymentCallbackUrl())) {
 				CallbackURL callbackURL = new CallbackURL();
@@ -204,7 +204,7 @@ public class CustomerWrapperAPIService {
 			}
 			customer.setFirstDateOfPayment(StringUtils.EMPTY);
 			customer.setRepaymentFrequency(StringUtils.EMPTY);
-			customer.setTotalNoOfRepayment(0);
+			customer.setNumberOfInstallments(0);
 			customer.setInstallmentAmount(0);
 			customer.setZip(StringUtils.EMPTY);
 			customer.setState(StringUtils.EMPTY);
@@ -222,7 +222,7 @@ public class CustomerWrapperAPIService {
 		if(identityVerificationRequestWrapperModel != null) {
 			customer.setFirstName(identityVerificationRequestWrapperModel.getFirstName());
 			customer.setLastName(identityVerificationRequestWrapperModel.getLastName());
-			customer.setMobileNo(identityVerificationRequestWrapperModel.getMobileNo());
+			customer.setCellPhone(identityVerificationRequestWrapperModel.getCellPhone());
 			customer.setEmailId(identityVerificationRequestWrapperModel.getEmailId());
 			if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getIdentityCallbackUrl())) {
 				CallbackURL callbackURL = new CallbackURL();
@@ -233,7 +233,7 @@ public class CustomerWrapperAPIService {
 			}
 			customer.setFirstDateOfPayment(StringUtils.EMPTY);
 			customer.setRepaymentFrequency(StringUtils.EMPTY);
-			customer.setTotalNoOfRepayment(0);
+			customer.setNumberOfInstallments(0);
 			customer.setInstallmentAmount(0);
 			customer.setZip(identityVerificationRequestWrapperModel.getZip());
 			customer.setState(identityVerificationRequestWrapperModel.getState());
@@ -251,7 +251,7 @@ public class CustomerWrapperAPIService {
 		if(incomeVerificationRequestWrapperModel != null) {
 			customer.setFirstName(incomeVerificationRequestWrapperModel.getFirstName());
 			customer.setLastName(incomeVerificationRequestWrapperModel.getLastName());
-			customer.setMobileNo(incomeVerificationRequestWrapperModel.getMobileNo());
+			customer.setCellPhone(incomeVerificationRequestWrapperModel.getCellPhone());
 			customer.setEmailId(incomeVerificationRequestWrapperModel.getEmailId());
 			if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getIncomeCallbackUrl())) {
 				CallbackURL callbackURL = new CallbackURL();
@@ -262,7 +262,7 @@ public class CustomerWrapperAPIService {
 			}
 			customer.setFirstDateOfPayment(StringUtils.EMPTY);
 			customer.setRepaymentFrequency(StringUtils.EMPTY);
-			customer.setTotalNoOfRepayment(0);
+			customer.setNumberOfInstallments(0);
 			customer.setInstallmentAmount(0);
 			customer.setZip(StringUtils.EMPTY);
 			customer.setState(StringUtils.EMPTY);
@@ -325,11 +325,11 @@ public class CustomerWrapperAPIService {
 	public DepositAllocationResponseWrapperModel setDepositAllocationResponse(CustomerDetails customerDetails) {
 		DepositAllocationResponseWrapperModel depositAllocationResponseModel = new DepositAllocationResponseWrapperModel();
 		depositAllocationResponseModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
-		depositAllocationResponseModel.setMobileNo(customerDetails.getPersonalProfile().getMobileNo());
+		depositAllocationResponseModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
 		depositAllocationResponseModel.setVirtualAccountNumber(customerDetails.getVirtualAccount());
 		depositAllocationResponseModel.setVirtualAccountABANumber(customerDetails.getAccountABANumber());
 		depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
-		depositAllocationResponseModel.setTotalNoOfRepayment(customerDetails.getTotalNoOfRepayment());
+		depositAllocationResponseModel.setNumberOfInstallments(customerDetails.getNumberOfInstallments());
 		depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
 		return depositAllocationResponseModel;
 	}
@@ -337,7 +337,7 @@ public class CustomerWrapperAPIService {
 	public EmploymentVerificationResponseWrapperModel setEmploymentVerificationResponse(CustomerDetails customerDetails, EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel) {
 		EmploymentVerificationResponseWrapperModel employmentVerificationResponseModel = new EmploymentVerificationResponseWrapperModel();
 		employmentVerificationResponseModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
-		employmentVerificationResponseModel.setMobileNo(customerDetails.getPersonalProfile().getMobileNo());
+		employmentVerificationResponseModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
 		employmentVerificationResponseModel.setLenderName(customerDetails.getLender());
 		employmentVerificationResponseModel.setEmployer(customerDetails.getEmployer());
 		employmentVerificationResponseModel.setEmploymentCallbackUrl(employmentVerificationRequestWrapperModel.getEmploymentCallbackUrl());
@@ -349,7 +349,7 @@ public class CustomerWrapperAPIService {
 	public IncomeVerificationResponseWrapperModel setIncomeVerificationResponse(CustomerDetails customerDetails, IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel) {
 		IncomeVerificationResponseWrapperModel incomeVerificationResponseModel = new IncomeVerificationResponseWrapperModel();
 		incomeVerificationResponseModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
-		incomeVerificationResponseModel.setMobileNo(customerDetails.getPersonalProfile().getMobileNo());
+		incomeVerificationResponseModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
 		incomeVerificationResponseModel.setNumberOfMonthsRequested(incomeVerificationRequestWrapperModel.getNumberOfMonthsRequested());
 		incomeVerificationResponseModel.setEmployer(customerDetails.getEmployer());
 		incomeVerificationResponseModel.setIncomeCallbackUrl(incomeVerificationRequestWrapperModel.getIncomeCallbackUrl());
@@ -361,7 +361,7 @@ public class CustomerWrapperAPIService {
 	public IdentityVerificationResponseWrapperModel setIdentityVerificationResponse(CustomerDetails customerDetails, IdentityVerificationRequestWrapperModel identityVerificationRequestWrapperModel) {
 		IdentityVerificationResponseWrapperModel identityVerificationResponseWrapperModel = new IdentityVerificationResponseWrapperModel();
 		identityVerificationResponseWrapperModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
-		identityVerificationResponseWrapperModel.setMobileNo(customerDetails.getPersonalProfile().getMobileNo());
+		identityVerificationResponseWrapperModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
 		identityVerificationResponseWrapperModel.setLast4TIN(customerDetails.getPersonalProfile().getLast4TIN());
 		identityVerificationResponseWrapperModel.setEmployer(customerDetails.getEmployer());
 		identityVerificationResponseWrapperModel.setIdentityCallbackUrl(identityVerificationRequestWrapperModel.getIdentityCallbackUrl());
@@ -390,10 +390,10 @@ public class CustomerWrapperAPIService {
 			   if(errorList.size() > 0)
 				   mapErrorList.put("Last Name", errorList);
 		   }
-		   if(StringUtils.isNotBlank(allocationRequest.getMobileNo()) || StringUtils.isBlank(allocationRequest.getMobileNo())) {
-			   List<String> errorList = customerFieldValidator.validateMobileNo(allocationRequest.getMobileNo());
+		   if(StringUtils.isNotBlank(allocationRequest.getCellPhone()) || StringUtils.isBlank(allocationRequest.getCellPhone())) {
+			   List<String> errorList = customerFieldValidator.validateMobileNo(allocationRequest.getCellPhone());
 			   if(errorList.size() > 0)
-				   mapErrorList.put("Mobile Number", errorList);
+				   mapErrorList.put("CellPhone Number", errorList);
 		   }
 		   if(StringUtils.isNotBlank(allocationRequest.getEmployerId()) || StringUtils.isBlank(allocationRequest.getEmployerId())) {
 			   List<String> errorList = customerFieldValidator.validateEmployerId(allocationRequest.getEmployerId(), employerPWId);
@@ -416,7 +416,7 @@ public class CustomerWrapperAPIService {
 				   mapErrorList.put("External virtual account ABA number", errorList);
 		   }
 		   if(StringUtils.isNotBlank(allocationRequest.getEmailId()) || StringUtils.isBlank(allocationRequest.getEmailId())) {
-			   List<String> errorList = customerFieldValidator.validateEmailId(allocationRequest.getEmailId(), customerRepository, allocationRequest.getMobileNo());
+			   List<String> errorList = customerFieldValidator.validateEmailId(allocationRequest.getEmailId(), customerRepository, allocationRequest.getCellPhone());
 			   if(errorList.size() > 0)
 				   mapErrorList.put("EmailId", errorList);
 		   }
@@ -437,43 +437,48 @@ public class CustomerWrapperAPIService {
 			   if(errorList.size() > 0)
 				   mapErrorList.put("Repayment Frequency", errorList);
 		   }
-		   if(allocationRequest.getTotalNoOfRepayment() == null || allocationRequest.getTotalNoOfRepayment() != null){
-			   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(allocationRequest.getTotalNoOfRepayment());
+		   if(allocationRequest.getNumberOfInstallments() != null){
+			   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(allocationRequest.getNumberOfInstallments());
 			   if(errorList.size() > 0)
-				   mapErrorList.put("Total Number Of Repayment", errorList);
+				   mapErrorList.put("Number Of Installments", errorList);
 		   }else {
 			   if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
 				   List<String> errorList = new ArrayList<String>();
-				   if (allocationRequest.getTotalNoOfRepayment() == null || allocationRequest.getTotalNoOfRepayment() <= 0) {
-					   errorList.add(AppConstants.TOTALNOOFREPAYMENT_MANDATORY_MESSAGE);
-					   mapErrorList.put("Total Number Of Repayment", errorList);
+				   if (allocationRequest.getNumberOfInstallments() == null || allocationRequest.getNumberOfInstallments() <= 0) {
+					   errorList.add(AppConstants.NUMBEROFINSTALLMENTS_MANDATORY_MESSAGE);
+					   mapErrorList.put("Number Of Installments", errorList);
 				   }
 			   }
-			   else if(allocationRequest.getTotalNoOfRepayment() != null || allocationRequest.getTotalNoOfRepayment() >= 0) {
-				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(allocationRequest.getTotalNoOfRepayment());
+			   else if(allocationRequest.getNumberOfInstallments() != null || allocationRequest.getNumberOfInstallments() >= 0) {
+				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(allocationRequest.getNumberOfInstallments());
 				   if(errorList.size() > 0)
-					   mapErrorList.put("Total Number Of Repayment", errorList);
+					   mapErrorList.put("Number of installements", errorList);
 			   }
 		   }
-		   if(allocationRequest.getInstallmentAmount() == null || allocationRequest.getInstallmentAmount() != null) {
-			   List<String> errorList = customerFieldValidator.validateInstallmentAmount(allocationRequest.getInstallmentAmount());
-			   if(errorList.size() > 0)
-				   mapErrorList.put("Installment Amount", errorList);
-		   }else {
-			   if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+		   if(allocationRequest.getLoanAmount() != null) {
+			   if(allocationRequest.getInstallmentAmount() != null) {
 				   List<String> errorList = new ArrayList<String>();
-				   if (allocationRequest.getInstallmentAmount() == null || allocationRequest.getInstallmentAmount() <= 0) {
-					   errorList.add(AppConstants.INSTALLMENTAMOUNT_MANDATORY_MESSAGE);
-					   mapErrorList.put("Installment amount", errorList);
+				   errorList.add("Provide either loan amount or installment amount to process");
+				   mapErrorList.put("Loan Amount/Installment Amount", errorList);
+			   }
+			   List<String> errorList = customerFieldValidator.validateLoanAmount(allocationRequest.getLoanAmount());
+			   if(errorList.size() > 0)
+				   mapErrorList.put("Loan Amount", errorList);
+		   }
+		   else {
+			   if(allocationRequest.getInstallmentAmount() == null) {
+				   List<String> errorList = new ArrayList<String>();
+				   errorList.add("Provide either Loan Amount or Installment Amount. Both cannot be empty");
+				   mapErrorList.put("Loan Amount and Installment Amount", errorList);
+				   
+			   }else {
+				   if(allocationRequest.getInstallmentAmount() != null) {
+					   List<String> errorList = customerFieldValidator.validateInstallmentAmount(allocationRequest.getInstallmentAmount());
+					   if(errorList.size() > 0)
+						   mapErrorList.put("Installment Amount", errorList);
 				   }
 			   }
-			   else if(allocationRequest.getInstallmentAmount() != null || allocationRequest.getInstallmentAmount() >= 0) {
-				   List<String> errorList = customerFieldValidator.validateInstallmentAmount(allocationRequest.getInstallmentAmount());
-				   if(errorList.size() > 0)
-					   mapErrorList.put("Installment Amount", errorList);
-			   }
 		   }
-		   
 		   if(mapErrorList.size() > 0) {
 			   ObjectMapper objectMapper = new ObjectMapper();
 			   String json = "";
@@ -511,10 +516,10 @@ public class CustomerWrapperAPIService {
 			   if(errorList.size() > 0)
 				   mapErrorList.put("Last Name", errorList);
 		   }
-		   if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getMobileNo()) || StringUtils.isBlank(employmentVerificationRequestWrapperModel.getMobileNo())) {
-			   List<String> errorList = customerFieldValidator.validateMobileNo(employmentVerificationRequestWrapperModel.getMobileNo());
+		   if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getCellPhone()) || StringUtils.isBlank(employmentVerificationRequestWrapperModel.getCellPhone())) {
+			   List<String> errorList = customerFieldValidator.validateMobileNo(employmentVerificationRequestWrapperModel.getCellPhone());
 			   if(errorList.size() > 0)
-				   mapErrorList.put("Mobile Number", errorList);
+				   mapErrorList.put("CellPhone Number", errorList);
 		   }
 		   if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getEmployerId()) || StringUtils.isBlank(employmentVerificationRequestWrapperModel.getEmployerId())) {
 			   List<String> errorList = customerFieldValidator.validateEmployerId(employmentVerificationRequestWrapperModel.getEmployerId(), employerPWId);
@@ -522,7 +527,7 @@ public class CustomerWrapperAPIService {
 				   mapErrorList.put("EmployerId", errorList);
 		   }
 		   if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getEmailId()) || StringUtils.isBlank(employmentVerificationRequestWrapperModel.getEmailId())) {
-			   List<String> errorList = customerFieldValidator.validateEmailId(employmentVerificationRequestWrapperModel.getEmailId(), customerRepository, employmentVerificationRequestWrapperModel.getMobileNo());
+			   List<String> errorList = customerFieldValidator.validateEmailId(employmentVerificationRequestWrapperModel.getEmailId(), customerRepository, employmentVerificationRequestWrapperModel.getCellPhone());
 			   if(errorList.size() > 0)
 				   mapErrorList.put("EmailId", errorList);
 		   }
@@ -571,10 +576,10 @@ public class CustomerWrapperAPIService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Last Name", errorList);
 			   }
-			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getMobileNo()) || StringUtils.isBlank(incomeVerificationRequestWrapperModel.getMobileNo())) {
-				   List<String> errorList = customerFieldValidator.validateMobileNo(incomeVerificationRequestWrapperModel.getMobileNo());
+			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getCellPhone()) || StringUtils.isBlank(incomeVerificationRequestWrapperModel.getCellPhone())) {
+				   List<String> errorList = customerFieldValidator.validateMobileNo(incomeVerificationRequestWrapperModel.getCellPhone());
 				   if(errorList.size() > 0)
-					   mapErrorList.put("Mobile Number", errorList);
+					   mapErrorList.put("CellPhone Number", errorList);
 			   }
 			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getEmployerId()) || StringUtils.isBlank(incomeVerificationRequestWrapperModel.getEmployerId())) {
 				   List<String> errorList = customerFieldValidator.validateEmployerId(incomeVerificationRequestWrapperModel.getEmployerId(), employerPWId);
@@ -582,7 +587,7 @@ public class CustomerWrapperAPIService {
 					   mapErrorList.put("EmployerId", errorList);
 			   }
 			   if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getEmailId()) || StringUtils.isBlank(incomeVerificationRequestWrapperModel.getEmailId())) {
-				   List<String> errorList = customerFieldValidator.validateEmailId(incomeVerificationRequestWrapperModel.getEmailId(), customerRepository, incomeVerificationRequestWrapperModel.getMobileNo());
+				   List<String> errorList = customerFieldValidator.validateEmailId(incomeVerificationRequestWrapperModel.getEmailId(), customerRepository, incomeVerificationRequestWrapperModel.getCellPhone());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("EmailId", errorList);
 			   }
@@ -626,21 +631,21 @@ public class CustomerWrapperAPIService {
 			   String lender = requestIdDetails.getClientName();
 			   String employerPWId = requestIdDetails.getEmployerPWId();
 			   
-			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getFirstName())) 
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getFirstName()) || StringUtils.isBlank(identityVerificationRequestWrapperModel.getFirstName())) 
 			   {
 				   List<String> errorList = customerFieldValidator.validateFirstName(identityVerificationRequestWrapperModel.getFirstName());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("First Name", errorList);
 			   } 
-			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getLastName())) {
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getLastName()) || StringUtils.isBlank(identityVerificationRequestWrapperModel.getLastName())) {
 				   List<String> errorList = customerFieldValidator.validateLastName(identityVerificationRequestWrapperModel.getLastName());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Last Name", errorList);
 			   }
-			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getMobileNo())) {
-				   List<String> errorList = customerFieldValidator.validateMobileNo(identityVerificationRequestWrapperModel.getMobileNo());
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getCellPhone()) || StringUtils.isBlank(identityVerificationRequestWrapperModel.getCellPhone())) {
+				   List<String> errorList = customerFieldValidator.validateMobileNo(identityVerificationRequestWrapperModel.getCellPhone());
 				   if(errorList.size() > 0)
-					   mapErrorList.put("Mobile Number", errorList);
+					   mapErrorList.put("CellPhone Number", errorList);
 			   }
 			   
 			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getAddressLine1())) {
@@ -678,8 +683,8 @@ public class CustomerWrapperAPIService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Date Of Birth", errorList);
 			   }
-			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getEmailId())) {
-				   List<String> errorList = customerFieldValidator.validateEmailId(identityVerificationRequestWrapperModel.getEmailId(), customerRepository, identityVerificationRequestWrapperModel.getMobileNo());
+			   if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getEmailId()) || StringUtils.isBlank(identityVerificationRequestWrapperModel.getEmailId())) {
+				   List<String> errorList = customerFieldValidator.validateEmailId(identityVerificationRequestWrapperModel.getEmailId(), customerRepository, identityVerificationRequestWrapperModel.getCellPhone());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Email Id", errorList);
 			   }

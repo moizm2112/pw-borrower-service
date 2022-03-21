@@ -2,9 +2,9 @@ package com.paywallet.userservice.user.model;
 
 import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_FORMAT_VALIDATION_MESSAGE;
 import static com.paywallet.userservice.user.constant.AppConstants.EMAIL_NULL_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_FORMAT_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_LENGTH_VALIDATION_MESSAGE;
-import static com.paywallet.userservice.user.constant.AppConstants.MOBILENO_NULL_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.CELLPHONE_FORMAT_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.CELLPHONE_LENGTH_VALIDATION_MESSAGE;
+import static com.paywallet.userservice.user.constant.AppConstants.CELLPHONE_NULL_VALIDATION_MESSAGE;
 import static com.paywallet.userservice.user.constant.AppConstants.EMPLOYERNAME_NULL_VALIDATION_MESSAGE;
 import static com.paywallet.userservice.user.constant.AppConstants.UPDATING_EMAIL_NULL_VALIDATION_MESSAGE;
 
@@ -31,10 +31,10 @@ public class UpdateCustomerEmailIdDTO {
 	@NotBlank (message = UPDATING_EMAIL_NULL_VALIDATION_MESSAGE)
 	private String newEmailId;
 	
-	@Pattern(regexp = "^(\\+\\d{1,2})?\\(?\\d{3}\\)?\\d{3}?\\d{4}$", message = MOBILENO_FORMAT_VALIDATION_MESSAGE)
-	@Size(min = 10, max = 13, message = MOBILENO_LENGTH_VALIDATION_MESSAGE)
-	@NotBlank  (message = MOBILENO_NULL_VALIDATION_MESSAGE)
-	private String mobileNo;
+	@Pattern(regexp = "^(\\+\\d{1,2})?\\(?\\d{3}\\)?\\d{3}?\\d{4}$", message = CELLPHONE_FORMAT_VALIDATION_MESSAGE)
+	@Size(min = 10, max = 13, message = CELLPHONE_LENGTH_VALIDATION_MESSAGE)
+	@NotBlank  (message = CELLPHONE_NULL_VALIDATION_MESSAGE)
+	private String cellPhone;
 	
 	@NotBlank(message = EMPLOYERNAME_NULL_VALIDATION_MESSAGE)
 	private String employerName;

@@ -7,7 +7,7 @@ public class EmploymentVerificationResponseWrapperModel {
 	
 	private String employer;
 	private String emailId;
-	private String mobileNo;
+	private String cellPhone;
 	private String employmentCallbackUrl;
 	private String firstName;
 	private String lastName;
