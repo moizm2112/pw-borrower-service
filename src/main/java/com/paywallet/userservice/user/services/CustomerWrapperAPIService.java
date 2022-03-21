@@ -290,7 +290,7 @@ public class CustomerWrapperAPIService {
 		setCustomerRequest(depositAllocationRequestWrapperModel, customer);
 		
 		CustomerDetails customerDetails = customerService.createCustomer(customer, requestId, depositAllocationRequestWrapperModel, FlowTypeEnum.DEPOSIT_ALLOCATION);
-		DepositAllocationResponseWrapperModel depositAllocationResponse = setDepositAllocationResponse(customerDetails);
+		DepositAllocationResponseWrapperModel depositAllocationResponse = setDepositAllocationResponse(customerDetails, depositAllocationRequestWrapperModel);
 		return depositAllocationResponse;
 	}
 	
@@ -330,7 +330,7 @@ public class CustomerWrapperAPIService {
 		return incomeVerificationResponse;
 	}
 	
-	public DepositAllocationResponseWrapperModel setDepositAllocationResponse(CustomerDetails customerDetails) {
+	public DepositAllocationResponseWrapperModel setDepositAllocationResponse(CustomerDetails customerDetails, DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel) {
 		DepositAllocationResponseWrapperModel depositAllocationResponseModel = new DepositAllocationResponseWrapperModel();
 		depositAllocationResponseModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
 		depositAllocationResponseModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
@@ -338,7 +338,11 @@ public class CustomerWrapperAPIService {
 		depositAllocationResponseModel.setVirtualAccountABANumber(customerDetails.getAccountABANumber());
 		depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
 		depositAllocationResponseModel.setNumberOfInstallments(customerDetails.getNumberOfInstallments());
-		depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
+		if(depositAllocationRequestWrapperModel.getInstallmentAmount() > 0)
+			depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
+		else if(depositAllocationRequestWrapperModel.getLoanAmount() > 0)
+			depositAllocationResponseModel.setInstallmentAmount(customerService.getInstallmentAmount(depositAllocationRequestWrapperModel.getLoanAmount(),
+					depositAllocationRequestWrapperModel.getInstallmentAmount(), depositAllocationRequestWrapperModel.getNumberOfInstallments()));
 		return depositAllocationResponseModel;
 	}
 	
