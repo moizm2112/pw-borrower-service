@@ -82,17 +82,17 @@ public class CustomerFieldValidator {
 		return errorList;
 	}
 	
-	public List<String> validateMobileNo(String mobileNo) {
+	public List<String> validateMobileNo(String cellPhone) {
 		List<String> errorList = new ArrayList<String>();
-		if (StringUtils.isBlank(mobileNo)) {
-			errorList.add(MOBILENO_NULL_VALIDATION_MESSAGE);
+		if (StringUtils.isBlank(cellPhone)) {
+			errorList.add(CELLPHONE_NULL_VALIDATION_MESSAGE);
 		}
 		String regex = "^(\\+\\d{1,2})?\\(?\\d{3}\\)?\\d{3}?\\d{4}$";
-		if (!checkFieldForValidPattern(regex, mobileNo)) {
-			errorList.add(MOBILENO_FORMAT_VALIDATION_MESSAGE);
+		if (!checkFieldForValidPattern(regex, cellPhone)) {
+			errorList.add(CELLPHONE_FORMAT_VALIDATION_MESSAGE);
 		}
-		if (mobileNo != null && !(StringUtils.length(mobileNo) >= 10 && StringUtils.length(mobileNo) <= 13)) {
-			errorList.add(MOBILENO_LENGTH_VALIDATION_MESSAGE);
+		if (cellPhone != null && !(StringUtils.length(cellPhone) >= 10 && StringUtils.length(cellPhone) <= 13)) {
+			errorList.add(CELLPHONE_LENGTH_VALIDATION_MESSAGE);
 		}
 		return errorList;
 	}
@@ -231,10 +231,10 @@ public class CustomerFieldValidator {
 		return errorList;
 	}
 	
-	public List<String> validateTotalNoOfRepayment(Integer totalNoOfRepayment) {
+	public List<String> validateTotalNoOfRepayment(Integer numberOfInstallments) {
 		List<String> errorList = new ArrayList<String>();
-		if (totalNoOfRepayment == null || totalNoOfRepayment <= 0) {
-			errorList.add(TOTALNOOFREPAYMENT_NULL_VALIDATION_MESSAGE);
+		if (numberOfInstallments == null || numberOfInstallments <= 0) {
+			errorList.add(NUMBEROFINSTALLMENTS_NULL_VALIDATION_MESSAGE);
 		}
 		return errorList;
 	}
@@ -246,6 +246,16 @@ public class CustomerFieldValidator {
 		}
 		return errorList;
 	}
+	
+	public List<String> validateLoanAmount(Integer installmentAmount) {
+		List<String> errorList = new ArrayList<String>();
+		if (installmentAmount == null || installmentAmount <= 0) {
+			errorList.add(LOANAMOUNT_NULL_VALIDATION_MESSAGE);
+		}
+		return errorList;
+	}
+	
+	
 	
 	public List<String> validateRepaymentFrequency(String repaymentFrequency) {
 		List<String> errorList = new ArrayList<String>();
@@ -261,7 +271,7 @@ public class CustomerFieldValidator {
 		return errorList;
 	}
 
-	public List<String> validateEmailId(String emailId, CustomerRepository customerRepository, String mobileNo) {
+	public List<String> validateEmailId(String emailId, CustomerRepository customerRepository, String cellPhone) {
 		List<String> errorList = new ArrayList<String>();
 		if (StringUtils.isBlank(emailId)) {
 			errorList.add(EMAIL_NULL_VALIDATION_MESSAGE);
@@ -272,8 +282,8 @@ public class CustomerFieldValidator {
 			errorList.add(EMAIL_FORMAT_VALIDATION_MESSAGE);
 		}
 		try {
-			if(emailId != null && mobileNo != null) {
-				Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(mobileNo);
+			if(emailId != null && cellPhone != null) {
+				Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileCellPhone(cellPhone);
 		        if (!byMobileNo.isPresent()) {
 		        	Optional<CustomerDetails> checkForEmailIdInDB = customerRepository
 							.findByPersonalProfileEmailId(emailId);

@@ -39,13 +39,13 @@ public class CustomerRequestFields {
 	@AddRequiredFieldsCheck
     private String repaymentFrequency;
 	@AddRequiredFieldsCheck
-    private String totalNoOfRepayment;
+    private String numberOfInstallments;
 	@AddRequiredFieldsCheck
     private String installmentAmount;
 	@AddRequiredFieldsCheck
     private String emailId;
 	@AddRequiredFieldsCheck
-    private String mobileNo;
+    private String cellPhone;
 	@AddRequiredFieldsCheck
     private String firstName;
 	@AddRequiredFieldsCheck

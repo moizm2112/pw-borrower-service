@@ -45,7 +45,7 @@ public class CustomerDetails {
     @JsonIgnore
     private String repaymentFrequency;
     @JsonIgnore
-    private int totalNoOfRepayment;
+    private int numberOfInstallments;
     @JsonIgnore
     private int installmentAmount;
     @JsonIgnore

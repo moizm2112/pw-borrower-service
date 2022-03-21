@@ -166,10 +166,10 @@ public class BorrowerAspect {
         }
     }
 
-    @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(mobileNo,request)")
-    public void getCustomerDataByMobileInProgress(String mobileNo, HttpServletRequest request) {
+    @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(cellPhone,request)")
+    public void getCustomerDataByMobileInProgress(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = mobileNo;
+            String requestId = cellPhone;
             String code = BorrowerEventEnum.UMS_CUST_GET_BY_MOBILE_INPROG.getMessage();
             String message = "Get customer data by mobile INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
@@ -178,10 +178,10 @@ public class BorrowerAspect {
         }
     }
 
-    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(mobileNo,request)")
-    public void getCustomerDataByMobileFailed(String mobileNo, HttpServletRequest request) {
+    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(cellPhone,request)")
+    public void getCustomerDataByMobileFailed(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = mobileNo;
+            String requestId = cellPhone;
             String code = BorrowerEventEnum.UMS_CUST_GET_BY_MOBILE_FAIL.getMessage();
             String message = "Get customer data by mobile FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
@@ -190,10 +190,10 @@ public class BorrowerAspect {
         }
     }
 
-    @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(mobileNo,request)")
-    public void getCustomerDataByMobileSuccess(String mobileNo, HttpServletRequest request) {
+    @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(cellPhone,request)")
+    public void getCustomerDataByMobileSuccess(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = mobileNo;
+            String requestId = cellPhone;
             String code = BorrowerEventEnum.UMS_CUST_GET_BY_MOBILE_SUCC.getMessage();
             String message = "Get customer data by mobile SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
@@ -238,10 +238,10 @@ public class BorrowerAspect {
         }
     }
 
-    @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.getAccountDetails(..)) && args(mobileNo,request)")
-    public void getAccountDetailsProgress(String mobileNo, HttpServletRequest request) {
+    @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.getAccountDetails(..)) && args(cellPhone,request)")
+    public void getAccountDetailsProgress(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = mobileNo;
+            String requestId = cellPhone;
             String code = BorrowerEventEnum.UMS_CUST_ACCT_GET_BY_MOBILE_INPROG.getMessage();
             String message = "Get account details INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
@@ -250,10 +250,10 @@ public class BorrowerAspect {
         }
     }
 
-    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.getAccountDetails(..)) && args(mobileNo,request)")
-    public void getAccountDetailsFailed(String mobileNo, HttpServletRequest request) {
+    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.getAccountDetails(..)) && args(cellPhone,request)")
+    public void getAccountDetailsFailed(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = mobileNo;
+            String requestId = cellPhone;
             String code = BorrowerEventEnum.UMS_CUST_ACCT_GET_BY_MOBILE_FAIL.getMessage();
             String message = "Get account details FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
@@ -262,10 +262,10 @@ public class BorrowerAspect {
         }
     }
 
-    @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerController.getAccountDetails(..)) && args(mobileNo,request)")
-    public void getAccountDetailsSuccess(String mobileNo, HttpServletRequest request) {
+    @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerController.getAccountDetails(..)) && args(cellPhone,request)")
+    public void getAccountDetailsSuccess(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = mobileNo;
+            String requestId = cellPhone;
             String code = BorrowerEventEnum.UMS_CUST_ACCT_GET_BY_MOBILE_SUCC.getMessage();
             String message = "Get account details SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
@@ -278,7 +278,7 @@ public class BorrowerAspect {
     public void validateCustomerDetailsProgress(ValidateAccountRequest validateAccountRequest,
                                           HttpServletRequest request) {
         try{
-            String requestId = validateAccountRequest.getMobileNo();
+            String requestId = validateAccountRequest.getCellPhone();
             String code = BorrowerEventEnum.UMS_CUST_ACCT_VAL_INPROG.getMessage();
             String message = "Validate account details INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
@@ -291,7 +291,7 @@ public class BorrowerAspect {
     public void validateCustomerDetailsFailed(ValidateAccountRequest validateAccountRequest,
                                         HttpServletRequest request) {
         try{
-            String requestId = validateAccountRequest.getMobileNo();
+            String requestId = validateAccountRequest.getCellPhone();
             String code = BorrowerEventEnum.UMS_CUST_ACCT_VAL_FAIL.getMessage();
             String message = "Validate customer account details FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
@@ -304,7 +304,7 @@ public class BorrowerAspect {
     public void validateCustomerAccountDetailsSuccess(ValidateAccountRequest validateAccountRequest,
                                          HttpServletRequest request) {
         try{
-            String requestId = validateAccountRequest.getMobileNo();
+            String requestId = validateAccountRequest.getCellPhone();
             String code = BorrowerEventEnum.UMS_CUST_ACCT_VAL_SUCC.getMessage();
             String message = "Validate customer account details SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
@@ -353,7 +353,7 @@ public class BorrowerAspect {
     @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.updateCustomer(..)) && args(updateCustomerRequest,request)")
     public void updateCustomerDetailsInProgress(UpdateCustomerRequestDTO updateCustomerRequest, HttpServletRequest request) {
         try{
-            String requestId = updateCustomerRequest.getMobileNo();
+            String requestId = updateCustomerRequest.getCellPhone();
             String code = BorrowerEventEnum.UMS_CUST_UPD_INPROG.getMessage();
             String message = "Update customer details INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
@@ -365,7 +365,7 @@ public class BorrowerAspect {
     @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.updateCustomer(..)) && args(updateCustomerRequest,request)")
     public void updateCustomerDetailsFailed(UpdateCustomerRequestDTO updateCustomerRequest, HttpServletRequest request) {
         try{
-            String requestId = updateCustomerRequest.getMobileNo();
+            String requestId = updateCustomerRequest.getCellPhone();
             String code = BorrowerEventEnum.UMS_CUST_UPD_FAIL.getMessage();
             String message = "Update customer details FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
@@ -377,7 +377,7 @@ public class BorrowerAspect {
     @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerController.updateCustomer(..)) && args(updateCustomerRequest,request)")
     public void updateCustomerDetailsSuccess(UpdateCustomerRequestDTO updateCustomerRequest, HttpServletRequest request) {
         try{
-            String requestId = updateCustomerRequest.getMobileNo();
+            String requestId = updateCustomerRequest.getCellPhone();
             String code = BorrowerEventEnum.UMS_CUST_UPD_SUCC.getMessage();
             String message = "Update customer details SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);

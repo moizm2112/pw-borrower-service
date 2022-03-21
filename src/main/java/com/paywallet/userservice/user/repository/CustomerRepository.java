@@ -11,6 +11,6 @@ import com.paywallet.userservice.user.entities.CustomerDetails;
 public interface CustomerRepository extends MongoRepository<CustomerDetails, String> {
 
     Optional<CustomerDetails> findByCustomerId(String customerId);
-    Optional<CustomerDetails> findByPersonalProfileMobileNo(String mobileNo);
+    Optional<CustomerDetails> findByPersonalProfileCellPhone(String cellPhone);
     Optional<CustomerDetails> findByPersonalProfileEmailId(String emailId);
 }

@@ -7,7 +7,7 @@ public class IdentityVerificationResponseWrapperModel {
 	
 	private String employer;
 	private String emailId;
-	private String mobileNo;
+	private String cellPhone;
 	private String identityCallbackUrl;
 	private String firstName;
 	private String lastName;

@@ -2,7 +2,7 @@ package com.paywallet.userservice.user.enums;
 
 public enum CommonEnum {
 	
-	CUSTOMER_DATA_NOT_FOUND_MSG("Customer with given mobile number does not exist in the database"),
+	CUSTOMER_DATA_NOT_FOUND_MSG("Customer with given CellPhone Number does not exist in the database"),
 	REQUESTID_NOT_FOUND_MSG("Given requestId does not exists"),
 	CREATE_CUSTOMER_FAILED("Create Customer Failed"),
 	CUSTOMER_ACCOUNT_ERROR_MSG("Customer Account does not exists"),
@@ -11,7 +11,7 @@ public enum CommonEnum {
 	CUSTOMER_CREATED_SUCCESS_MSG("Customer created successfully"),
 	CUSTOMER_EXIST_SUCCESS_MSG("Request linked to the existing customer successfully"),
     SUCCESS_STATUS_MSG("SUCCESS"),
-    UPDATE_MOBILENO_SUCCESS_STATUS_MSG("Customer Mobile number updated Successfully"),
+    UPDATE_CELLPHONE_SUCCESS_STATUS_MSG("Customer CellPhone Number updated Successfully"),
     UPDATE_EMAILID_SUCCESS_STATUS_MSG("Customer Email updated Successfully"),
     UPDATE_CUSTOMER_CREDENTIALS_SUCCESS_STATUS_MSG("Customer credentials updated successfully"),
     DEPOSIT_ALLOCATION_SUCCESS_STATUS_MSG("Deposit allocation process initiated"),

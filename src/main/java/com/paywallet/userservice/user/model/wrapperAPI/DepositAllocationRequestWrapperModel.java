@@ -9,9 +9,10 @@ public class DepositAllocationRequestWrapperModel {
 
 	private String employerId;
 	private String emailId;
-	private String mobileNo;
+	private String cellPhone;
+	private Integer loanAmount;
 	private Integer installmentAmount;
-	private Integer totalNoOfRepayment;
+	private Integer numberOfInstallments;
 	private String achPullRequest;
 	private String accountVerificationOverride;
 	private String firstDateOfPayment;

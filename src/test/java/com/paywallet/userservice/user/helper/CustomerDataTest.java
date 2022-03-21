@@ -22,7 +22,7 @@ public class CustomerDataTest {
 
     public CreateCustomerRequest createCustomerRequest(){
         CreateCustomerRequest createCustomerRequestTest = new CreateCustomerRequest();
-        createCustomerRequestTest.setMobileNo("+919980024111");
+        createCustomerRequestTest.setCellPhone("+919980024111");
         createCustomerRequestTest.setFirstName("Wilson");
         createCustomerRequestTest.setLastName("Paul");
         createCustomerRequestTest.setMiddleName("");
@@ -48,7 +48,7 @@ public class CustomerDataTest {
         CustomerDetails customerDetails = new CustomerDetails();
         PersonalProfile personalProfile =  new PersonalProfile();
         customerDetails.setCustomerId("61822f23019cba309dd5b070");
-        personalProfile.setMobileNo("+919980024111");
+        personalProfile.setCellPhone("+919980024111");
         customerDetails.setPersonalProfile(personalProfile);
         customerDetails.setExistingCustomer(false);
         createCustomerResponseTest.setData(customerDetails);
@@ -58,7 +58,7 @@ public class CustomerDataTest {
 
     public ValidateAccountRequest validateAccountRequest(){
         ValidateAccountRequest validateAccountRequestTest = new ValidateAccountRequest();
-        validateAccountRequestTest.setMobileNo("+919980024111");
+        validateAccountRequestTest.setCellPhone("+919980024111");
         validateAccountRequestTest.setAccountABANumber("122199983");
         validateAccountRequestTest.setSalaryAccountNumber("89455");
 
@@ -77,7 +77,7 @@ public class CustomerDataTest {
 
     public UpdateCustomerRequestDTO updateCustomerRequest(){
         UpdateCustomerRequestDTO updateCustomerRequesttest = new UpdateCustomerRequestDTO();
-        updateCustomerRequesttest.setMobileNo("+919980024111");
+        updateCustomerRequesttest.setCellPhone("+919980024111");
         SalaryProfile salaryProfileTest = new SalaryProfile();
         salaryProfileTest.setGrossSalary("500.34");
         salaryProfileTest.setNetSalary("265.4");
@@ -97,7 +97,7 @@ public class CustomerDataTest {
         CustomerDetails updateCustomertest = new CustomerDetails();
         updateCustomertest.setCustomerId("61822f23019cba309dd5b070");
         PersonalProfile personalProfileTest = new PersonalProfile();
-        personalProfileTest.setMobileNo("+919980024111");
+        personalProfileTest.setCellPhone("+919980024111");
         personalProfileTest.setFirstName("Wilson");
         personalProfileTest.setLastName("Paul");
         personalProfileTest.setEmailId("Wilson@gmail.com");

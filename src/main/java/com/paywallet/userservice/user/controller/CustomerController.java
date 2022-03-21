@@ -4,10 +4,10 @@ import static com.paywallet.userservice.user.constant.AppConstants.BASE_PATH;
 import static com.paywallet.userservice.user.constant.AppConstants.CREATE_CUSTOMER;
 import static com.paywallet.userservice.user.constant.AppConstants.GET_ACCOUNT_DETAILS;
 import static com.paywallet.userservice.user.constant.AppConstants.GET_CUSTOMER;
-import static com.paywallet.userservice.user.constant.AppConstants.GET_CUSTOMER_BY_MOBILENO;
+import static com.paywallet.userservice.user.constant.AppConstants.GET_CUSTOMER_BY_CELLPHONE;
 import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER;
 import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_EMAILID;
-import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_MOBILENO;
+import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_CELLPHONE;
 import static com.paywallet.userservice.user.constant.AppConstants.VALIDATE_CUSTOMER_ACCOUNT;
 
 import java.util.Optional;
@@ -86,23 +86,23 @@ public class CustomerController {
     }
     
     /**
-     * This method returns customer details by mobile number
-     * @param mobileNo
+     * This method returns customer details by CellPhone Number
+     * @param cellPhone
      * @param request
      * @return
      * @throws CustomerNotFoundException
      */
-    @GetMapping(GET_CUSTOMER_BY_MOBILENO)
-    public CustomerResponseDTO getCustomerByMobile(@PathVariable (required = true) String mobileNo, HttpServletRequest request)
+    @GetMapping(GET_CUSTOMER_BY_CELLPHONE)
+    public CustomerResponseDTO getCustomerByMobile(@PathVariable (required = true) String cellPhone, HttpServletRequest request)
     		throws CustomerNotFoundException {
-        log.debug("Get Customer details for the given mobileNo: " + CustomerServiceUtil.mask(mobileNo));
-        CustomerDetails customerDetails = customerService.getCustomerByMobileNo(mobileNo);
+        log.debug("Get Customer details for the given cellPhone: " + CustomerServiceUtil.mask(cellPhone));
+        CustomerDetails customerDetails = customerService.getCustomerByMobileNo(cellPhone);
         return customerService.prepareResponseDTO(customerDetails, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
         		HttpStatus.OK.value(), request.getRequestURI());
     }
     
     /**
-     * This method returns customer details by mobile number
+     * This method returns customer details by CellPhone Number
      * @param customerId
      * @param request
      * @return
@@ -118,17 +118,17 @@ public class CustomerController {
     }
     
     /**
-     * @param mobileNo
+     * @param cellPhone
      * @param request
      * @return
      * @throws CustomerAccountException
      * @throws CustomerNotFoundException
      */
     @GetMapping(GET_ACCOUNT_DETAILS)
-    public CustomerAccountResponseDTO getAccountDetails(@PathVariable (required = true) String mobileNo, HttpServletRequest request)
+    public CustomerAccountResponseDTO getAccountDetails(@PathVariable (required = true) String cellPhone, HttpServletRequest request)
     		throws CustomerAccountException, CustomerNotFoundException{
-        log.debug("Get Account details for the customer with mobileNo: " + CustomerServiceUtil.mask(mobileNo));
-        AccountDetails accountDetails = customerService.getAccountDetails(mobileNo);
+        log.debug("Get Account details for the customer with cellPhone: " + CustomerServiceUtil.mask(cellPhone));
+        AccountDetails accountDetails = customerService.getAccountDetails(cellPhone);
         return customerService.prepareAccountDetailsResponseDTO(accountDetails, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
         		HttpStatus.OK.value(), request.getRequestURI());
 
@@ -169,24 +169,24 @@ public class CustomerController {
     }
     
     /**
-     * Method updates the customer mobileNo
+     * Method updates the customer cellPhone
      * @param UpdateCustomerMobileNoDTO
      * @param request
      * @return
      * @throws CustomerNotFoundException
      */
-    @PutMapping(UPDATE_CUSTOMER_MOBILENO)
+    @PutMapping(UPDATE_CUSTOMER_CELLPHONE)
     public ResponseEntity<Object> updateCustomerMobileNo(@Valid @RequestBody UpdateCustomerMobileNoDTO updateCustomerDetailsDTO, @RequestHeader(REQUEST_ID) String requestId,
     		 HttpServletRequest request)
     		throws CustomerNotFoundException {
-        log.debug("Inside update customer mobileNo " + updateCustomerDetailsDTO);
+        log.debug("Inside update customer cellPhone " + updateCustomerDetailsDTO);
         UpdateCustomerDetailsResponseDTO updateCustomerDetailsResponseDTO = customerService.updateCustomerMobileNo(updateCustomerDetailsDTO, requestId);
-        return customerService.prepareUpdateResponse(updateCustomerDetailsResponseDTO, CommonEnum.UPDATE_MOBILENO_SUCCESS_STATUS_MSG.getMessage(),
+        return customerService.prepareUpdateResponse(updateCustomerDetailsResponseDTO, CommonEnum.UPDATE_CELLPHONE_SUCCESS_STATUS_MSG.getMessage(),
         		HttpStatus.OK.value(), request.getRequestURI());
     }
     
     /**
-     * Method updates the customer mobileNo
+     * Method updates the customer cellPhone
      * @param UpdateCustomerMobileNoDTO
      * @param request
      * @return

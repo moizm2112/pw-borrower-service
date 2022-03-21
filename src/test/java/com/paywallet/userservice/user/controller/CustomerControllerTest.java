@@ -32,8 +32,8 @@ import com.paywallet.userservice.user.services.CustomerService;
 @WebMvcTest(CustomerController.class)
 class CustomerControllerTest {
 
-    public static final String GET_ACCOUNT_DETAILS_TEST = "/api/v1/customer/account/{mobileNo}";
-    public static final String GET_CUSTOMER_BY_MOBILENO_TEST = "/api/v1/customer/{mobileNo}";
+    public static final String GET_ACCOUNT_DETAILS_TEST = "/api/v1/customer/account/{cellPhone}";
+    public static final String GET_CUSTOMER_BY_CELLPHONE_TEST = "/api/v1/customer/{cellPhone}";
     public static final String GET_CUSTOMER_TEST = "/api/v1/customer/get/{customerId}";
     public static final String CREATE_CUSTOMER_TEST = "/api/v1/customer/create";
     public static final String VALIDATE_CUSTOMER_ACCOUNT_TEST = "/api/v1/customer/account/validate";
@@ -54,12 +54,12 @@ class CustomerControllerTest {
         CustomerDataTest customerDataTest = new CustomerDataTest();
         CustomerAccountResponseDTO testAccDetails = customerDataTest.getAccDetails();
 
-        String mobileNo="+919980024111";
+        String cellPhone="+919980024111";
 
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get(GET_ACCOUNT_DETAILS_TEST,mobileNo)
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get(GET_ACCOUNT_DETAILS_TEST,cellPhone)
                 .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON);
 
-        when(customerService.getAccountDetails(mobileNo)).thenReturn(testAccDetails.getData());
+        when(customerService.getAccountDetails(cellPhone)).thenReturn(testAccDetails.getData());
         when(customerService.prepareAccountDetailsResponseDTO(Mockito.any(),Mockito.anyString(),Mockito.anyInt(),Mockito.anyString()))
         	.thenReturn(testAccDetails);
         
@@ -85,7 +85,7 @@ class CustomerControllerTest {
         
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isOk());
                 //.andExpect(jsonPath("$.data.customerId").value(customerResponse.getData().getCustomerId()))
-                //.andExpect(jsonPath("$.data.personalProfile.mobileNo").value(customerResponse.getData().getPersonalProfile().getMobileNo()));
+                //.andExpect(jsonPath("$.data.personalProfile.cellPhone").value(customerResponse.getData().getPersonalProfile().getCellPhone()));
     }
     
     @Test
@@ -104,26 +104,26 @@ class CustomerControllerTest {
         
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.customerId").value(customerResponse.getData().getCustomerId()))
-                .andExpect(jsonPath("$.data.personalProfile.mobileNo").value(customerResponse.getData().getPersonalProfile().getMobileNo()));
+                .andExpect(jsonPath("$.data.personalProfile.cellPhone").value(customerResponse.getData().getPersonalProfile().getCellPhone()));
     }
     
     @Test
     void getCustomerByMobileNo() throws Exception{
 
         CustomerDataTest customerDataTest = new CustomerDataTest();
-        String mobileNo="+919980024111";
+        String cellPhone="+919980024111";
         
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get(GET_CUSTOMER_BY_MOBILENO_TEST, mobileNo)
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get(GET_CUSTOMER_BY_CELLPHONE_TEST, cellPhone)
                 .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON);
 
         CustomerResponseDTO customerResponse = customerDataTest.createCustomerResponse();
         CustomerDetails customerDetails =  customerResponse.getData();
-        when(customerService.getCustomerByMobileNo(mobileNo)).thenReturn(customerDetails);
+        when(customerService.getCustomerByMobileNo(cellPhone)).thenReturn(customerDetails);
         when(customerService.prepareResponseDTO(Mockito.any(),Mockito.anyString(),Mockito.anyInt(),Mockito.anyString())).thenReturn(customerResponse);
         
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.customerId").value(customerResponse.getData().getCustomerId()))
-                .andExpect(jsonPath("$.data.personalProfile.mobileNo").value(customerResponse.getData().getPersonalProfile().getMobileNo()));
+                .andExpect(jsonPath("$.data.personalProfile.cellPhone").value(customerResponse.getData().getPersonalProfile().getCellPhone()));
     }
 
     @Test
@@ -168,12 +168,12 @@ class CustomerControllerTest {
      @Test
     void getAccountDetailsOfnotExistingCustomer() throws Exception {
 
-        String mobileNo="919980024111";//customer do not exist with this mobile no
+        String cellPhone="919980024111";//customer do not exist with this mobile no
 
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get(GET_ACCOUNT_DETAILS_TEST,mobileNo)
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get(GET_ACCOUNT_DETAILS_TEST,cellPhone)
                 .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON);
 
-        when(customerService.getAccountDetails(mobileNo)).thenThrow(new CustomerNotFoundException("Customer not present with the mobileNo: 919980024111 to fetch account details"));
+        when(customerService.getAccountDetails(cellPhone)).thenThrow(new CustomerNotFoundException("Customer not present with the cellPhone: 919980024111 to fetch account details"));
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isBadRequest());
 
     }
@@ -182,13 +182,13 @@ class CustomerControllerTest {
     void updateNonexistingCustomer() throws Exception{
         CustomerDataTest customerDataTest = new CustomerDataTest();
         UpdateCustomerRequestDTO updateCustomerRequestTest = customerDataTest.updateCustomerRequest();
-        updateCustomerRequestTest.setMobileNo("+919980025222"); //customer do not exist with this mobile no
+        updateCustomerRequestTest.setCellPhone("+919980025222"); //customer do not exist with this mobile no
 
         MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.put(UPDATE_CUSTOMER_TEST)
                 .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .content(this.mapper.writeValueAsString(updateCustomerRequestTest));
 
-        when(customerService.updateCustomerDetails(any())).thenThrow(new CustomerNotFoundException("Customer do not exists with the mobileNo: +919980025222 to update"));
+        when(customerService.updateCustomerDetails(any())).thenThrow(new CustomerNotFoundException("Customer do not exists with the cellPhone: +919980025222 to update"));
 
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isBadRequest());
     }

@@ -19,9 +19,9 @@ class CustomerServiceTest {
 
         CustomerDataTest customerDataTest = new CustomerDataTest();
         CustomerAccountResponseDTO accDetails = customerDataTest.getAccDetails();
-        String mobileNo="+919980024111";
+        String cellPhone="+919980024111";
         CustomerService mockCustomerService = mock(CustomerService.class);
-        when(mockCustomerService.getAccountDetails(mobileNo)).thenReturn(accDetails.getData());
+        when(mockCustomerService.getAccountDetails(cellPhone)).thenReturn(accDetails.getData());
 
         assertEquals("89455",accDetails.getData().getSalaryAccountNumber());
         assertEquals("122199983",accDetails.getData().getAccountABANumber());
@@ -37,7 +37,7 @@ class CustomerServiceTest {
         		.thenReturn(customerResponse.getData());
 
         assertEquals("61822f23019cba309dd5b070",customerResponse.getData().getCustomerId());
-        assertEquals("+919980024111",customerResponse.getData().getPersonalProfile().getMobileNo());
+        assertEquals("+919980024111",customerResponse.getData().getPersonalProfile().getCellPhone());
     }
     
     @Test
@@ -50,20 +50,20 @@ class CustomerServiceTest {
         		.thenReturn(customerResponse.getData());
 
         assertEquals("61822f23019cba309dd5b070",customerResponse.getData().getCustomerId());
-        assertEquals("+919980024111",customerResponse.getData().getPersonalProfile().getMobileNo());
+        assertEquals("+919980024111",customerResponse.getData().getPersonalProfile().getCellPhone());
     }
     
     @Test
     void getCustomerByMobileNo() {
         CustomerDataTest customerDataTest = new CustomerDataTest();
         CustomerResponseDTO customerResponse = customerDataTest.createCustomerResponse();
-        String mobileNo="+919980024111";
+        String cellPhone="+919980024111";
         CustomerService mockCustomerService = mock(CustomerService.class);
-        when(mockCustomerService.getCustomerByMobileNo(mobileNo))
+        when(mockCustomerService.getCustomerByMobileNo(cellPhone))
         		.thenReturn(customerResponse.getData());
 
         assertEquals("61822f23019cba309dd5b070",customerResponse.getData().getCustomerId());
-        assertEquals("+919980024111",customerResponse.getData().getPersonalProfile().getMobileNo());
+        assertEquals("+919980024111",customerResponse.getData().getPersonalProfile().getCellPhone());
     }
 
     @Test

@@ -153,7 +153,7 @@ public class CustomerService {
     public static final String ROUTING_NUMBER = "284073808";
     
     /**
-     * Method fetches customer details by mobileNo
+     * Method fetches customer details by cellPhone
      * @param customerId
      * @return
      * @throws CustomerNotFoundException
@@ -171,22 +171,22 @@ public class CustomerService {
     }
     
     /**
-     * Method fetches customer details by mobileNo
-     * @param mobileNo
+     * Method fetches customer details by cellPhone
+     * @param cellPhone
      * @return
      * @throws CustomerNotFoundException
      */
-    public CustomerDetails getCustomerByMobileNo(String mobileNo) throws CustomerNotFoundException {
-        log.debug("Inside getCustomer of CustomerService class" + mobileNo);
-        if (!mobileNo.startsWith("+1") && mobileNo.length()==10)
-        	mobileNo = "+1".concat(mobileNo);
-        Optional<CustomerDetails> optionalCustDetails = customerRepository.findByPersonalProfileMobileNo(mobileNo);
+    public CustomerDetails getCustomerByMobileNo(String cellPhone) throws CustomerNotFoundException {
+        log.debug("Inside getCustomer of CustomerService class" + cellPhone);
+        if (!cellPhone.startsWith("+1") && cellPhone.length()==10)
+        	cellPhone = "+1".concat(cellPhone);
+        Optional<CustomerDetails> optionalCustDetails = customerRepository.findByPersonalProfileCellPhone(cellPhone);
         CustomerDetails saveCustomer;
         if (optionalCustDetails.isPresent()) {
         	return optionalCustDetails.get();
         }
         else {
-        	throw new CustomerNotFoundException("Customer not present with the mobileNo: "+mobileNo+" to fetch customer details");
+        	throw new CustomerNotFoundException("Customer not present with the cellPhone: "+cellPhone+" to fetch customer details");
         }
     }
     
@@ -204,8 +204,8 @@ public class CustomerService {
     		boolean isDepositAllocation) 
     		throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, SMSAndEmailNotificationException {
         log.info("Inside createCustomer of CustomerService class");
-        if (!customer.getMobileNo().startsWith("+1") && customer.getMobileNo().length()==10)
-            customer.setMobileNo("+1".concat(customer.getMobileNo()));
+        if (!customer.getCellPhone().startsWith("+1") && customer.getCellPhone().length()==10)
+            customer.setCellPhone("+1".concat(customer.getCellPhone()));
 
         int virtualAccount = -1;
         CustomerDetails saveCustomer = new CustomerDetails();
@@ -222,8 +222,8 @@ public class CustomerService {
 /*				if(lenderConfigInfo.getInvokeAndPublishDepositAllocation().equals(StateStatus.NO)) { 
 					throw new GeneralCustomException("ERROR","Deposit allocation is not allowed for the lender"); 
 				}
-	    		if (!depositAllocationRequestWrapperModel.getMobileNo().startsWith("+1") && depositAllocationRequestWrapperModel.getMobileNo().length()==10)
-	    			depositAllocationRequestWrapperModel.setMobileNo("+1".concat(depositAllocationRequestWrapperModel.getMobileNo()));
+	    		if (!depositAllocationRequestWrapperModel.getCellPhone().startsWith("+1") && depositAllocationRequestWrapperModel.getCellPhone().length()==10)
+	    			depositAllocationRequestWrapperModel.setCellPhone("+1".concat(depositAllocationRequestWrapperModel.getCellPhone()));
 	    		
 	    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
 /*	    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
@@ -237,20 +237,20 @@ public class CustomerService {
 	    		customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
         	}
         	// Setup made to get int field in request and if null set it to default to 0.
-        	if(customer.getTotalNoOfRepayment() == null)
-        		customer.setTotalNoOfRepayment(0);
+        	if(customer.getNumberOfInstallments() == null)
+        		customer.setNumberOfInstallments(0);
         	if(customer.getInstallmentAmount() ==null)
         		customer.setInstallmentAmount(0);
         	
         	//Check if customer already exist for the given request (thro' mobileno)
-	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
+	        Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileCellPhone(customer.getCellPhone());
 	        if (byMobileNo.isPresent()) {
 	        	log.info("Exsiting customer with new requestID : " + requestId);
 	            saveCustomer = byMobileNo.get();
 	            saveCustomer.setRequestId(requestId);
 	            saveCustomer.setExistingCustomer(true);
 	            saveCustomer.setInstallmentAmount(customer.getInstallmentAmount());
-	            saveCustomer.setTotalNoOfRepayment(customer.getTotalNoOfRepayment());
+	            saveCustomer.setNumberOfInstallments(customer.getNumberOfInstallments());
 	            
 	            if(requestIdDtls.getClientName() != null) 
 	            	saveCustomer.setLender(requestIdDtls.getClientName());
@@ -354,15 +354,15 @@ public class CustomerService {
     }*/
 
     /**
-     * Methods gets customer account details by mobileNo.
-     * @param mobileNo
+     * Methods gets customer account details by cellPhone.
+     * @param cellPhone
      * @return
      * @throws CustomerAccountException
      * @throws CustomerNotFoundException
      */
-    public AccountDetails getAccountDetails(String mobileNo) throws CustomerAccountException, CustomerNotFoundException{
+    public AccountDetails getAccountDetails(String cellPhone) throws CustomerAccountException, CustomerNotFoundException{
         AccountDetails accountDetails = new AccountDetails();
-        Optional<CustomerDetails> customerDetails= customerRepository.findByPersonalProfileMobileNo(mobileNo);
+        Optional<CustomerDetails> customerDetails= customerRepository.findByPersonalProfileCellPhone(cellPhone);
         if(customerDetails.isPresent()) {
             if (customerDetails.get().getSalaryProfile()!=null){
                 if (CustomerServiceUtil.doesObjectContainField(customerDetails.get().getSalaryProfile(),"salaryAccount")) {
@@ -372,13 +372,13 @@ public class CustomerService {
                         String leadingFourDigitsOfSalAccNo = customerDetails.get().getSalaryProfile().getSalaryAccount().substring(salaryAccNoLength - 4, salaryAccNoLength);
                         accountDetails.setSalaryAccountNumber(leadingFourDigitsOfSalAccNo);
                     } else {
-                        log.debug("Salary AccNo is NULL for the customer with mobileNo: " + mobileNo+" in salary profile");
-                        throw new CustomerAccountException("Salary AccNo is NULL for the customer with mobileNo: " + mobileNo);
+                        log.debug("Salary AccNo is NULL for the customer with cellPhone: " + cellPhone+" in salary profile");
+                        throw new CustomerAccountException("Salary AccNo is NULL for the customer with cellPhone: " + cellPhone);
                     }
 
                 } else {
-                    log.debug("Salary AccNo field not present for the customer with mobileNo: " + mobileNo+" in salary profile");
-                    throw new CustomerAccountException("Salary AccNo not updated for the customer with mobileNo: " + mobileNo);
+                    log.debug("Salary AccNo field not present for the customer with cellPhone: " + cellPhone+" in salary profile");
+                    throw new CustomerAccountException("Salary AccNo not updated for the customer with cellPhone: " + cellPhone);
                 }
 
                 if (CustomerServiceUtil.doesObjectContainField(customerDetails.get().getSalaryProfile(),"aba")){
@@ -388,23 +388,23 @@ public class CustomerService {
                         String leadingFourDigitsOfabaSalAccNo = customerDetails.get().getSalaryProfile().getAba().substring(abaOfsalaryAccNoLength - 4, abaOfsalaryAccNoLength);
                         accountDetails.setAccountABANumber(leadingFourDigitsOfabaSalAccNo);
                     } else {
-                        log.debug("ABA Of Salary AccNo is NULL for the customer with mobileNo: " + mobileNo+" in salary profile");
-                        throw new CustomerAccountException("ABA Of Salary AccNo is NULL for the customer with mobileNo: " + mobileNo);
+                        log.debug("ABA Of Salary AccNo is NULL for the customer with cellPhone: " + cellPhone+" in salary profile");
+                        throw new CustomerAccountException("ABA Of Salary AccNo is NULL for the customer with cellPhone: " + cellPhone);
                     }
 
                 } else {
-                    log.debug("ABA of Salary AccNo not updated for the customer with mobileNo: " + mobileNo+" in salary profile");
-                    throw new CustomerAccountException("ABA of Salary AccNo not updated for the customer with mobileNo: " + mobileNo);
+                    log.debug("ABA of Salary AccNo not updated for the customer with cellPhone: " + cellPhone+" in salary profile");
+                    throw new CustomerAccountException("ABA of Salary AccNo not updated for the customer with cellPhone: " + cellPhone);
                 }
 
             } else {
-                log.debug("Salary details are not updated for the customer with mobileNo: "+mobileNo);
-                throw new CustomerAccountException("Salary details are not updated for the customer with mobileNo: "+mobileNo );
+                log.debug("Salary details are not updated for the customer with cellPhone: "+cellPhone);
+                throw new CustomerAccountException("Salary details are not updated for the customer with cellPhone: "+cellPhone );
             }
 
         } else {
-            log.debug("Customer not present with the mobileNo: "+mobileNo+" to fetch account details");
-            throw new CustomerNotFoundException("Customer not present with the mobileNo: "+mobileNo+" to fetch account details");
+            log.debug("Customer not present with the cellPhone: "+cellPhone+" to fetch account details");
+            throw new CustomerNotFoundException("Customer not present with the cellPhone: "+cellPhone+" to fetch account details");
         }
 
         return accountDetails;
@@ -423,7 +423,7 @@ public class CustomerService {
         CustomerDetails updatedCustomer;
         boolean accntAndabaVerification=false;
         boolean incrementCounter = false;
-        Optional<CustomerDetails> customerDetails= customerRepository.findByPersonalProfileMobileNo(validateAccountRequest.getMobileNo());
+        Optional<CustomerDetails> customerDetails= customerRepository.findByPersonalProfileCellPhone(validateAccountRequest.getCellPhone());
         if(customerDetails.isPresent()) {
             if (customerDetails.get().getUpdateCounter().equals(maxAllowedUpdates)) {
                 log.error("Customer validation update attempts reached maximum allowed");
@@ -494,7 +494,7 @@ public class CustomerService {
              return updatedCustomer;
 
         } else {
-            throw new CustomerNotFoundException("Customer not exists with the mobileNo: "+validateAccountRequest.getMobileNo()+" to validate");
+            throw new CustomerNotFoundException("Customer not exists with the cellPhone: "+validateAccountRequest.getCellPhone()+" to validate");
         }
     }
 
@@ -506,10 +506,10 @@ public class CustomerService {
      */
     public CustomerDetails updateCustomerDetails(UpdateCustomerRequestDTO updateCustomerRequest) throws CustomerNotFoundException{
 
-        Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerRequest.getMobileNo());
+        Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileCellPhone(updateCustomerRequest.getCellPhone());
 
         if(customerDetailsByMobileNo.isPresent()){
-            log.debug("Customer with the mobile no " + customerDetailsByMobileNo.get().getPersonalProfile().getMobileNo() + " already exists");
+            log.debug("Customer with the mobile no " + customerDetailsByMobileNo.get().getPersonalProfile().getCellPhone() + " already exists");
             log.info("Customer details are getting updated...");
 
             if (updateCustomerRequest.getSalaryProfile()!=null)
@@ -517,8 +517,8 @@ public class CustomerService {
             log.info("Customer details are updated successfully");
             return customerRepository.save(customerDetailsByMobileNo.get());
         } else {
-            log.error("Customer do not exists with the mobileNo: "+updateCustomerRequest.getMobileNo()+" to update");
-            throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerRequest.getMobileNo()+" to update");
+            log.error("Customer do not exists with the cellPhone: "+updateCustomerRequest.getCellPhone()+" to update");
+            throw new CustomerNotFoundException("Customer do not exists with the cellPhone: "+updateCustomerRequest.getCellPhone()+" to update");
         }
     }
     
@@ -536,75 +536,75 @@ public class CustomerService {
     	UpdateCustomerDetailsResponseDTO updateCustomerDetailsResponseDTO = new UpdateCustomerDetailsResponseDTO();
     	try {
     		
-    		if(!updateCustomerMobileNoDTO.getMobileNo().startsWith("+1") && updateCustomerMobileNoDTO.getMobileNo().length()==10) {
-    			updateCustomerMobileNoDTO.setMobileNo("+1".concat(updateCustomerMobileNoDTO.getMobileNo()));
+    		if(!updateCustomerMobileNoDTO.getCellPhone().startsWith("+1") && updateCustomerMobileNoDTO.getCellPhone().length()==10) {
+    			updateCustomerMobileNoDTO.setCellPhone("+1".concat(updateCustomerMobileNoDTO.getCellPhone()));
     		}
-    		if(!updateCustomerMobileNoDTO.getNewMobileNo().startsWith("+1") && updateCustomerMobileNoDTO.getNewMobileNo().length()==10) {
-    			updateCustomerMobileNoDTO.setNewMobileNo("+1".concat(updateCustomerMobileNoDTO.getNewMobileNo()));
+    		if(!updateCustomerMobileNoDTO.getNewCellPhone().startsWith("+1") && updateCustomerMobileNoDTO.getNewCellPhone().length()==10) {
+    			updateCustomerMobileNoDTO.setNewCellPhone("+1".concat(updateCustomerMobileNoDTO.getNewCellPhone()));
     		}
-    		if(updateCustomerMobileNoDTO.getMobileNo().equalsIgnoreCase(updateCustomerMobileNoDTO.getNewMobileNo())) {
-    			log.error("Please provide different mobile number. You cannot enter mobile number matching the customer data");
-                throw new CustomerNotFoundException("Please provide different mobile number. You cannot enter mobile number matching the customer data");
+    		if(updateCustomerMobileNoDTO.getCellPhone().equalsIgnoreCase(updateCustomerMobileNoDTO.getNewCellPhone())) {
+    			log.error("Please provide different CellPhone Number. You cannot enter CellPhone Number matching the customer data");
+                throw new CustomerNotFoundException("Please provide different CellPhone Number. You cannot enter CellPhone Number matching the customer data");
     		}
     		
     		RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
         			.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
         	RequestIdDetails requestIdDtls = requestIdResponseDTO.getData();
         	if(StringUtils.isBlank(requestIdDtls.getUserId())) {
-        		throw new CustomerNotFoundException("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
+        		throw new CustomerNotFoundException("RequestId and cellPhone does not match. Please provide a valid requestId or cellPhone to update");
         	}
         	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) {
 //	        	if( ((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerMobileNoDTO.getEmployerName())) {
-	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerMobileNoDTO.getMobileNo());
+	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileCellPhone(updateCustomerMobileNoDTO.getCellPhone());
 	                if(customerDetailsByMobileNo.isPresent()){
 	                	custDetails = customerDetailsByMobileNo.get();
 	                	if(requestIdDtls.getUserId().equalsIgnoreCase(custDetails.getCustomerId())) {
-		                	Optional<CustomerDetails> checkForMobileNumberinDB= customerRepository.findByPersonalProfileMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
+		                	Optional<CustomerDetails> checkForMobileNumberinDB= customerRepository.findByPersonalProfileCellPhone(updateCustomerMobileNoDTO.getNewCellPhone());
 			                if(!checkForMobileNumberinDB.isPresent()){
 			                	
-			                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
+			                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getCellPhone() + " already exists");
 			                    log.info("Customer details are getting updated...");
 			                    
 			                    
-			                    if(!custDetails.getPersonalProfile().getMobileNo().equalsIgnoreCase(updateCustomerMobileNoDTO.getMobileNo())) {
+			                    if(!custDetails.getPersonalProfile().getCellPhone().equalsIgnoreCase(updateCustomerMobileNoDTO.getCellPhone())) {
 			                    	log.error("Customer does nor exist for the given mobileNumber");
-			                        throw new CustomerNotFoundException("Provided mobile number does not match the customer data. Please provide a valid mobile number.");
+			                        throw new CustomerNotFoundException("Provided CellPhone Number does not match the customer data. Please provide a valid CellPhone Number.");
 			                    }
 			                    
-			                    if(custDetails.getPersonalProfile().getMobileNo().equalsIgnoreCase(updateCustomerMobileNoDTO.getNewMobileNo())) {
-			                    	log.error("Updating mobile Number should be different from existing mobile number");
-			                        throw new CustomerNotFoundException("Updating Mobile Number (" + updateCustomerMobileNoDTO.getNewMobileNo() +") should be different from existing mobile number");
+			                    if(custDetails.getPersonalProfile().getCellPhone().equalsIgnoreCase(updateCustomerMobileNoDTO.getNewCellPhone())) {
+			                    	log.error("Updating CellPhone Number should be different from existing CellPhone Number");
+			                        throw new CustomerNotFoundException("Updating CellPhone Number (" + updateCustomerMobileNoDTO.getNewCellPhone() +") should be different from existing CellPhone Number");
 			                    }
 			                    
-			                	// Make an fineract call to update the external Id and mobileNo.
+			                	// Make an fineract call to update the external Id and cellPhone.
 			                    if(StringUtils.isNotBlank(custDetails.getVirtualClientId())) {
-			                    	customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getNewMobileNo(), custDetails.getVirtualClientId());
+			                    	customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getNewCellPhone(), custDetails.getVirtualClientId());
 			                    	isMobileNoUpdatedInFineract = true;
 			                    }
 			                	//Update the Customer table
-			                	custDetails.getPersonalProfile().setMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
+			                	custDetails.getPersonalProfile().setCellPhone(updateCustomerMobileNoDTO.getNewCellPhone());
 			                	custDetails.setRequestId(requestId);
 			                	
 			                	updateCustomerDetailsResponseDTO.setRequestId(requestId);
-			                	updateCustomerDetailsResponseDTO.setMobileNo(updateCustomerMobileNoDTO.getNewMobileNo());
+			                	updateCustomerDetailsResponseDTO.setCellPhone(updateCustomerMobileNoDTO.getNewCellPhone());
 			                	updateCustomerDetailsResponseDTO.setCustomerId(custDetails.getCustomerId());
 			                	
-			                	log.info("Customer mobile number updated successfully");
+			                	log.info("Customer CellPhone Number updated successfully");
 			                	custDetails = customerRepository.save(custDetails);
 			                	isMobileNoUpdatedInCustomerDetails = true;
 			                }
 			                else {
-			                	log.error("Updating mobile number "+updateCustomerMobileNoDTO.getNewMobileNo()+" exist in database");
-			                    throw new CustomerNotFoundException("Updating mobile number "+updateCustomerMobileNoDTO.getNewMobileNo()+" exist in database");
+			                	log.error("Updating CellPhone Number "+updateCustomerMobileNoDTO.getNewCellPhone()+" exist in database");
+			                    throw new CustomerNotFoundException("Updating CellPhone Number "+updateCustomerMobileNoDTO.getNewCellPhone()+" exist in database");
 			                }
 	                	}
 	                	else {
-		                	log.error("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
-		                    throw new CustomerNotFoundException("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
+		                	log.error("RequestId and cellPhone does not match. Please provide a valid requestId or cellPhone to update");
+		                    throw new CustomerNotFoundException("RequestId and cellPhone does not match. Please provide a valid requestId or cellPhone to update");
 		                }
 	                } else {
-	                    log.error("Customer do not exists with the mobile number: "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
-	                    throw new CustomerNotFoundException("Customer do not exists with the mobile number: "+updateCustomerMobileNoDTO.getMobileNo()+" to update");
+	                    log.error("Customer do not exists with the CellPhone Number: "+updateCustomerMobileNoDTO.getCellPhone()+" to update");
+	                    throw new CustomerNotFoundException("Customer do not exists with the CellPhone Number: "+updateCustomerMobileNoDTO.getCellPhone()+" to update");
 	                }
 //	        	}
 //	        	else {
@@ -613,26 +613,26 @@ public class CustomerService {
 //	        	}
         	}
         	else {
-        		log.error("Mobile Number cannot be updated as allocation has already been completed");
-                throw new CustomerNotFoundException("Mobile Number cannot be updated as allocation has already been completed");
+        		log.error("CellPhone Number cannot be updated as allocation has already been completed");
+                throw new CustomerNotFoundException("CellPhone Number cannot be updated as allocation has already been completed");
         	}
     	}catch(FineractAPIException e) {
-    		log.error("Exception occured in fineract while updating mobile number for given client "+ e.getMessage());
+    		log.error("Exception occured in fineract while updating CellPhone Number for given client "+ e.getMessage());
     		throw new FineractAPIException(e.getMessage());
     	}catch(CustomerNotFoundException e) {
     		if(isMobileNoUpdatedInFineract && !isMobileNoUpdatedInCustomerDetails)
-    			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getMobileNo(), custDetails.getVirtualClientId());
+    			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getCellPhone(), custDetails.getVirtualClientId());
     		log.error("Exception occured while updating customer details " + e.getMessage());
     		throw new CustomerNotFoundException(e.getMessage());
     	}catch(GeneralCustomException e) {
     		if(isMobileNoUpdatedInFineract && !isMobileNoUpdatedInCustomerDetails)
-    			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getMobileNo(), custDetails.getVirtualClientId());
+    			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getCellPhone(), custDetails.getVirtualClientId());
     		log.error("Exception occured while updating customer details " + e.getMessage());
     		throw new GeneralCustomException(ERROR, e.getMessage());
     	}
     	catch(Exception e) {
     		if(isMobileNoUpdatedInFineract && !isMobileNoUpdatedInCustomerDetails)
-    			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getMobileNo(), custDetails.getVirtualClientId());
+    			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getCellPhone(), custDetails.getVirtualClientId());
     		log.error("Exception occured while updating customer details " + e.getMessage());
     		throw new GeneralCustomException(ERROR, e.getMessage());
     	}
@@ -651,8 +651,8 @@ public class CustomerService {
     	UpdateCustomerDetailsResponseDTO updateCustomerDetailsResponseDTO = new UpdateCustomerDetailsResponseDTO();
     	try {
     		
-    		if(!updateCustomerEmailIdDTO.getMobileNo().startsWith("+1") && updateCustomerEmailIdDTO.getMobileNo().length()==10)
-    			updateCustomerEmailIdDTO.setMobileNo("+1".concat(updateCustomerEmailIdDTO.getMobileNo()));
+    		if(!updateCustomerEmailIdDTO.getCellPhone().startsWith("+1") && updateCustomerEmailIdDTO.getCellPhone().length()==10)
+    			updateCustomerEmailIdDTO.setCellPhone("+1".concat(updateCustomerEmailIdDTO.getCellPhone()));
     		
     		if(updateCustomerEmailIdDTO.getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getNewEmailId())) {
             	log.error("You cannot enter exactly same emailId to update");
@@ -663,11 +663,11 @@ public class CustomerService {
         			.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
         	RequestIdDetails requestIdDtls = requestIdResponseDTO.getData();
         	if(StringUtils.isBlank(requestIdDtls.getUserId())) {
-        		throw new CustomerNotFoundException("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
+        		throw new CustomerNotFoundException("RequestId and cellPhone does not match. Please provide a valid requestId or cellPhone to update");
         	}
         	if(StringUtils.isAllBlank(requestIdDtls.getAllocationStatus())) { 
 //        		if (((String) requestIdDtls.getEmployer()).equalsIgnoreCase(updateCustomerEmailIdDTO.getEmployerName())) {
-	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileMobileNo(updateCustomerEmailIdDTO.getMobileNo());
+	        		Optional<CustomerDetails> customerDetailsByMobileNo= customerRepository.findByPersonalProfileCellPhone(updateCustomerEmailIdDTO.getCellPhone());
 	                if(customerDetailsByMobileNo.isPresent()) {
 	                	custDetails = customerDetailsByMobileNo.get();
 	                	if(requestIdDtls.getUserId().equalsIgnoreCase(custDetails.getCustomerId())) {
@@ -675,7 +675,7 @@ public class CustomerService {
 			                	Optional<CustomerDetails> checkForEmailIdInDB= customerRepository.findByPersonalProfileEmailId(updateCustomerEmailIdDTO.getNewEmailId());
 				                if(!checkForEmailIdInDB.isPresent()) {
 				                	
-				                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getMobileNo() + " already exists");
+				                    log.debug("Customer with the mobile no " + custDetails.getPersonalProfile().getCellPhone() + " already exists");
 				                    log.info("Customer details are getting updated...");
 				                    
 			                		if(!custDetails.getPersonalProfile().getEmailId().equalsIgnoreCase(updateCustomerEmailIdDTO.getEmailId())) {
@@ -694,7 +694,7 @@ public class CustomerService {
 					                	custDetails =  customerRepository.save(custDetails);
 					                	custDetails.setRequestId(requestId);
 					                	updateCustomerDetailsResponseDTO.setRequestId(requestId);
-					                	updateCustomerDetailsResponseDTO.setMobileNo(updateCustomerEmailIdDTO.getMobileNo());
+					                	updateCustomerDetailsResponseDTO.setCellPhone(updateCustomerEmailIdDTO.getCellPhone());
 					                	updateCustomerDetailsResponseDTO.setEmailId(updateCustomerEmailIdDTO.getNewEmailId());
 					                	updateCustomerDetailsResponseDTO.setCustomerId(custDetails.getCustomerId());
 				                    }
@@ -714,12 +714,12 @@ public class CustomerService {
 	                		}
 	                	}
 	                	else {
-	                		log.error("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
-		                    throw new CustomerNotFoundException("RequestId and mobileNo does not match. Please provide a valid requestId or mobileNo to update");
+	                		log.error("RequestId and cellPhone does not match. Please provide a valid requestId or cellPhone to update");
+		                    throw new CustomerNotFoundException("RequestId and cellPhone does not match. Please provide a valid requestId or cellPhone to update");
 		                }
 	                } else {
-	                    log.error("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
-	                    throw new CustomerNotFoundException("Customer do not exists with the mobileNo: "+updateCustomerEmailIdDTO.getMobileNo()+" to update");
+	                    log.error("Customer do not exists with the cellPhone: "+updateCustomerEmailIdDTO.getCellPhone()+" to update");
+	                    throw new CustomerNotFoundException("Customer do not exists with the cellPhone: "+updateCustomerEmailIdDTO.getCellPhone()+" to update");
 	                }
 //        		}
 //    			else {
@@ -815,7 +815,7 @@ public class CustomerService {
         if(customerDetails.isSmsNotificationSuccess())
         	body.put("SMS Notification", SMS_NOTIFICATION_SUCCESS);
         else
-        	body.put("SMS Notification", customerDetails.getPersonalProfile().getMobileNo() + " - " + SMS_NOTIFICATION_FAILED);
+        	body.put("SMS Notification", customerDetails.getPersonalProfile().getCellPhone() + " - " + SMS_NOTIFICATION_FAILED);
         
         if(status == 201) {
         	return new ResponseEntity<>(body, HttpStatus.CREATED);
@@ -861,10 +861,10 @@ public class CustomerService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Last Name", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getMobileNo()) || StringUtils.isNotBlank(customerRequest.getMobileNo())) {
-				   List<String> errorList = customerFieldValidator.validateMobileNo(customerRequest.getMobileNo());
+			   if("YES".equalsIgnoreCase(customerRequestFields.getCellPhone()) || StringUtils.isNotBlank(customerRequest.getCellPhone())) {
+				   List<String> errorList = customerFieldValidator.validateMobileNo(customerRequest.getCellPhone());
 				   if(errorList.size() > 0)
-					   mapErrorList.put("Mobile Number", errorList);
+					   mapErrorList.put("CellPhone Number", errorList);
 			   }
 			   
 			   if("YES".equalsIgnoreCase(customerRequestFields.getMiddleName()) || StringUtils.isNotBlank(customerRequest.getMiddleName())) {
@@ -908,7 +908,7 @@ public class CustomerService {
 					   mapErrorList.put("Date Of Birth", errorList);
 			   }
 			   if("YES".equalsIgnoreCase(customerRequestFields.getEmailId()) || StringUtils.isNotBlank(customerRequest.getEmailId())) {
-				   List<String> errorList = customerFieldValidator.validateEmailId(customerRequest.getEmailId(), customerRepository, customerRequest.getMobileNo());
+				   List<String> errorList = customerFieldValidator.validateEmailId(customerRequest.getEmailId(), customerRepository, customerRequest.getCellPhone());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("EmailId", errorList);
 			   }
@@ -927,8 +927,8 @@ public class CustomerService {
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Repayment Frequency", errorList);
 			   }
-			   if("YES".equalsIgnoreCase(customerRequestFields.getTotalNoOfRepayment())){
-				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getTotalNoOfRepayment());
+			   if("YES".equalsIgnoreCase(customerRequestFields.getNumberOfInstallments())){
+				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getNumberOfInstallments());
 				   if(errorList.size() > 0)
 					   mapErrorList.put("Total Number Of Repayment", errorList);
 			   }else {
@@ -938,13 +938,13 @@ public class CustomerService {
 				   }
 				   if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
 					   List<String> errorList = new ArrayList<String>();
-					   if (customerRequest.getTotalNoOfRepayment() == null || customerRequest.getTotalNoOfRepayment() <= 0) {
-						   errorList.add(AppConstants.TOTALNOOFREPAYMENT_MANDATORY_MESSAGE);
+					   if (customerRequest.getNumberOfInstallments() == null || customerRequest.getNumberOfInstallments() <= 0) {
+						   errorList.add(AppConstants.NUMBEROFINSTALLMENTS_MANDATORY_MESSAGE);
 						   mapErrorList.put("Total Number Of Repayment", errorList);
 					   }
 				   }
-				   else if(customerRequest.getTotalNoOfRepayment() != null || customerRequest.getTotalNoOfRepayment() >= 0) {
-					   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getTotalNoOfRepayment());
+				   else if(customerRequest.getNumberOfInstallments() != null || customerRequest.getNumberOfInstallments() >= 0) {
+					   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getNumberOfInstallments());
 					   if(errorList.size() > 0)
 						   mapErrorList.put("Total Number Of Repayment", errorList);
 				   }
@@ -1046,12 +1046,12 @@ public class CustomerService {
     
     
     public void generalCustomerRequestConfig(CreateCustomerRequest customer) {
-    	if (!customer.getMobileNo().startsWith("+1") && customer.getMobileNo().length()==10)
-            customer.setMobileNo("+1".concat(customer.getMobileNo()));
+    	if (!customer.getCellPhone().startsWith("+1") && customer.getCellPhone().length()==10)
+            customer.setCellPhone("+1".concat(customer.getCellPhone()));
 
      // Setup made to get integer field in request and if null set it to default to 0.
-    	if(customer.getTotalNoOfRepayment() == null)
-    		customer.setTotalNoOfRepayment(0);
+    	if(customer.getNumberOfInstallments() == null)
+    		customer.setNumberOfInstallments(0);
     	if(customer.getInstallmentAmount() ==null)
     		customer.setInstallmentAmount(0);
     }
@@ -1108,8 +1108,8 @@ public class CustomerService {
 					if(lenderConfigInfo.getInvokeAndPublishDepositAllocation().equals(StateStatus.NO)) { 
 						throw new GeneralCustomException("ERROR","Deposit allocation is not allowed for the lender"); 
 					}
-		    		if (!depositAllocationRequestWrapperModel.getMobileNo().startsWith("+1") && depositAllocationRequestWrapperModel.getMobileNo().length()==10)
-		    			depositAllocationRequestWrapperModel.setMobileNo("+1".concat(depositAllocationRequestWrapperModel.getMobileNo()));
+		    		if (!depositAllocationRequestWrapperModel.getCellPhone().startsWith("+1") && depositAllocationRequestWrapperModel.getCellPhone().length()==10)
+		    			depositAllocationRequestWrapperModel.setCellPhone("+1".concat(depositAllocationRequestWrapperModel.getCellPhone()));
 		    		
 		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
 		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
@@ -1145,8 +1145,8 @@ public class CustomerService {
 		    		if(lenderConfigInfo.getPublishEmploymentInfo().equals(StateStatus.NO)) { 
 						throw new GeneralCustomException("ERROR","Employment verification is not allowed for the lender"); 
 					}
-		    		if (!employmentVerificationRequestWrapperModel.getMobileNo().startsWith("+1") && employmentVerificationRequestWrapperModel.getMobileNo().length()==10)
-		    			employmentVerificationRequestWrapperModel.setMobileNo("+1".concat(employmentVerificationRequestWrapperModel.getMobileNo()));
+		    		if (!employmentVerificationRequestWrapperModel.getCellPhone().startsWith("+1") && employmentVerificationRequestWrapperModel.getCellPhone().length()==10)
+		    			employmentVerificationRequestWrapperModel.setCellPhone("+1".concat(employmentVerificationRequestWrapperModel.getCellPhone()));
 		    		
 		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
 		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
@@ -1161,8 +1161,8 @@ public class CustomerService {
 		    		if(lenderConfigInfo.getPublishIncomeInfo().equals(StateStatus.NO)) { 
 						throw new GeneralCustomException("ERROR","Income verification is not allowed for the lender"); 
 					}
-		    		if (!incomeVerificationRequestWrapperModel.getMobileNo().startsWith("+1") && incomeVerificationRequestWrapperModel.getMobileNo().length()==10)
-		    			incomeVerificationRequestWrapperModel.setMobileNo("+1".concat(incomeVerificationRequestWrapperModel.getMobileNo()));
+		    		if (!incomeVerificationRequestWrapperModel.getCellPhone().startsWith("+1") && incomeVerificationRequestWrapperModel.getCellPhone().length()==10)
+		    			incomeVerificationRequestWrapperModel.setCellPhone("+1".concat(incomeVerificationRequestWrapperModel.getCellPhone()));
 		    		
 		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
 		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
@@ -1177,8 +1177,8 @@ public class CustomerService {
 		    		if(lenderConfigInfo.getPublishIdentityInfo().equals(StateStatus.NO)) { 
 						throw new GeneralCustomException("ERROR","Identity verification is not allowed for the lender"); 
 					}
-		    		if (!identityVerificationRequestWrapperModel.getMobileNo().startsWith("+1") && identityVerificationRequestWrapperModel.getMobileNo().length()==10)
-		    			identityVerificationRequestWrapperModel.setMobileNo("+1".concat(identityVerificationRequestWrapperModel.getMobileNo()));
+		    		if (!identityVerificationRequestWrapperModel.getCellPhone().startsWith("+1") && identityVerificationRequestWrapperModel.getCellPhone().length()==10)
+		    			identityVerificationRequestWrapperModel.setCellPhone("+1".concat(identityVerificationRequestWrapperModel.getCellPhone()));
 		    		
 		    		/* Check if employer selection is done, else make a search and select employer to update employer details to request table*/
 		    		if(requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
@@ -1268,13 +1268,13 @@ public class CustomerService {
     	log.info("Inside checkAndReturnIfCustomerAlreadyExist :" + customer);
     	CustomerDetails customerReponse = new CustomerDetails();
     	try {
-    		Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileMobileNo(customer.getMobileNo());
+    		Optional<CustomerDetails> byMobileNo = customerRepository.findByPersonalProfileCellPhone(customer.getCellPhone());
 	        if (byMobileNo.isPresent()) {
 	        	log.info("Exsiting customer with new requestID : " + requestId);
 	        	customerReponse = byMobileNo.get();
 	        	customerReponse.setExistingCustomer(true);
 	        	customerReponse.setInstallmentAmount(customer.getInstallmentAmount());
-	        	customerReponse.setTotalNoOfRepayment(customer.getTotalNoOfRepayment());
+	        	customerReponse.setNumberOfInstallments(customer.getNumberOfInstallments());
 	            
             	if(StringUtils.isBlank(customerReponse.getAccountABANumber()) && StringUtils.isNotBlank(customerReponse.getVirtualAccount())) {
             		customerReponse.setAccountABANumber(ROUTING_NUMBER);

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class IncomeResponseInfo {
 
     private String emailId;
-    private String mobileNo;
+    private String cellPhone;
     private String employer;
 
 }

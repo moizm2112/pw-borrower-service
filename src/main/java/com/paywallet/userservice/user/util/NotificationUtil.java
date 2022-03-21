@@ -55,7 +55,7 @@ public class NotificationUtil {
 		try {
 			SmsRequestDTO smsRequest = new SmsRequestDTO();
 			EmailRequestDTO emailRequest = new EmailRequestDTO();
-			String phoneNumber = customerDetail.getPersonalProfile().getMobileNo();
+			String phoneNumber = customerDetail.getPersonalProfile().getCellPhone();
 			String emailAddress = customerDetail.getPersonalProfile().getEmailId();
 			smsRequest = creatSmsRequest(phoneNumber, linkForCustomer,requestIdDetails);
 			emailRequest = createEmailRequestForCustomer(emailAddress, linkForCustomer, requestIdDetails);
