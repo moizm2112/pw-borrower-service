@@ -42,4 +42,23 @@ public class KafkaPublisherUtil {
             log.error(" Exception occurred while publishing LinkServiceInfo {}  request id :", ex, requestIdDtls.getRequestId());
         }
     }
+    
+    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails, FlowTypeEnum flowType) {
+        try {
+            LinkServiceInfo linkServiceInfo = LinkServiceInfo.builder()
+                    .requestId(requestIdDtls.getRequestId())
+                    .eventType(CommonEnum.CUSTOMER_CREATED.getMessage())
+                    .lenderName(requestIdDtls.getClientName())
+                    .phoneNumber(customerDetails.getPersonalProfile().getMobileNo())
+                    .email(customerDetails.getPersonalProfile().getEmailId())
+                    .employer(requestIdDtls.getEmployer())
+                    .payCycle(CommonEnum.PAY_CYCLE.getMessage())
+                    .flowType(flowType)
+                    .build();
+            StatusEnum statusEnum = kafkaProducerService.publishLinkServiceInfo(linkServiceInfo);
+            log.info(" requestId : {}  publish status  : {} ", requestIdDtls.getRequestId(), statusEnum);
+        } catch (Exception ex) {
+            log.error(" Exception occurred while publishing LinkServiceInfo {}  request id :", ex, requestIdDtls.getRequestId());
+        }
+    }
 }
