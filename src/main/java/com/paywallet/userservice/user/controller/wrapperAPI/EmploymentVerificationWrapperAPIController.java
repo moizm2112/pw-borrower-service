@@ -50,7 +50,7 @@ public class EmploymentVerificationWrapperAPIController {
         EmploymentResponseInfo employmentResponseInfo;
 		try {
 			employmentResponseInfo = employmentRetryWrapperAPIService.retryEmploymentVerification(requestId, empVerificationRequestDTO);
-		} catch (ResourceAccessException | RequestIdNotFoundException | GeneralCustomException | RetryException e) {
+		} catch (ResourceAccessException | RequestIdNotFoundException  | RetryException e) {
 			return employmentRetryWrapperAPIService.prepareResponseDTO(null, CommonEnum.FAILED_STATUS_MSG.getMessage(),
 	                HttpStatus.OK.value(), request.getRequestURI(), CommonEnum.COMMON_RETRY_FALED_MSG.getMessage());			
 		}
