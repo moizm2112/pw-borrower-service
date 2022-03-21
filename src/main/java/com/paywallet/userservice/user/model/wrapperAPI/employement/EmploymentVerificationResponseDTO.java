@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import java.util.Date;
 
 @Data
@@ -14,7 +17,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmploymentVerificationResponseDTO {
-
+	@JsonInclude(Include.NON_NULL)
     private EmploymentResponseInfo data;
     private String message;
     private String status;
