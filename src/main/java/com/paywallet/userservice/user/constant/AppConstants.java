@@ -61,7 +61,7 @@ public final class AppConstants {
 	public static final String CELLPHONE_FORMAT_VALIDATION_MESSAGE ="CellPhone Number is not in valid format.";
 	public static final String EMAIL_NULL_VALIDATION_MESSAGE ="Email can't be blank.";
 	public static final String UPDATING_EMAIL_NULL_VALIDATION_MESSAGE ="Blank email can't be processed.";
-	public static final String CELLPHONE_NULL_VALIDATION_MESSAGE="Phone Number can't be blank.";
+	public static final String CELLPHONE_NULL_VALIDATION_MESSAGE="CellPhone Number can't be blank.";
 	public static final String EMPLOYERNAME_NULL_VALIDATION_MESSAGE="Employer Name can't be blank.";
 	public static final String SSN_NULL_VALIDATION_MESSAGE="SSN can't be blank.";
 	public static final String DOB_NULL_VALIDATION_MESSAGE="DOB can't be blank.";
