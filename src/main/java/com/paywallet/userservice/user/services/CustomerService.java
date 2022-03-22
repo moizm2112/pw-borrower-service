@@ -933,7 +933,7 @@ public class CustomerService {
 			   if("YES".equalsIgnoreCase(customerRequestFields.getNumberOfInstallments())){
 				   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getNumberOfInstallments());
 				   if(errorList.size() > 0)
-					   mapErrorList.put("Total Number Of Repayment", errorList);
+					   mapErrorList.put("Number of installments", errorList);
 			   }else {
 				   if(lenderConfigInfo == null) {
 					   lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, lender);
@@ -943,13 +943,13 @@ public class CustomerService {
 					   List<String> errorList = new ArrayList<String>();
 					   if (customerRequest.getNumberOfInstallments() == null || customerRequest.getNumberOfInstallments() <= 0) {
 						   errorList.add(AppConstants.NUMBEROFINSTALLMENTS_MANDATORY_MESSAGE);
-						   mapErrorList.put("Total Number Of Repayment", errorList);
+						   mapErrorList.put("Number of installments", errorList);
 					   }
 				   }
 				   else if(customerRequest.getNumberOfInstallments() != null || customerRequest.getNumberOfInstallments() >= 0) {
 					   List<String> errorList = customerFieldValidator.validateTotalNoOfRepayment(customerRequest.getNumberOfInstallments());
 					   if(errorList.size() > 0)
-						   mapErrorList.put("Total Number Of Repayment", errorList);
+						   mapErrorList.put("Number of installments", errorList);
 				   }
 			   }
 			   if("YES".equalsIgnoreCase(customerRequestFields.getInstallmentAmount())) {
@@ -1065,7 +1065,6 @@ public class CustomerService {
         int virtualAccount = -1;
         CustomerDetails saveCustomer = new CustomerDetails();
         RequestIdDetails requestIdDtls = null;
-        boolean isDepositAllocation = true;
         CustomerDetails customerEntity = new CustomerDetails();
         DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel = null;
         EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel = null;

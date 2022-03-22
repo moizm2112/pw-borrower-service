@@ -82,15 +82,26 @@ public class CustomerWrapperAPIService {
     
 	public UpdateCustomerCredentialsResponse updateCustomerCredentials(UpdateCustomerCredentialsModel customerCredentialsModel, String requestId) 
 			throws CustomerNotFoundException, RequestIdNotFoundException {
-		
+		Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
 		UpdateCustomerCredentialsResponse updateCustomerCredentialsResponse =  new UpdateCustomerCredentialsResponse();
 		UpdateCustomerDetailsResponseDTO updateCustomerDetailsResponse =  null;
 		try {
 			
+			if(StringUtils.isBlank(customerCredentialsModel.getNewEmailId()) && StringUtils.isBlank(customerCredentialsModel.getNewCellPhone())) {
+				log.error("Updating customer credentials (New EmailId or CellPhone) is not found");
+				throw new GeneralCustomException("ERROR", "Updating customer credentials (New EmailId or CellPhone) is not found");
+			}
+			
 			if(StringUtils.isNotBlank(customerCredentialsModel.getNewEmailId())) {
-				UpdateCustomerEmailIdDTO updateCustomerEmailIdDTO = setDTOForEmailUpdate(customerCredentialsModel);
-				updateCustomerDetailsResponse = customerService.updateCustomerEmailId(updateCustomerEmailIdDTO, requestId);
-				setUpdateCustomerCredentialsEmailResponse(updateCustomerDetailsResponse, updateCustomerCredentialsResponse);
+				List<String> lsError = customerFieldValidator.validateEmailId(customerCredentialsModel.getNewEmailId(), customerRepository, customerCredentialsModel.getCellPhone());
+				if(lsError.size() > 0) {
+					mapErrorList.put("New EmailId : ", lsError);
+				}
+				else {
+					UpdateCustomerEmailIdDTO updateCustomerEmailIdDTO = setDTOForEmailUpdate(customerCredentialsModel);
+					updateCustomerDetailsResponse = customerService.updateCustomerEmailId(updateCustomerEmailIdDTO, requestId);
+					setUpdateCustomerCredentialsEmailResponse(updateCustomerDetailsResponse, updateCustomerCredentialsResponse);
+				}
 			}
 			else {
 				updateCustomerCredentialsResponse.setEmailId(StringUtils.EMPTY);
@@ -98,15 +109,33 @@ public class CustomerWrapperAPIService {
 			}
 			
 			if(StringUtils.isNotBlank(customerCredentialsModel.getNewCellPhone())) {
-				UpdateCustomerMobileNoDTO updateCustomerMobileNoDTO = setDTOForMobileNoUpdate(customerCredentialsModel);
-				updateCustomerDetailsResponse = customerService.updateCustomerMobileNo(updateCustomerMobileNoDTO, requestId);
-				setUpdateCustomerCredentialsMobileResponse(updateCustomerDetailsResponse, updateCustomerCredentialsResponse);
+				List<String> lsError = customerFieldValidator.validateMobileNo(customerCredentialsModel.getNewCellPhone());
+				if(lsError.size() > 0) {
+					mapErrorList.put("New CellPhone : ", lsError);
+				}
+				else {
+					UpdateCustomerMobileNoDTO updateCustomerMobileNoDTO = setDTOForMobileNoUpdate(customerCredentialsModel);
+					updateCustomerDetailsResponse = customerService.updateCustomerMobileNo(updateCustomerMobileNoDTO, requestId);
+					setUpdateCustomerCredentialsMobileResponse(updateCustomerDetailsResponse, updateCustomerCredentialsResponse);
+				}
 			}
 			else {
 				updateCustomerCredentialsResponse.setCellPhone(updateCustomerDetailsResponse.getCellPhone());
 				updateCustomerCredentialsResponse.setCellPhoneVerified(StringUtils.EMPTY);
 			}
 			updateCustomerCredentialsResponse.setRequestId(requestId);
+			
+			if(mapErrorList.size() > 0) {
+				   ObjectMapper objectMapper = new ObjectMapper();
+				   String json = "";
+			        try {
+			            json = objectMapper.writeValueAsString(mapErrorList);
+			            log.error("Exception while updating customer credentials  - " + json);
+			        } catch (JsonProcessingException e) {
+			        	throw new GeneralCustomException("ERROR", "Exception while updating customer credentials - " + mapErrorList);
+			        }
+				   throw new GeneralCustomException("ERROR", "Exception while updating customer credentials  - " + json);
+			   }
 		}
 		catch(CustomerNotFoundException | RequestIdNotFoundException | FineractAPIException | GeneralCustomException e) {
 			log.error("Exception occured while updating customer credentials " + e.getMessage());
@@ -340,9 +369,11 @@ public class CustomerWrapperAPIService {
 		depositAllocationResponseModel.setNumberOfInstallments(customerDetails.getNumberOfInstallments());
 		if(depositAllocationRequestWrapperModel.getInstallmentAmount() > 0)
 			depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
-		else if(depositAllocationRequestWrapperModel.getLoanAmount() > 0)
+		else if(depositAllocationRequestWrapperModel.getLoanAmount() > 0) {
 			depositAllocationResponseModel.setInstallmentAmount(customerService.getInstallmentAmount(depositAllocationRequestWrapperModel.getLoanAmount(),
 					depositAllocationRequestWrapperModel.getInstallmentAmount(), depositAllocationRequestWrapperModel.getNumberOfInstallments()));
+			depositAllocationResponseModel.setLoanAmount(depositAllocationRequestWrapperModel.getLoanAmount());
+		}
 		return depositAllocationResponseModel;
 	}
 	
@@ -467,6 +498,13 @@ public class CustomerWrapperAPIService {
 					   mapErrorList.put("Number of installements", errorList);
 			   }
 		   }
+		   
+//		   if(allocationRequest.getLoanAmount() == 0) {
+//			   if(allocationRequest.getInstallmentAmount() == 0) {
+//				   
+//			   }
+//		   }
+		   
 		   if(allocationRequest.getLoanAmount() != null && allocationRequest.getLoanAmount() > 0) {
 			   if(allocationRequest.getInstallmentAmount() != null && allocationRequest.getInstallmentAmount() > 0) {
 				   List<String> errorList = new ArrayList<String>();
@@ -480,13 +518,13 @@ public class CustomerWrapperAPIService {
 			   }
 		   }
 		   else {
-			   if(allocationRequest.getInstallmentAmount() == null) {
+			   if(allocationRequest.getInstallmentAmount() == null || allocationRequest.getInstallmentAmount() == 0) {
 				   List<String> errorList = new ArrayList<String>();
-				   errorList.add("Provide either Loan Amount or Installment Amount. Both cannot be empty");
+				   errorList.add("Provide either Loan Amount or Installment Amount, both cannot be empty or zero");
 				   mapErrorList.put("Loan Amount and Installment Amount", errorList);
 				   
 			   }else {
-				   if(allocationRequest.getInstallmentAmount() != null) {
+				   if(allocationRequest.getInstallmentAmount() != null && allocationRequest.getInstallmentAmount() > 0) {
 					   List<String> errorList = customerFieldValidator.validateInstallmentAmount(allocationRequest.getInstallmentAmount());
 					   if(errorList.size() > 0)
 						   mapErrorList.put("Installment Amount", errorList);
@@ -498,11 +536,11 @@ public class CustomerWrapperAPIService {
 			   String json = "";
 		        try {
 		            json = objectMapper.writeValueAsString(mapErrorList);
-		            log.error("Invalid data in customer request - " + json);
+		            log.error("Invalid data in deposit allocation request - " + json);
 		        } catch (JsonProcessingException e) {
-		        	throw new GeneralCustomException("ERROR", "Invalid data in customer request - " + mapErrorList);
+		        	throw new GeneralCustomException("ERROR", "Invalid data in deposit allocation request - " + mapErrorList);
 		        }
-			   throw new GeneralCustomException("ERROR", "Invalid data in customer request - " + json);
+			   throw new GeneralCustomException("ERROR", "Invalid data in deposit allocation request - " + json);
 		   }
 	   } catch(GeneralCustomException e) {
 		   throw e;

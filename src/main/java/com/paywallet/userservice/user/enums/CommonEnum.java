@@ -22,7 +22,7 @@ public enum CommonEnum {
     PAY_CYCLE("paycycle"),
     FAILED_STATUS_MSG("FAILED"),
     COMMON_RETRY_FALED_MSG("Customer has already completed the Employer Login. Retry not allowed"),
-    COMMON_RETRY_SUCCESS_MSG("Retry successfully completed. Link has been sent tot the Customer."),
+    COMMON_RETRY_SUCCESS_MSG("Retry successfully completed. Link has been sent to the Customer."),
 
     SUCCESS_HTTP_RESPONSE_MSG(200,"Success");
 	

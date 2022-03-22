@@ -3,6 +3,7 @@ package com.paywallet.userservice.user.services.wrapperapi.identity;
 import java.util.Date;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
@@ -93,16 +94,35 @@ public class IdentityRetryWrapperAPIService {
     	log.info(customer.getPersonalProfile().getEmailId());
     	log.info(identityVerificationRequestDTO.getCellPhone());
     	log.info(identityVerificationRequestDTO.getEmailId());
+
+        if(StringUtils.isBlank(identityVerificationRequestDTO.getEmailId())){
+            throw new  GeneralCustomException("ERROR", "The Customer email Id cannot be empty ");
+        }
+
+        if(StringUtils.isBlank(identityVerificationRequestDTO.getCellPhone())){
+            throw new  GeneralCustomException("ERROR", "The Customer mobile Number cannot be empty");
+        }
+
+        if(StringUtils.isBlank(identityVerificationRequestDTO.getEmployerId())){
+            throw new  GeneralCustomException("ERROR", "The Customer employer ID cannot be empty");
+        }
+
     	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
     	if(! requestIdDetails.getEmployerPWId().equals(identityVerificationRequestDTO.getEmployerId())) {
     		log.info("Employer Changed. Updating the new employer");
     		customerServiceHelper.getEmployerDetailsBasedOnEmployerId(identityVerificationRequestDTO.getEmployerId(),requestId);
     		requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
     	}
-    	if(! customer.getPersonalProfile().getCellPhone().equals(identityVerificationRequestDTO.getCellPhone()) ||
-    			!customer.getPersonalProfile().getEmailId().equals(identityVerificationRequestDTO.getEmailId())) {
-    		throw new  GeneralCustomException("ERROR", "The Customer Email or Cell Number cannot be changed");
-    	} 
+
+
+        if(! customer.getPersonalProfile().getCellPhone().equals(identityVerificationRequestDTO.getCellPhone())) {
+            throw new  GeneralCustomException("ERROR", "The Customer Mobile No. does not match with the request ID.");
+        }
+
+        if(!customer.getPersonalProfile().getEmailId().equals(identityVerificationRequestDTO.getEmailId())) {
+            throw new  GeneralCustomException("ERROR", "The Customer Email Id does not match with the request ID.");
+        }
+
     	return requestIdDetails;
     }
 }
