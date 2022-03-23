@@ -110,8 +110,7 @@ public class EmploymentRetryWrapperAPIService {
     	log.info(customer.getPersonalProfile().getEmailId());
     	log.info(empVerificationRequestDTO.getCellPhone());
     	log.info(empVerificationRequestDTO.getEmailId());
-    	LenderConfigInfo lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDetails.getClientName());
-    	customerWrapperService.validateEmploymentVerificationRequest(empVerificationRequestDTO,  requestId,  requestIdDetails,  lenderConfigInfo);
+    	customerWrapperService.validateMobileFromRequest(empVerificationRequestDTO.getCellPhone(),"Employment");
     	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
     	if(! requestIdDetails.getEmployerPWId().equals(empVerificationRequestDTO.getEmployerId())) {
     		log.info("Employer Changed. Updating the new employer");

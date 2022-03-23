@@ -610,6 +610,35 @@ public class CustomerWrapperAPIService {
 	   }
    }
 	
+	public void validateMobileFromRequest(String cellPhone, String verificationType){
+		   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
+		   try {
+			   
+			   
+			   if(StringUtils.isNotBlank(cellPhone)) {
+				   List<String> errorList = customerFieldValidator.validateMobileNo(cellPhone);
+				   if(errorList.size() > 0)
+					   mapErrorList.put("CellPhone Number", errorList);
+			   }
+			   if(mapErrorList.size() > 0) {
+				   ObjectMapper objectMapper = new ObjectMapper();
+				   String json = "";
+			        try {
+			            json = objectMapper.writeValueAsString(mapErrorList);
+			            log.error("Invalid data in the request - " + json);
+			        } catch (JsonProcessingException e) {
+			        	throw new GeneralCustomException("ERROR", "Invalid data in "+ verificationType + " verification request - " + mapErrorList);
+			        }
+				   throw new GeneralCustomException("ERROR", "Invalid data in "+ verificationType + "  verification request - " + json);
+			   }
+		   } catch(GeneralCustomException e) {
+			   throw e;
+		   } catch(Exception e) {
+			   log.error("Exception occured while validating the deposit allocation request");
+			   throw e;
+		   }
+	   }
+	
 	public void validateIncomeVerificationRequest(IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel, 
 			String requestId, RequestIdDetails requestIdDetails, LenderConfigInfo lenderConfigInfo){
 		   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
