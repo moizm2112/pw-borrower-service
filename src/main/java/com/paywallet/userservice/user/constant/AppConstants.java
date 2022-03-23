@@ -51,7 +51,7 @@ public final class AppConstants {
 	public static final String LOANAMOUNT_NULL_VALIDATION_MESSAGE="Loan Amount should be more than zero.";
 	public static final String NUMBEROFINSTALLMENTS_NULL_VALIDATION_MESSAGE="Number Of Installments should be more than zero.";
 	public static final String INSTALLMENTAMOUNT_MANDATORY_MESSAGE="Installment Amount is mandatory for deposit allocation";
-	public static final String NUMBEROFINSTALLMENTS_MANDATORY_MESSAGE="Number Of Installments is mandatory for deposit allocation";
+	public static final String NUMBEROFINSTALLMENTS_MANDATORY_MESSAGE="Number Of Installments is mandatory as deposit allocation is active for this lender"; 
 	public static final String REPAYMENTFREQUENCY_NULL_VALIDATION_MESSAGE="Repayment frequency can't be blank.";
 	public static final String FIRST_NAME_NULL_VALIDATION_MESSAGE="First Name Can't be blank.";
 	public static final String FIRSTDATEOFPAYMENT_NULL_VALIDATION_MESSAGE="First date of payment can't be blank.";

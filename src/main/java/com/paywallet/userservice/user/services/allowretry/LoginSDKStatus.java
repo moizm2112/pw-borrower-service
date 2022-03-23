@@ -26,7 +26,7 @@ public class LoginSDKStatus implements AllowRetryService {
         Optional<String> loginSdkStatus = resolve(() -> requestIdDetails.getLoginSdkStatus());
 
         if (loginSdkStatus.isPresent() && loginSdkStatus.get().equalsIgnoreCase(COMPLETED)) {
-            throw new RetryException(message.append(LOGIN_COMPLETED_MESSAGE).append(REQUEST_ID).append(requestIdDetails.getRequestId()).toString());
+            throw new RetryException(message.append(LOGIN_COMPLETED_MESSAGE).toString());
         }
         return message.append(LOGIN_NOT_COMPLETED_MESSAGE).append(REQUEST_ID).append(requestIdDetails.getRequestId()).toString();
 

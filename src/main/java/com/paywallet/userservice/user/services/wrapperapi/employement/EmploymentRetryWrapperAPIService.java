@@ -1,6 +1,7 @@
 package com.paywallet.userservice.user.services.wrapperapi.employement;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -8,19 +9,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
+import com.paywallet.userservice.user.model.LenderConfigInfo;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationResponseDTO;
+import com.paywallet.userservice.user.services.CustomerFieldValidator;
 import com.paywallet.userservice.user.services.CustomerService;
 import com.paywallet.userservice.user.services.CustomerServiceHelper;
+import com.paywallet.userservice.user.services.CustomerWrapperAPIService;
 import com.paywallet.userservice.user.services.allowretry.AllowRetryAPIUtil;
 import com.paywallet.userservice.user.util.KafkaPublisherUtil;
 import com.paywallet.userservice.user.util.RequestIdUtil;
@@ -41,6 +46,9 @@ public class EmploymentRetryWrapperAPIService {
     CustomerService customerService;
     
     @Autowired
+    CustomerWrapperAPIService customerWrapperService;
+    
+    @Autowired
     CustomerServiceHelper customerServiceHelper;
     
     @Autowired
@@ -48,6 +56,11 @@ public class EmploymentRetryWrapperAPIService {
     
     @Value("${identifyProviderService.eureka.uri}")
    	private String identifyProviderServiceUri;
+    
+    @Autowired
+    CustomerFieldValidator customerFieldValidator;
+    @Autowired
+    RestTemplate restTemplate;
        
 
     /**
@@ -56,50 +69,49 @@ public class EmploymentRetryWrapperAPIService {
     public EmploymentResponseInfo retryEmploymentVerification(String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
 
         RequestIdDetails requestIdDetails= requestIdUtil.fetchRequestIdDetails(requestId);
-        //Check whether retry can be initiated.
         allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
-        // initiate retry code logic -> need to add
-        initiateEmploymentVerification(requestIdDetails, requestId , empVerificationRequestDTO);
-        return this.prepareEmploymentResponseInfo(empVerificationRequestDTO);
+        CustomerDetails customer = initiateEmploymentVerification(requestIdDetails, requestId , empVerificationRequestDTO);
+        return this.prepareEmploymentResponseInfo(customer, empVerificationRequestDTO);
 
     }
 
-    public void initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) {
+    public CustomerDetails initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateEmploymentVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
     	log.info(" Received the CustomerDetails ::" , customer);
     	requestIdDetails = validateInput( customer, requestId,  requestIdDetails, empVerificationRequestDTO) ;
     	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.EMPLOYMENT_VERIFICATION);
+    	return customer;
     }
 
-    public EmploymentResponseInfo prepareEmploymentResponseInfo(EmploymentVerificationRequestWrapperModel empVerificationRequestDTO){
+    public EmploymentResponseInfo prepareEmploymentResponseInfo(CustomerDetails customer, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO){
        // Need to change the reading fields from request
         return EmploymentResponseInfo.builder()
                 .employer(empVerificationRequestDTO.getEmployerId())
                 .emailId(empVerificationRequestDTO.getEmailId())
-                .cellPhone(empVerificationRequestDTO.getCellPhone())
+                .cellPhone(customer.getPersonalProfile().getCellPhone())
                 .build();
     }
 
-    public EmploymentVerificationResponseDTO prepareResponseDTO(EmploymentResponseInfo employmentResponseInfo, String code, int value, String requestURI, String message) {
+    public EmploymentVerificationResponseDTO prepareResponseDTO(EmploymentResponseInfo employmentResponseInfo, String status,String requestURI, String message) {
         return EmploymentVerificationResponseDTO.builder()
                 .data(employmentResponseInfo)
                 .message(message)
                 .path(requestURI)
                 .timeStamp(new Date())
-                .status(code)
+                .status(status)
                 .build();
     }
     
     public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
-    		EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) {
+    		EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) throws RetryException {
     	log.info("Inside validateInput");
     	log.info(customer.getPersonalProfile().getCellPhone());
     	log.info(customer.getPersonalProfile().getEmailId());
     	log.info(empVerificationRequestDTO.getCellPhone());
     	log.info(empVerificationRequestDTO.getEmailId());
-
+    	customerWrapperService.validateMobileFromRequest(empVerificationRequestDTO.getCellPhone(),"Employment");
     	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
     	if(! requestIdDetails.getEmployerPWId().equals(empVerificationRequestDTO.getEmployerId())) {
     		log.info("Employer Changed. Updating the new employer");
@@ -107,12 +119,17 @@ public class EmploymentRetryWrapperAPIService {
     		requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
     	}
 
-        if(!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId())) {
-            throw new  GeneralCustomException("ERROR", "Email Id does not match with the request ID.");
+        if((! customer.getPersonalProfile().getCellPhone().contains(empVerificationRequestDTO.getCellPhone()))&&
+                (!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId()))){
+            throw new RetryException("Both Email ID and Mobile No. does not match with the request ID.");
         }
 
-        if(! customer.getPersonalProfile().getCellPhone().equals(empVerificationRequestDTO.getCellPhone())) {
-            throw new  GeneralCustomException("ERROR", "Mobile No. does not match with the request ID");
+        if(! customer.getPersonalProfile().getCellPhone().contains(empVerificationRequestDTO.getCellPhone())) {
+            throw new RetryException("Mobile No. does not match with the request ID.");
+        }
+
+        if(!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId())) {
+            throw new RetryException("Email Id does not match with the request ID.");
         }
 
     	return requestIdDetails;

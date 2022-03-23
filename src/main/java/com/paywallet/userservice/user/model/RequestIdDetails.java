@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -45,7 +46,7 @@ public class RequestIdDetails {
     private List<String> insufficientFundCallbackUrls;
     private int accountValidationAttempt;
     private List<String> notificationUrls;
-    private String flowType;
+    private FlowTypeEnum flowType;
     private String loginSdkStatus;
 
 }

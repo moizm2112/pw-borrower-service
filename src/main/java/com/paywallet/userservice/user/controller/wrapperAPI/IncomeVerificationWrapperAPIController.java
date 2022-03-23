@@ -43,16 +43,10 @@ public class IncomeVerificationWrapperAPIController {
     @PostMapping(INCOME_VERIFICATION_RETRY)
     public IncomeVerificationResponseDTO retryIncomeVerification(@RequestHeader(REQUEST_ID) String requestId,
                                                                  @Valid @RequestBody IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO,
-                                                                 HttpServletRequest request) throws RequestIdNotFoundException {
+                                                                 HttpServletRequest request) throws RequestIdNotFoundException, RetryException {
 
         log.debug("Income Verification retry request received : {}  request ID : {} ", incomeVerificationRequestDTO, requestId);
-        IncomeResponseInfo incomeResponseInfo;
-		try {
-			incomeResponseInfo = incomeRetryWrapperAPIService.retryIncomeVerification(requestId, incomeVerificationRequestDTO);
-		} catch (ResourceAccessException | RequestIdNotFoundException | GeneralCustomException | RetryException e) {
-			return incomeRetryWrapperAPIService.prepareResponseDTO(null, CommonEnum.FAILED_STATUS_MSG.getMessage(),
-	                request.getRequestURI(), CommonEnum.COMMON_RETRY_FALED_MSG.getMessage());
-		}
+        IncomeResponseInfo incomeResponseInfo= incomeRetryWrapperAPIService.retryIncomeVerification(requestId, incomeVerificationRequestDTO);
         return incomeRetryWrapperAPIService.prepareResponseDTO(incomeResponseInfo, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
                 request.getRequestURI(), CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage());
 
