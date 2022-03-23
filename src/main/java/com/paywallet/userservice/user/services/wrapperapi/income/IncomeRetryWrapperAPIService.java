@@ -7,19 +7,23 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
+import com.paywallet.userservice.user.model.LenderConfigInfo;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationResponseDTO;
+import com.paywallet.userservice.user.services.CustomerFieldValidator;
 import com.paywallet.userservice.user.services.CustomerService;
 import com.paywallet.userservice.user.services.CustomerServiceHelper;
+import com.paywallet.userservice.user.services.CustomerWrapperAPIService;
 import com.paywallet.userservice.user.services.allowretry.AllowRetryAPIUtil;
 import com.paywallet.userservice.user.util.KafkaPublisherUtil;
 import com.paywallet.userservice.user.util.RequestIdUtil;
@@ -44,6 +48,15 @@ public class IncomeRetryWrapperAPIService {
 
     @Autowired
     CustomerService customerService;
+    
+    @Autowired
+    CustomerWrapperAPIService customerWrapperService;
+    
+    @Autowired
+    CustomerFieldValidator customerFieldValidator;
+    
+    @Autowired
+    RestTemplate restTemplate;
     
 
     /**
@@ -94,7 +107,9 @@ public class IncomeRetryWrapperAPIService {
     	log.info(customer.getPersonalProfile().getEmailId());
     	log.info(incomeVerificationRequestDTO.getCellPhone());
     	log.info(incomeVerificationRequestDTO.getEmailId());
-
+    	
+    	LenderConfigInfo lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDetails.getClientName());
+    	customerWrapperService.validateIncomeVerificationRequest(incomeVerificationRequestDTO,  requestId,  requestIdDetails,  lenderConfigInfo);
     	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
     	if(! requestIdDetails.getEmployerPWId().equals(incomeVerificationRequestDTO.getEmployerId())) {
     		log.info("Employer Changed. Updating the new employer");

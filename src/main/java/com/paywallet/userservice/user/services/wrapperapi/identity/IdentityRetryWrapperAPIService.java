@@ -5,21 +5,26 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
+import com.paywallet.userservice.user.model.LenderConfigInfo;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.identity.IdentityResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.identity.IdentityVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.identity.IdentityVerificationResponseDTO;
+import com.paywallet.userservice.user.services.CustomerFieldValidator;
 import com.paywallet.userservice.user.services.CustomerService;
 import com.paywallet.userservice.user.services.CustomerServiceHelper;
+import com.paywallet.userservice.user.services.CustomerWrapperAPIService;
 import com.paywallet.userservice.user.services.allowretry.AllowRetryAPIUtil;
 import com.paywallet.userservice.user.util.KafkaPublisherUtil;
 import com.paywallet.userservice.user.util.RequestIdUtil;
@@ -44,6 +49,15 @@ public class IdentityRetryWrapperAPIService {
 
     @Autowired
     AllowRetryAPIUtil allowRetryAPIUtil;
+    
+    @Autowired
+    CustomerWrapperAPIService customerWrapperService;
+    
+    
+    @Autowired
+    CustomerFieldValidator customerFieldValidator;
+    @Autowired
+    RestTemplate restTemplate;
 
     /**
      * checking for allow retry status, if retry is allowed, then re-initiating identity verification
@@ -95,6 +109,8 @@ public class IdentityRetryWrapperAPIService {
     	log.info(identityVerificationRequestDTO.getCellPhone());
     	log.info(identityVerificationRequestDTO.getEmailId());
 
+    	LenderConfigInfo lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDetails.getClientName());
+    	customerWrapperService.validateIdentityVerificationRequest(identityVerificationRequestDTO,  requestId,  requestIdDetails,  lenderConfigInfo);
     	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
     	if(! requestIdDetails.getEmployerPWId().equals(identityVerificationRequestDTO.getEmployerId())) {
     		log.info("Employer Changed. Updating the new employer");

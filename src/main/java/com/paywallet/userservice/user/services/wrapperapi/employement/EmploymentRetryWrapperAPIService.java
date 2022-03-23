@@ -1,6 +1,7 @@
 package com.paywallet.userservice.user.services.wrapperapi.employement;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -8,19 +9,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
+import com.paywallet.userservice.user.model.LenderConfigInfo;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationResponseDTO;
+import com.paywallet.userservice.user.services.CustomerFieldValidator;
 import com.paywallet.userservice.user.services.CustomerService;
 import com.paywallet.userservice.user.services.CustomerServiceHelper;
+import com.paywallet.userservice.user.services.CustomerWrapperAPIService;
 import com.paywallet.userservice.user.services.allowretry.AllowRetryAPIUtil;
 import com.paywallet.userservice.user.util.KafkaPublisherUtil;
 import com.paywallet.userservice.user.util.RequestIdUtil;
@@ -41,6 +46,9 @@ public class EmploymentRetryWrapperAPIService {
     CustomerService customerService;
     
     @Autowired
+    CustomerWrapperAPIService customerWrapperService;
+    
+    @Autowired
     CustomerServiceHelper customerServiceHelper;
     
     @Autowired
@@ -48,6 +56,11 @@ public class EmploymentRetryWrapperAPIService {
     
     @Value("${identifyProviderService.eureka.uri}")
    	private String identifyProviderServiceUri;
+    
+    @Autowired
+    CustomerFieldValidator customerFieldValidator;
+    @Autowired
+    RestTemplate restTemplate;
        
 
     /**
@@ -97,7 +110,8 @@ public class EmploymentRetryWrapperAPIService {
     	log.info(customer.getPersonalProfile().getEmailId());
     	log.info(empVerificationRequestDTO.getCellPhone());
     	log.info(empVerificationRequestDTO.getEmailId());
-
+    	LenderConfigInfo lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDetails.getClientName());
+    	customerWrapperService.validateEmploymentVerificationRequest(empVerificationRequestDTO,  requestId,  requestIdDetails,  lenderConfigInfo);
     	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
     	if(! requestIdDetails.getEmployerPWId().equals(empVerificationRequestDTO.getEmployerId())) {
     		log.info("Employer Changed. Updating the new employer");
