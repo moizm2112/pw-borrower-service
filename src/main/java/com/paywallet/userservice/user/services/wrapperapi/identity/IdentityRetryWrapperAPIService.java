@@ -103,7 +103,12 @@ public class IdentityRetryWrapperAPIService {
     	}
 
 
-        if(! customer.getPersonalProfile().getCellPhone().equals(identityVerificationRequestDTO.getCellPhone())) {
+        if((! customer.getPersonalProfile().getCellPhone().contains(identityVerificationRequestDTO.getCellPhone()))&&
+                (!customer.getPersonalProfile().getEmailId().equals(identityVerificationRequestDTO.getEmailId()))){
+            throw new RetryException("Both Email ID and Mobile No. does not match with the request ID.");
+        }
+
+        if(! customer.getPersonalProfile().getCellPhone().contains(identityVerificationRequestDTO.getCellPhone())) {
             throw new RetryException("Mobile No. does not match with the request ID.");
         }
 

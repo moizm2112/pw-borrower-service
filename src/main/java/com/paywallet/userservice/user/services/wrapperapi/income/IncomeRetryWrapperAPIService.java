@@ -102,13 +102,20 @@ public class IncomeRetryWrapperAPIService {
     		requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
     	}
 
+        if((!customer.getPersonalProfile().getCellPhone().contains(incomeVerificationRequestDTO.getCellPhone()) )&&
+                (!customer.getPersonalProfile().getEmailId().equals(incomeVerificationRequestDTO.getEmailId()))){
+            throw new RetryException("Both Email ID and Mobile No. does not match with the request ID.");
+        }
+
+        if(! customer.getPersonalProfile().getCellPhone().contains(incomeVerificationRequestDTO.getCellPhone())) {
+            throw new RetryException("Mobile No. does not match with the request ID.");
+        }
+
         if(	!customer.getPersonalProfile().getEmailId().equals(incomeVerificationRequestDTO.getEmailId())) {
             throw new RetryException("Email Id does not match with the request ID.");
         }
 
-        if(! customer.getPersonalProfile().getCellPhone().equals(incomeVerificationRequestDTO.getCellPhone())) {
-            throw new  RetryException("Mobile No. does not match with the request ID.");
-        }
+
 
     	return requestIdDetails;
     }
