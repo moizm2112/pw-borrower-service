@@ -70,26 +70,27 @@ public class EmploymentRetryWrapperAPIService {
 
         RequestIdDetails requestIdDetails= requestIdUtil.fetchRequestIdDetails(requestId);
         allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
-        initiateEmploymentVerification(requestIdDetails, requestId , empVerificationRequestDTO);
-        return this.prepareEmploymentResponseInfo(empVerificationRequestDTO);
+        CustomerDetails customer = initiateEmploymentVerification(requestIdDetails, requestId , empVerificationRequestDTO);
+        return this.prepareEmploymentResponseInfo(customer, empVerificationRequestDTO);
 
     }
 
-    public void initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) throws RetryException {
+    public CustomerDetails initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateEmploymentVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
     	log.info(" Received the CustomerDetails ::" , customer);
     	requestIdDetails = validateInput( customer, requestId,  requestIdDetails, empVerificationRequestDTO) ;
     	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.EMPLOYMENT_VERIFICATION);
+    	return customer;
     }
 
-    public EmploymentResponseInfo prepareEmploymentResponseInfo(EmploymentVerificationRequestWrapperModel empVerificationRequestDTO){
+    public EmploymentResponseInfo prepareEmploymentResponseInfo(CustomerDetails customer, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO){
        // Need to change the reading fields from request
         return EmploymentResponseInfo.builder()
                 .employer(empVerificationRequestDTO.getEmployerId())
                 .emailId(empVerificationRequestDTO.getEmailId())
-                .cellPhone(empVerificationRequestDTO.getCellPhone())
+                .cellPhone(customer.getPersonalProfile().getCellPhone())
                 .build();
     }
 

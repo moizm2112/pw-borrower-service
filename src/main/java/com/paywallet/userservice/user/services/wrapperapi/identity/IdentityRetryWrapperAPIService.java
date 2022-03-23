@@ -67,27 +67,28 @@ public class IdentityRetryWrapperAPIService {
         RequestIdDetails requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
         allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
         // initiate retry code logic -> need to add
-        initiateIdentityVerification(requestIdDetails, requestId, identityVerificationRequestDTO);
-        return this.prepareIdentityResponseInfo(identityVerificationRequestDTO);
+        CustomerDetails customer = initiateIdentityVerification(requestIdDetails, requestId, identityVerificationRequestDTO);
+        return this.prepareIdentityResponseInfo(customer,identityVerificationRequestDTO);
 
     }
     
-    public void initiateIdentityVerification(RequestIdDetails requestIdDetails, String requestId, IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) throws RetryException {
+    public CustomerDetails initiateIdentityVerification(RequestIdDetails requestIdDetails, String requestId, IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateIdentityVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
     	log.info(" Received the CustomerDetails ::" , customer);
     	requestIdDetails = validateInput( customer, requestId,  requestIdDetails, identityVerificationRequestDTO) ;
     	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.IDENTITY_VERIFICATION);
+    	return customer;
     }
 
 
-    public IdentityResponseInfo prepareIdentityResponseInfo(IdentityVerificationRequestWrapperModel identityVerReqDTO) {
+    public IdentityResponseInfo prepareIdentityResponseInfo(CustomerDetails customer, IdentityVerificationRequestWrapperModel identityVerReqDTO) {
         // Need to change the reading fields from request
         return IdentityResponseInfo.builder()
                 .employer(identityVerReqDTO.getEmployerId())
                 .emailId(identityVerReqDTO.getEmailId())
-                .cellPhone(identityVerReqDTO.getCellPhone())
+                .cellPhone(customer.getPersonalProfile().getCellPhone())
                 .build();
     }
 

@@ -67,26 +67,27 @@ public class IncomeRetryWrapperAPIService {
         RequestIdDetails requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
         allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
         // initiate retry code logic -> need to add
-        initiateIncomeVerification(requestIdDetails, requestId, incomeVerificationRequestDTO);
-        return this.prepareIncomeResponseInfo(incomeVerificationRequestDTO);
+        CustomerDetails customer = initiateIncomeVerification(requestIdDetails, requestId, incomeVerificationRequestDTO);
+        return this.prepareIncomeResponseInfo(customer, incomeVerificationRequestDTO);
 
     }
 
-    public void initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) throws RetryException {
+    public CustomerDetails initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateIncomeVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
     	log.info(" Received the CustomerDetails ::" , customer);
     	requestIdDetails = validateInput( customer, requestId,  requestIdDetails,  incomeVerificationRequestDTO) ;
     	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDetails,customer, FlowTypeEnum.INCOME_VERIFICATION);
+    	return customer;
     }
 
-    public IncomeResponseInfo prepareIncomeResponseInfo(IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
+    public IncomeResponseInfo prepareIncomeResponseInfo(CustomerDetails customer, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
         // Need to change the reading fields from request
         return IncomeResponseInfo.builder()
                 .employer(incomeVerificationRequestDTO.getEmployerId())
                 .emailId(incomeVerificationRequestDTO.getEmailId())
-                .cellPhone(incomeVerificationRequestDTO.getCellPhone())
+                .cellPhone(customer.getPersonalProfile().getCellPhone())
                 .build();
     }
 
