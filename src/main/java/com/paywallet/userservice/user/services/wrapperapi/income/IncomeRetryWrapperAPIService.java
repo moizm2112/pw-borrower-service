@@ -59,7 +59,7 @@ public class IncomeRetryWrapperAPIService {
 
     }
 
-    public void initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
+    public void initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateIncomeVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
@@ -88,7 +88,7 @@ public class IncomeRetryWrapperAPIService {
     }
     
     public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
-    		IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
+    		IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) throws RetryException {
     	log.info("Inside validateInput");
     	log.info(customer.getPersonalProfile().getCellPhone());
     	log.info(customer.getPersonalProfile().getEmailId());
@@ -102,13 +102,20 @@ public class IncomeRetryWrapperAPIService {
     		requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
     	}
 
-        if(	!customer.getPersonalProfile().getEmailId().equals(incomeVerificationRequestDTO.getEmailId())) {
-            throw new  GeneralCustomException("ERROR", "Email Id does not match with the request ID.");
+        if((!customer.getPersonalProfile().getCellPhone().contains(incomeVerificationRequestDTO.getCellPhone()) )&&
+                (!customer.getPersonalProfile().getEmailId().equals(incomeVerificationRequestDTO.getEmailId()))){
+            throw new RetryException("Both Email ID and Mobile No. does not match with the request ID.");
         }
 
-        if(! customer.getPersonalProfile().getCellPhone().equals(incomeVerificationRequestDTO.getCellPhone())) {
-            throw new  GeneralCustomException("ERROR", "Mobile No. does not match with the request ID.");
+        if(! customer.getPersonalProfile().getCellPhone().contains(incomeVerificationRequestDTO.getCellPhone())) {
+            throw new RetryException("Mobile No. does not match with the request ID.");
         }
+
+        if(	!customer.getPersonalProfile().getEmailId().equals(incomeVerificationRequestDTO.getEmailId())) {
+            throw new RetryException("Email Id does not match with the request ID.");
+        }
+
+
 
     	return requestIdDetails;
     }

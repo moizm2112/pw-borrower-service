@@ -249,5 +249,17 @@ public class ControllerAdvisor {
 		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
 	}
 
-	
+	@ExceptionHandler(RetryException.class)
+	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+	public ResponseEntity<Object> handleRetryException(RetryException retryException, HttpServletRequest request) {
+		String path = request.getRequestURI();
+		log.error(retryException.getMessage());
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("code", HttpStatus.BAD_REQUEST.toString());
+		body.put("message", retryException.getMessage());
+		body.put("timestamp", new Date());
+		body.put("path", path);
+		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+	}
+
 }

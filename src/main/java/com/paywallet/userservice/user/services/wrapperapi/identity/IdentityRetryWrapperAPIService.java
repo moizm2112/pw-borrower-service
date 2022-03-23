@@ -58,7 +58,7 @@ public class IdentityRetryWrapperAPIService {
 
     }
     
-    public void initiateIdentityVerification(RequestIdDetails requestIdDetails, String requestId, IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) {
+    public void initiateIdentityVerification(RequestIdDetails requestIdDetails, String requestId, IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateIdentityVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
@@ -77,18 +77,18 @@ public class IdentityRetryWrapperAPIService {
                 .build();
     }
 
-    public IdentityVerificationResponseDTO prepareResponseDTO(IdentityResponseInfo identityResponseInfo, String message, String  value, String requestURI) {
+    public IdentityVerificationResponseDTO prepareResponseDTO(IdentityResponseInfo identityResponseInfo,String status, String message, String requestURI) {
         return IdentityVerificationResponseDTO.builder()
                 .data(identityResponseInfo)
                 .message(message)
                 .path(requestURI)
                 .timeStamp(new Date())
-                .status(value)
+                .status(status)
                 .build();
     }
     
     public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
-    		IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) {
+    		IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) throws RetryException {
     	log.info("Inside validateInput");
     	log.info(customer.getPersonalProfile().getCellPhone());
     	log.info(customer.getPersonalProfile().getEmailId());
@@ -103,12 +103,17 @@ public class IdentityRetryWrapperAPIService {
     	}
 
 
-        if(! customer.getPersonalProfile().getCellPhone().equals(identityVerificationRequestDTO.getCellPhone())) {
-            throw new  GeneralCustomException("ERROR", "Mobile No. does not match with the request ID.");
+        if((! customer.getPersonalProfile().getCellPhone().contains(identityVerificationRequestDTO.getCellPhone()))&&
+                (!customer.getPersonalProfile().getEmailId().equals(identityVerificationRequestDTO.getEmailId()))){
+            throw new RetryException("Both Email ID and Mobile No. does not match with the request ID.");
+        }
+
+        if(! customer.getPersonalProfile().getCellPhone().contains(identityVerificationRequestDTO.getCellPhone())) {
+            throw new RetryException("Mobile No. does not match with the request ID.");
         }
 
         if(!customer.getPersonalProfile().getEmailId().equals(identityVerificationRequestDTO.getEmailId())) {
-            throw new  GeneralCustomException("ERROR", "Email Id does not match with the request ID.");
+            throw new  RetryException("Email Id does not match with the request ID.");
         }
 
     	return requestIdDetails;

@@ -5,7 +5,7 @@ public interface RetryAPIConstants {
 
     //login
     String LOGIN_NOT_COMPLETED_MESSAGE = "SDK login is not completed, we can allow retry API ";
-    String LOGIN_COMPLETED_MESSAGE = "SDK login is already completed, we can't allow retry API ";
+    String LOGIN_COMPLETED_MESSAGE = "Customer has already completed the Employer Login. Retry not allowed";
 
     // request ID
     String REQUEST_ID = "Request ID :";
