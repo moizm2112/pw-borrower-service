@@ -11,6 +11,8 @@ public class DepositAllocationResponseWrapperModel {
 	private String emailId;
 	private String cellPhone;
 	private double installmentAmount;
+	@JsonInclude(value = Include.NON_NULL)
+	private Integer loanAmount;
 	private Integer numberOfInstallments;
 	private String virtualAccountNumber;
 	@JsonInclude(value = Include.NON_NULL)
