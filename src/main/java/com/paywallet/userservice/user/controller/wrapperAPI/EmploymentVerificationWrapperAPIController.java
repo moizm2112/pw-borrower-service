@@ -46,18 +46,12 @@ public class EmploymentVerificationWrapperAPIController {
     @PostMapping(EMP_VERIFICATION_RETRY)
     public EmploymentVerificationResponseDTO retryEmploymentVerification(@RequestHeader(REQUEST_ID) String requestId,
     															@Valid @RequestBody EmploymentVerificationRequestWrapperModel empVerificationRequestDTO,
-                                                                         HttpServletRequest request) throws RequestIdNotFoundException {
+                                                                         HttpServletRequest request) throws RequestIdNotFoundException, RetryException {
         log.debug("Employment Verification retry request received : {}  request ID : {} ", empVerificationRequestDTO, requestId);
         
-        EmploymentResponseInfo employmentResponseInfo;
-		try {
-			employmentResponseInfo = employmentRetryWrapperAPIService.retryEmploymentVerification(requestId, empVerificationRequestDTO);
-		} catch (ResourceAccessException | RequestIdNotFoundException  | RetryException e) {
-			return employmentRetryWrapperAPIService.prepareResponseDTO(null, CommonEnum.FAILED_STATUS_MSG.getMessage(),
-	                HttpStatus.OK.value(), request.getRequestURI(), CommonEnum.COMMON_RETRY_FALED_MSG.getMessage());			
-		}
-        return employmentRetryWrapperAPIService.prepareResponseDTO(employmentResponseInfo, CommonEnum.SUCCESS_STATUS_MSG.getMessage(),
-                HttpStatus.UNAUTHORIZED.value(), request.getRequestURI(), CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage());
+        EmploymentResponseInfo employmentResponseInfo = employmentRetryWrapperAPIService.retryEmploymentVerification(requestId, empVerificationRequestDTO);
+        return employmentRetryWrapperAPIService.prepareResponseDTO(employmentResponseInfo, CommonEnum.SUCCESS_STATUS_MSG.name(),
+                 request.getRequestURI(), CommonEnum.COMMON_RETRY_SUCCESS_MSG.getMessage());
     }
 
 

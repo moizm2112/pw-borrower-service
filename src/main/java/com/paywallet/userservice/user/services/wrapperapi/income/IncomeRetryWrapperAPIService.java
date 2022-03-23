@@ -88,7 +88,7 @@ public class IncomeRetryWrapperAPIService {
     }
     
     public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
-    		IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
+    		IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) throws RetryException {
     	log.info("Inside validateInput");
     	log.info(customer.getPersonalProfile().getCellPhone());
     	log.info(customer.getPersonalProfile().getEmailId());
@@ -103,11 +103,11 @@ public class IncomeRetryWrapperAPIService {
     	}
 
         if(	!customer.getPersonalProfile().getEmailId().equals(incomeVerificationRequestDTO.getEmailId())) {
-            throw new  GeneralCustomException("ERROR", "Email Id does not match with the request ID.");
+            throw new RetryException("Email Id does not match with the request ID.");
         }
 
         if(! customer.getPersonalProfile().getCellPhone().equals(incomeVerificationRequestDTO.getCellPhone())) {
-            throw new  GeneralCustomException("ERROR", "Mobile No. does not match with the request ID.");
+            throw new  RetryException("Mobile No. does not match with the request ID.");
         }
 
     	return requestIdDetails;
