@@ -62,7 +62,7 @@ public class EmploymentRetryWrapperAPIService {
 
     }
 
-    public void initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) {
+    public void initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateEmploymentVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));

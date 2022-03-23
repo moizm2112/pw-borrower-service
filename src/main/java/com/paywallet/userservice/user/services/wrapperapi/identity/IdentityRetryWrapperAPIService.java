@@ -58,7 +58,7 @@ public class IdentityRetryWrapperAPIService {
 
     }
     
-    public void initiateIdentityVerification(RequestIdDetails requestIdDetails, String requestId, IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) {
+    public void initiateIdentityVerification(RequestIdDetails requestIdDetails, String requestId, IdentityVerificationRequestWrapperModel identityVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateIdentityVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));

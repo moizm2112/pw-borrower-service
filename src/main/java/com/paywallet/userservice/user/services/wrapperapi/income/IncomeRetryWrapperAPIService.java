@@ -59,7 +59,7 @@ public class IncomeRetryWrapperAPIService {
 
     }
 
-    public void initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
+    public void initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateIncomeVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
