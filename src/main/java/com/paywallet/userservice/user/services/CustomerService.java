@@ -1217,7 +1217,7 @@ public class CustomerService {
             //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
             if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name()) && directDepositAllocationInstallmentAmount > 0) {
             	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,directDepositAllocationInstallmentAmount, flowType);
-            	customer.setInstallmentAmount(directDepositAllocationInstallmentAmount);
+            	customer.setInstallmentAmount((int) directDepositAllocationInstallmentAmount);
             }
             else
             	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,(double) customer.getInstallmentAmount(), flowType);
