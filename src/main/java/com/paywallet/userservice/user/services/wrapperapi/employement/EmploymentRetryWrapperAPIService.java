@@ -100,18 +100,6 @@ public class EmploymentRetryWrapperAPIService {
     	log.info(empVerificationRequestDTO.getCellPhone());
     	log.info(empVerificationRequestDTO.getEmailId());
 
-        if(StringUtils.isBlank(empVerificationRequestDTO.getEmailId())){
-            throw new  GeneralCustomException("ERROR", "The Customer Email Id cannot be empty ");
-        }
-
-        if(StringUtils.isBlank(empVerificationRequestDTO.getCellPhone())){
-            throw new  GeneralCustomException("ERROR", "The Customer mobile Number cannot be empty");
-        }
-
-        if(StringUtils.isBlank(empVerificationRequestDTO.getEmployerId())){
-            throw new  GeneralCustomException("ERROR", "The Customer employer ID cannot be empty");
-        }
-
     	//Check if the employer Id in the Request Table has been changed with new employerId in the Retry Request. If yes, call the select employer
     	if(! requestIdDetails.getEmployerPWId().equals(empVerificationRequestDTO.getEmployerId())) {
     		log.info("Employer Changed. Updating the new employer");
@@ -120,11 +108,11 @@ public class EmploymentRetryWrapperAPIService {
     	}
 
         if(!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId())) {
-            throw new  GeneralCustomException("ERROR", "The Customer email Id does not match with the request ID.");
+            throw new  GeneralCustomException("ERROR", "Email Id does not match with the request ID.");
         }
 
         if(! customer.getPersonalProfile().getCellPhone().equals(empVerificationRequestDTO.getCellPhone())) {
-            throw new  GeneralCustomException("ERROR", "The Customer Mobile No. does not match with the request ID");
+            throw new  GeneralCustomException("ERROR", "Mobile No. does not match with the request ID");
         }
 
     	return requestIdDetails;
