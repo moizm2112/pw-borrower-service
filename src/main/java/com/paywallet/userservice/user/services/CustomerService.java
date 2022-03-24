@@ -1219,12 +1219,15 @@ public class CustomerService {
             if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name()) && directDepositAllocationInstallmentAmount > 0) {
             	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,directDepositAllocationInstallmentAmount, flowType);
             	customer.setInstallmentAmount((int) directDepositAllocationInstallmentAmount);
+            	checkAndSavePayAllocation(requestIdDtls,customer, flowType, depositAllocationRequestWrapperModel.getLoanAmount());
             }
-            else
+            else {
             	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,(double) customer.getInstallmentAmount(), flowType);
+            	checkAndSavePayAllocation(requestIdDtls,customer, flowType, 0);
+            }
             log.info("Customer got created successfully");
             
-            checkAndSavePayAllocation(requestIdDtls,customer, flowType, depositAllocationRequestWrapperModel.getLoanAmount());
+            
     	}
         catch(GeneralCustomException e) {
         	log.error("Customerservice createcustomer generalCustomException" + e.getMessage());
