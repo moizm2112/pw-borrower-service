@@ -188,7 +188,7 @@ class CustomerControllerTest {
                 .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .content(this.mapper.writeValueAsString(updateCustomerRequestTest));
 
-        when(customerService.updateCustomerDetails(any())).thenThrow(new CustomerNotFoundException("Customer do not exists with the cellPhone: +919980025222 to update"));
+        when(customerService.updateCustomerDetails(any())).thenThrow(new CustomerNotFoundException("Customer does not exists with the cellPhone: +919980025222 to update"));
 
         mockMvc.perform(mockRequest).andDo(print()).andExpect(status().isBadRequest());
     }

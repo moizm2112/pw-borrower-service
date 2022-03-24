@@ -497,7 +497,7 @@ public class CustomerService {
              return updatedCustomer;
 
         } else {
-            throw new CustomerNotFoundException("Customer not exists with the cellPhone: "+validateAccountRequest.getCellPhone()+" to validate");
+            throw new CustomerNotFoundException("Customer does not exists with the cellPhone: "+validateAccountRequest.getCellPhone()+" to validate");
         }
     }
 
@@ -606,8 +606,8 @@ public class CustomerService {
 		                    throw new CustomerNotFoundException("RequestId and cellPhone does not match. Please provide a valid requestId or cellPhone to update");
 		                }
 	                } else {
-	                    log.error("Customer do not exists with the CellPhone Number: "+updateCustomerMobileNoDTO.getCellPhone()+" to update");
-	                    throw new CustomerNotFoundException("Customer do not exists with the CellPhone Number: "+updateCustomerMobileNoDTO.getCellPhone()+" to update");
+	                    log.error("Customer does not exists with the CellPhone Number: "+updateCustomerMobileNoDTO.getCellPhone()+" to update");
+	                    throw new CustomerNotFoundException("Customer does not exists with the CellPhone Number: "+updateCustomerMobileNoDTO.getCellPhone()+" to update");
 	                }
 //	        	}
 //	        	else {
