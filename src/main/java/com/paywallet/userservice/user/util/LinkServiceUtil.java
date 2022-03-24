@@ -54,9 +54,10 @@ public class LinkServiceUtil {
 
     }
 
-    public OfferPayAllocationRequest prepareCheckAffordabilityRequest(CreateCustomerRequest customer) {
+    public OfferPayAllocationRequest prepareCheckAffordabilityRequest(CreateCustomerRequest customer, int loanAmount) {
 
         return OfferPayAllocationRequest.builder()
+        		.loanAmount(String.valueOf(loanAmount))
                 .installmentAmount(String.valueOf(customer.getInstallmentAmount()))
                 .firstRepaymentDate(customer.getFirstDateOfPayment())
                 .numberOfInstallment(customer.getNumberOfInstallments())
