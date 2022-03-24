@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Builder
 public class OfferPayAllocationRequest {
-
+	private String loanAmount;
     private String installmentAmount;
     private int numberOfInstallment;
     private String firstRepaymentDate;

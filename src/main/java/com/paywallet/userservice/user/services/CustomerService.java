@@ -1025,7 +1025,7 @@ public class CustomerService {
    
    
 
-    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer, FlowTypeEnum flowtype) {
+    private void checkAndSavePayAllocation(RequestIdDetails requestIdDetails, CreateCustomerRequest customer, FlowTypeEnum flowtype, int loanAmount) {
         String requestId = requestIdDetails.getRequestId();
         log.info(" Inside check And SavePayAllocation : Request ID : {} ",requestId);
         boolean isDepositAllocation = false;
@@ -1036,7 +1036,8 @@ public class CustomerService {
             log.info(" response from stateControllerInfo {} : Request id : {} ",stateControllerInfo,requestId);
             boolean allocationStatus = linkServiceUtil.checkStateInfo(stateControllerInfo);
             if (allocationStatus || (isDepositAllocation && (StateStatus.YES).equals(stateControllerInfo.getInvokeAndPublishDepositAllocation()))) {
-                OfferPayAllocationRequest offerPayAllocationRequest = linkServiceUtil.prepareCheckAffordabilityRequest(customer);
+                OfferPayAllocationRequest offerPayAllocationRequest = linkServiceUtil.prepareCheckAffordabilityRequest(customer, loanAmount);
+                log.info(" offerPayAllocationRequest : {} : requestId {} ", offerPayAllocationRequest, requestId);
                 OfferPayAllocationResponse offerPayAllocationResponse = linkServiceUtil.postCheckAffordabilityRequest(offerPayAllocationRequest, requestId);
                 log.info(" offerPayAllocationResponse : {} : requestId {} ", offerPayAllocationResponse, requestId);
             }
@@ -1223,7 +1224,7 @@ public class CustomerService {
             	kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls,saveCustomer,(double) customer.getInstallmentAmount(), flowType);
             log.info("Customer got created successfully");
             
-            checkAndSavePayAllocation(requestIdDtls,customer, flowType);
+            checkAndSavePayAllocation(requestIdDtls,customer, flowType, depositAllocationRequestWrapperModel.getLoanAmount());
     	}
         catch(GeneralCustomException e) {
         	log.error("Customerservice createcustomer generalCustomException" + e.getMessage());
