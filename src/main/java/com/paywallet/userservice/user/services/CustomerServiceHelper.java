@@ -1,33 +1,6 @@
 package com.paywallet.userservice.user.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.paywallet.userservice.user.constant.AppConstants;
-import com.paywallet.userservice.user.entities.CustomerDetails;
-import com.paywallet.userservice.user.entities.PersonalProfile;
-import com.paywallet.userservice.user.enums.FlowTypeEnum;
-import com.paywallet.userservice.user.exception.FineractAPIException;
-import com.paywallet.userservice.user.exception.GeneralCustomException;
-import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
-import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
-import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
-import com.paywallet.userservice.user.model.*;
-import com.paywallet.userservice.user.util.NotificationUtil;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
+import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -41,7 +14,52 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.paywallet.userservice.user.constant.AppConstants;
+import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.entities.PersonalProfile;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
+import com.paywallet.userservice.user.exception.FineractAPIException;
+import com.paywallet.userservice.user.exception.GeneralCustomException;
+import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
+import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
+import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
+import com.paywallet.userservice.user.model.CallbackURL;
+import com.paywallet.userservice.user.model.CreateCustomerRequest;
+import com.paywallet.userservice.user.model.CustomerRequestFields;
+import com.paywallet.userservice.user.model.EmployerSearchDetailsDTO;
+import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
+import com.paywallet.userservice.user.model.FineractLenderAddressDTO;
+import com.paywallet.userservice.user.model.FineractLenderCreationResponseDTO;
+import com.paywallet.userservice.user.model.FineractUpdateLenderAccountDTO;
+import com.paywallet.userservice.user.model.FineractUpdateLenderResponseDTO;
+import com.paywallet.userservice.user.model.LinkRequestProductDTO;
+import com.paywallet.userservice.user.model.RequestIdDTO;
+import com.paywallet.userservice.user.model.RequestIdDetails;
+import com.paywallet.userservice.user.model.RequestIdResponseDTO;
+import com.paywallet.userservice.user.repository.CustomerRepository;
+import com.paywallet.userservice.user.util.NotificationUtil;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 @Component
@@ -440,16 +458,39 @@ public class CustomerServiceHelper {
 	   }
    }
 	
-	public RequestIdDetails validateRequestId(String requestId, String identifyProviderServiceUri, RestTemplate restTemplate) {
+	public RequestIdDetails validateRequestId(String requestId, String identifyProviderServiceUri, RestTemplate restTemplate, 
+			CreateCustomerRequest customer, CustomerRepository customerRepository) {
 	   RequestIdDetails requestIdDtls = null;
 	   try {
 		   RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
 			requestIdDtls = requestIdResponseDTO.getData();
-			if(StringUtils.isNotBlank(requestIdDtls.getUserId())) {
-				log.error("Customerservice createcustomer - Create customer failed as request id and customer id already exist in database.");
-				throw new GeneralCustomException(ERROR ,"Create customer failed as request id and customer id already exist in database.");
-		   }
+			
+			if(requestIdDtls != null && customer != null) {
+				if(StringUtils.isNotBlank(requestIdDtls.getUserId())) {
+					Optional<CustomerDetails> optionalCustDetails = customerRepository.findByCustomerId(requestIdDtls.getUserId());
+					CustomerDetails custDetails = null;
+					if(optionalCustDetails.isPresent()) {
+						custDetails = optionalCustDetails.get();
+					}
+					if(custDetails != null) {
+						String cellPhone = custDetails.getPersonalProfile().getCellPhone();
+						String emailId = custDetails.getPersonalProfile().getEmailId();
+						if(!(cellPhone.equalsIgnoreCase(customer.getCellPhone()) && emailId.equalsIgnoreCase(customer.getEmailId()))) {
+							log.error("Customer already associated with this request Id. CellPhone or EmailId does not match with the customer profile");
+							throw new GeneralCustomException(ERROR ,"Customer already associated with this request Id. CellPhone or EmailId does not match with the customer profile");
+						}
+					}
+				}
+				if(StringUtils.isNotBlank(requestIdDtls.getAllocationStatus())) {
+					log.error("Customerservice createcustomer - Active/Failed Allocation has already been made for this requestId");
+					throw new GeneralCustomException(ERROR ,"Active/Failed Allocation has already been made for this requestId");
+			   }
+			}
+			else {
+				log.error("Exception occured while fetching request Id details");
+				throw new GeneralCustomException(ERROR ,"Request details does not exist");
+			}
 	   }
 	   catch(ServiceNotAvailableException e) {
 		   log.error("Exception occured while fetching request Id details- Service unavailable");

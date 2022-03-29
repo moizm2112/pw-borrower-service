@@ -1086,7 +1086,7 @@ public class CustomerService {
         generalCustomerRequestConfig(customer);
         try 
         {
-        	requestIdDtls = customerServiceHelper.validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
+        	requestIdDtls = customerServiceHelper.validateRequestId(requestId, identifyProviderServiceUri, restTemplate, customer, customerRepository);
 		    lenderConfigInfo = customerFieldValidator.fetchLenderConfigurationForCallBack(requestId,restTemplate, requestIdDtls.getClientName());
 		    lenderConfigInfo = Optional.ofNullable(lenderConfigInfo).orElseThrow(() -> new GeneralCustomException("ERROR", "Error while fetching lender configuration for validating callback urls"));
 		    switch(flowType.name()) {
@@ -1104,6 +1104,14 @@ public class CustomerService {
 		    			if(StringUtils.isBlank(customerEntity.getAccountABANumber()) && StringUtils.isNotBlank(customerEntity.getVirtualAccount())) {
 		    				customerEntity.setAccountABANumber(ROUTING_NUMBER);
 			            }
+		    			
+		    			if(StringUtils.isBlank(customerEntity.getVirtualAccount()) && StringUtils.isBlank(customerEntity.getAccountABANumber())) {
+		    				if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+				        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
+				        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
+					            log.info("Virtual fineract account created successfully");
+		    				}
+			        	}
 		    		}
 		    		break;
 		    	}
@@ -1135,18 +1143,22 @@ public class CustomerService {
 			        	}
 		            	else if(StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) || 
 			        			StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
-			        		if("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
-				        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
-				        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
-					            log.info("Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
-			        		}
+			        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
+			        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
+				            log.info("Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
 			        	}
 		    		}
 		    		else {
-		    			if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
-		            		saveCustomer.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-		            	if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))
-		            		saveCustomer.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		    			if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()) && 
+		    					StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
+		    				customerEntity.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+		    				customerEntity.setAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		    			}
+		    			else if(StringUtils.isBlank(customerEntity.getVirtualAccount()) && StringUtils.isBlank(customerEntity.getAccountABANumber())) {
+			        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
+			        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
+				            log.info("Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
+			        	}
 		    		}
 		    		break;
 		    	}
@@ -1226,8 +1238,6 @@ public class CustomerService {
             	checkAndSavePayAllocation(requestIdDtls,customer, flowType, 0);
             }
             log.info("Customer got created successfully");
-            
-            
     	}
         catch(GeneralCustomException e) {
         	log.error("Customerservice createcustomer generalCustomException" + e.getMessage());
@@ -1266,7 +1276,9 @@ public class CustomerService {
 			if(employerSearchDetailsDTO == null || (employerSearchDetailsDTO != null && employerSearchDetailsDTO.getId() == null)) {
 				throw new GeneralCustomException("ERROR","Fetch employer details and update request table in create customer failed");
 			}
-			requestIdDtls = customerServiceHelper.validateRequestId(requestId, identifyProviderServiceUri, restTemplate);
+			RequestIdResponseDTO requestResponseDTO = customerServiceHelper.fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate);
+			if(requestResponseDTO != null)
+				requestIdDtls = requestResponseDTO.getData();
 			log.info("Employer search and select from create customer :" + employerSearchDetailsDTO);
     	}
     	catch(GeneralCustomException e) {

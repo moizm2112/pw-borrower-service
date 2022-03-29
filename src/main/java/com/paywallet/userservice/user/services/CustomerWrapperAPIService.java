@@ -232,13 +232,14 @@ public class CustomerWrapperAPIService {
 			customer.setLastName(employmentVerificationRequestWrapperModel.getLastName());
 			customer.setCellPhone(employmentVerificationRequestWrapperModel.getCellPhone());
 			customer.setEmailId(employmentVerificationRequestWrapperModel.getEmailId());
-			if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getEmploymentCallbackUrl())) {
+			/*if(StringUtils.isNotBlank(employmentVerificationRequestWrapperModel.getEmploymentCallbackUrl())) {
 				CallbackURL callbackURL = new CallbackURL();
 				List<String> employmentCallbackUrls =  new ArrayList<String>();
 				employmentCallbackUrls.add(employmentVerificationRequestWrapperModel.getEmploymentCallbackUrl());
 				callbackURL.setEmploymentCallbackUrls(employmentCallbackUrls);
 				customer.setCallbackURLs(callbackURL);
-			}
+			}*/
+			customer.setCallbackURLs(employmentVerificationRequestWrapperModel.getCallbackURLs());
 			customer.setFirstDateOfPayment(StringUtils.EMPTY);
 			customer.setRepaymentFrequency(StringUtils.EMPTY);
 			customer.setNumberOfInstallments(0);
@@ -261,13 +262,14 @@ public class CustomerWrapperAPIService {
 			customer.setLastName(identityVerificationRequestWrapperModel.getLastName());
 			customer.setCellPhone(identityVerificationRequestWrapperModel.getCellPhone());
 			customer.setEmailId(identityVerificationRequestWrapperModel.getEmailId());
-			if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getIdentityCallbackUrl())) {
+			/*if(StringUtils.isNotBlank(identityVerificationRequestWrapperModel.getIdentityCallbackUrl())) {
 				CallbackURL callbackURL = new CallbackURL();
 				List<String> identityCallbackUrls =  new ArrayList<String>();
 				identityCallbackUrls.add(identityVerificationRequestWrapperModel.getIdentityCallbackUrl());
 				callbackURL.setIdentityCallbackUrls(identityCallbackUrls);
 				customer.setCallbackURLs(callbackURL);
-			}
+			}*/
+			customer.setCallbackURLs(identityVerificationRequestWrapperModel.getCallbackURLs());
 			customer.setFirstDateOfPayment(StringUtils.EMPTY);
 			customer.setRepaymentFrequency(StringUtils.EMPTY);
 			customer.setNumberOfInstallments(0);
@@ -290,13 +292,14 @@ public class CustomerWrapperAPIService {
 			customer.setLastName(incomeVerificationRequestWrapperModel.getLastName());
 			customer.setCellPhone(incomeVerificationRequestWrapperModel.getCellPhone());
 			customer.setEmailId(incomeVerificationRequestWrapperModel.getEmailId());
-			if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getIncomeCallbackUrl())) {
+			/*if(StringUtils.isNotBlank(incomeVerificationRequestWrapperModel.getIncomeCallbackUrl())) {
 				CallbackURL callbackURL = new CallbackURL();
 				List<String> incomeCallbackUrls =  new ArrayList<String>();
 				incomeCallbackUrls.add(incomeVerificationRequestWrapperModel.getIncomeCallbackUrl());
 				callbackURL.setIncomeCallbackUrls(incomeCallbackUrls);
 				customer.setCallbackURLs(callbackURL);
-			}
+			}*/
+			customer.setCallbackURLs(incomeVerificationRequestWrapperModel.getCallbackURLs());
 			customer.setFirstDateOfPayment(StringUtils.EMPTY);
 			customer.setRepaymentFrequency(StringUtils.EMPTY);
 			customer.setNumberOfInstallments(0);
@@ -383,7 +386,7 @@ public class CustomerWrapperAPIService {
 		employmentVerificationResponseModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
 		employmentVerificationResponseModel.setLenderName(customerDetails.getLender());
 		employmentVerificationResponseModel.setEmployer(customerDetails.getEmployer());
-		employmentVerificationResponseModel.setEmploymentCallbackUrl(employmentVerificationRequestWrapperModel.getEmploymentCallbackUrl());
+		employmentVerificationResponseModel.setCallbackURLs(employmentVerificationRequestWrapperModel.getCallbackURLs());
 		employmentVerificationResponseModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
 		employmentVerificationResponseModel.setLastName(customerDetails.getPersonalProfile().getLastName());
 		return employmentVerificationResponseModel;
@@ -395,7 +398,7 @@ public class CustomerWrapperAPIService {
 		incomeVerificationResponseModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
 		incomeVerificationResponseModel.setNumberOfMonthsRequested(incomeVerificationRequestWrapperModel.getNumberOfMonthsRequested());
 		incomeVerificationResponseModel.setEmployer(customerDetails.getEmployer());
-		incomeVerificationResponseModel.setIncomeCallbackUrl(incomeVerificationRequestWrapperModel.getIncomeCallbackUrl());
+		incomeVerificationResponseModel.setCallbackURLs(incomeVerificationRequestWrapperModel.getCallbackURLs());
 		incomeVerificationResponseModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
 		incomeVerificationResponseModel.setLastName(customerDetails.getPersonalProfile().getLastName());
 		return incomeVerificationResponseModel;
@@ -407,7 +410,7 @@ public class CustomerWrapperAPIService {
 		identityVerificationResponseWrapperModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
 		identityVerificationResponseWrapperModel.setLast4TIN(customerDetails.getPersonalProfile().getLast4TIN());
 		identityVerificationResponseWrapperModel.setEmployer(customerDetails.getEmployer());
-		identityVerificationResponseWrapperModel.setIdentityCallbackUrl(identityVerificationRequestWrapperModel.getIdentityCallbackUrl());
+		identityVerificationResponseWrapperModel.setCallbackURLs(identityVerificationRequestWrapperModel.getCallbackURLs());
 		identityVerificationResponseWrapperModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
 		identityVerificationResponseWrapperModel.setLastName(customerDetails.getPersonalProfile().getLastName());
 		return identityVerificationResponseWrapperModel;
