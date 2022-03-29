@@ -1072,6 +1072,7 @@ public class CustomerService {
         IdentityVerificationRequestWrapperModel identityVerificationRequestWrapperModel = null;
         IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel = null;
         double directDepositAllocationInstallmentAmount = 0;
+        boolean isFineractAccountCreatedForExistingCustomer = false;
         
         if(!flowType.name().equals(FlowTypeEnum.GENERAL.name())) {
 	        if(obj.getClass().getSimpleName().equals((DepositAllocationRequestWrapperModel.class).getSimpleName()))
@@ -1110,6 +1111,7 @@ public class CustomerService {
 				        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
 				        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
 					            log.info("Virtual fineract account created successfully");
+					            isFineractAccountCreatedForExistingCustomer = true;
 		    				}
 			        	}
 		    		}
@@ -1158,6 +1160,7 @@ public class CustomerService {
 			        		customerEntity = customerServiceHelper.createFineractVirtualAccount(requestIdDtls.getRequestId(),customerEntity);
 			        		customerEntity.setAccountABANumber(ROUTING_NUMBER);
 				            log.info("Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
+				            isFineractAccountCreatedForExistingCustomer = true;
 			        	}
 		    		}
 		    		break;
@@ -1218,6 +1221,8 @@ public class CustomerService {
             	customerEntity.setLender(requestIdDtls.getClientName());
             customerEntity.setEmployer(requestIdDtls.getEmployer());
             if(!customerEntity.isExistingCustomer())
+            	saveCustomer = customerRepository.save(customerEntity);
+            else if(isFineractAccountCreatedForExistingCustomer)
             	saveCustomer = customerRepository.save(customerEntity);
             else
             	saveCustomer = customerEntity;
