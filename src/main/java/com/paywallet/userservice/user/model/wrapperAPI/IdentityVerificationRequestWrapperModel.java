@@ -4,13 +4,16 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import com.paywallet.userservice.user.model.CallbackURL;
+
 import lombok.Data;
 
 @Data
 public class IdentityVerificationRequestWrapperModel {
     @NotNull @NotEmpty @NotBlank
 	private String employerId;
-	private String identityCallbackUrl;
+//	private String identityCallbackUrl;
+	private CallbackURL callbackURLs;
 	private String firstName;
     private String lastName;
     private String addressLine1;
