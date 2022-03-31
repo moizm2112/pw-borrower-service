@@ -246,7 +246,7 @@ public class CustomerServiceHelper {
 		return requestIdResponse;
 	}
     
-    public RequestIdDTO setRequestIdDetails(CustomerDetails saveCustomer, CallbackURL callbackURL, FlowTypeEnum flowType) {
+    public RequestIdDTO setRequestIdDetails(CustomerDetails saveCustomer, CallbackURL callbackURL, FlowTypeEnum flowType, RequestIdDetails requestIdDetails) {
     	
     	RequestIdDTO requestIdDTO = new RequestIdDTO();
     	try {
@@ -256,15 +256,47 @@ public class CustomerServiceHelper {
         	if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name()))
         		requestIdDTO.setDirectDepositAllocation(true);
         	requestIdDTO.setAbaNumber(saveCustomer.getAccountABANumber());
-        	requestIdDTO.setFlowType(flowType.name());
+        	List<FlowTypeEnum> lsFlowType = requestIdDetails.getFlowType();
+        	if(lsFlowType != null && lsFlowType.size() > 0) {
+        		if(!lsFlowType.contains(flowType))
+        			lsFlowType.add(flowType);
+        	}
+        	else {
+        		lsFlowType =  new ArrayList<FlowTypeEnum>();
+        		lsFlowType.add(flowType);
+        	}
+        	requestIdDTO.setFlowType(lsFlowType);
         	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
         	if(callbackURL != null) {
-    	    	requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
-    	    	requestIdDTO.setEmploymentCallbackUrls(callbackURL.getEmploymentCallbackUrls());
-    	    	requestIdDTO.setIncomeCallbackUrls(callbackURL.getIncomeCallbackUrls());
-    	    	requestIdDTO.setAllocationCallbackUrls(callbackURL.getAllocationCallbackUrls());
-    	    	requestIdDTO.setInsufficientFundCallbackUrls(callbackURL.getInsufficientFundCallbackUrls());
-    			requestIdDTO.setNotificationUrls(callbackURL.getNotificationUrls());
+        		if(callbackURL.getIdentityCallbackUrls() != null && callbackURL.getIdentityCallbackUrls().size() > 0)
+        			requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
+        		else
+        			requestIdDTO.setIdentityCallbackUrls(requestIdDetails.getIdentityCallbackUrls());
+        		
+        		if(callbackURL.getEmploymentCallbackUrls() != null && callbackURL.getEmploymentCallbackUrls().size() > 0)
+        			requestIdDTO.setEmploymentCallbackUrls(callbackURL.getEmploymentCallbackUrls());
+        		else
+        			requestIdDTO.setEmploymentCallbackUrls(requestIdDetails.getEmploymentCallbackUrls());
+        		
+        		if(callbackURL.getIncomeCallbackUrls() != null && callbackURL.getIncomeCallbackUrls().size() > 0)
+        			requestIdDTO.setIncomeCallbackUrls(callbackURL.getIncomeCallbackUrls());
+        		else
+        			requestIdDTO.setIncomeCallbackUrls(requestIdDetails.getIncomeCallbackUrls());
+        		
+        		if(callbackURL.getAllocationCallbackUrls() != null && callbackURL.getAllocationCallbackUrls().size() > 0)
+        			requestIdDTO.setAllocationCallbackUrls(callbackURL.getAllocationCallbackUrls());
+        		else
+        			requestIdDTO.setAllocationCallbackUrls(requestIdDetails.getAllocationCallbackUrls());
+        		
+        		if(callbackURL.getInsufficientFundCallbackUrls() != null && callbackURL.getInsufficientFundCallbackUrls().size() > 0)
+        			requestIdDTO.setInsufficientFundCallbackUrls(callbackURL.getInsufficientFundCallbackUrls());
+        		else
+        			requestIdDTO.setInsufficientFundCallbackUrls(requestIdDetails.getInsufficientFundCallbackUrls());
+        		
+        		if(callbackURL.getNotificationUrls() != null && callbackURL.getNotificationUrls().size() > 0)
+        			requestIdDTO.setNotificationUrls(callbackURL.getNotificationUrls());
+        		else
+        			requestIdDTO.setNotificationUrls(requestIdDetails.getNotificationUrls());
         	}
     	}
     	catch(Exception e) {

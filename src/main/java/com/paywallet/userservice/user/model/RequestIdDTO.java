@@ -11,6 +11,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
 
 @Component
 @Data
@@ -48,5 +49,5 @@ public class RequestIdDTO {
     private List<String> insufficientFundCallbackUrls;
     private List<String> notificationUrls;
     private boolean isDirectDepositAllocation;
-    private String flowType;
+    private List<FlowTypeEnum> flowType;
 }
