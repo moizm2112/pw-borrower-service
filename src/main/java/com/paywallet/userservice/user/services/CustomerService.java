@@ -1228,7 +1228,7 @@ public class CustomerService {
             	saveCustomer = customerEntity;
             saveCustomer.setRequestId(requestId);
             
-            RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer, customer.getCallbackURLs(), flowType);
+            RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer, customer.getCallbackURLs(), flowType, requestIdDtls);
         	/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
             customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri, restTemplate);
             /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
