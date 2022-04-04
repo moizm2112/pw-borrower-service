@@ -12,6 +12,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 import com.paywallet.userservice.user.exception.GeneralCustomException;
+import io.sentry.Sentry;
 
 /**
  * This class validates first data of payment field with date validation and field value should greater than current date.
@@ -46,9 +47,11 @@ public class FirstDateOfPaymentValidator implements ConstraintValidator<FirstDat
         		valid = true;
         	}
         } catch (DateTimeParseException e) {
+			Sentry.captureException(e);
         	valid = false;
         	throw new GeneralCustomException("ERROR", e.getMessage());
         } catch (ParseException e) {
+			Sentry.captureException(e);
         	valid = false;
         	throw new GeneralCustomException("ERROR", e.getMessage());
 		}

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import io.sentry.Sentry;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,16 +133,19 @@ public class CustomerWrapperAPIService {
 			            json = objectMapper.writeValueAsString(mapErrorList);
 			            log.error("Exception while updating customer credentials  - " + json);
 			        } catch (JsonProcessingException e) {
+						Sentry.captureException(e);
 			        	throw new GeneralCustomException("ERROR", "Exception while updating customer credentials - " + mapErrorList);
 			        }
 				   throw new GeneralCustomException("ERROR", "Exception while updating customer credentials  - " + json);
 			   }
 		}
 		catch(CustomerNotFoundException | RequestIdNotFoundException | FineractAPIException | GeneralCustomException e) {
+			Sentry.captureException(e);
 			log.error("Exception occured while updating customer credentials " + e.getMessage());
 			throw e;
 		}
 		catch(Exception e) {
+			Sentry.captureException(e);
 			log.error("Exception occured while updating customer credentials " + e.getMessage());
     		throw new GeneralCustomException("ERROR", e.getMessage());
 		}
@@ -541,13 +545,16 @@ public class CustomerWrapperAPIService {
 		            json = objectMapper.writeValueAsString(mapErrorList);
 		            log.error("Invalid data in deposit allocation request - " + json);
 		        } catch (JsonProcessingException e) {
+					Sentry.captureException(e);
 		        	throw new GeneralCustomException("ERROR", "Invalid data in deposit allocation request - " + mapErrorList);
 		        }
 			   throw new GeneralCustomException("ERROR", "Invalid data in deposit allocation request - " + json);
 		   }
 	   } catch(GeneralCustomException e) {
+		   Sentry.captureException(e);
 		   throw e;
 	   } catch(Exception e) {
+		   Sentry.captureException(e);
 		   log.error("Exception occured while validating the deposit allocation request");
 		   throw e;
 	   }
@@ -601,13 +608,16 @@ public class CustomerWrapperAPIService {
 		            json = objectMapper.writeValueAsString(mapErrorList);
 		            log.error("Invalid data in employment verification request - " + json);
 		        } catch (JsonProcessingException e) {
+					Sentry.captureException(e);
 		        	throw new GeneralCustomException("ERROR", "Invalid data in employment verification request - " + mapErrorList);
 		        }
 			   throw new GeneralCustomException("ERROR", "Invalid data in employment verification request - " + json);
 		   }
 	   } catch(GeneralCustomException e) {
+		   Sentry.captureException(e);
 		   throw e;
 	   } catch(Exception e) {
+		   Sentry.captureException(e);
 		   log.error("Exception occured while validating the deposit allocation request");
 		   throw e;
 	   }
@@ -635,8 +645,10 @@ public class CustomerWrapperAPIService {
 				   throw new GeneralCustomException("ERROR", "Invalid data in "+ verificationType + "  verification request - " + json);
 			   }
 		   } catch(GeneralCustomException e) {
+			   Sentry.captureException(e);
 			   throw e;
 		   } catch(Exception e) {
+			   Sentry.captureException(e);
 			   log.error("Exception occured while validating the deposit allocation request");
 			   throw e;
 		   }
@@ -695,13 +707,16 @@ public class CustomerWrapperAPIService {
 			            json = objectMapper.writeValueAsString(mapErrorList);
 			            log.error("Invalid data in income verification request - " + json);
 			        } catch (JsonProcessingException e) {
+						Sentry.captureException(e);
 			        	throw new GeneralCustomException("ERROR", "Invalid data in income verification request - " + mapErrorList);
 			        }
 				   throw new GeneralCustomException("ERROR", "Invalid data in income verification request - " + json);
 			   }
 		   } catch(GeneralCustomException e) {
+			   Sentry.captureException(e);
 			   throw e;
 		   } catch(Exception e) {
+			   Sentry.captureException(e);
 			   log.error("Exception occured while validating the income verification request");
 			   throw e;
 		   }
@@ -785,14 +800,17 @@ public class CustomerWrapperAPIService {
 			            json = objectMapper.writeValueAsString(mapErrorList);
 			            log.error("Invalid data in identity verification - " + json);
 			        } catch (JsonProcessingException e) {
+						Sentry.captureException(e);
 			        	throw new GeneralCustomException("ERROR", "Invalid data in identity verification request - " + mapErrorList);
 			        }
 				   throw new GeneralCustomException("ERROR", "Invalid data in identity verification request - " + json);
 			   }
 			   
 	   } catch(GeneralCustomException e) {
+			   Sentry.captureException(e);
 		   throw e;
 	   } catch(Exception e) {
+			   Sentry.captureException(e);
 		   log.error("Exception occured while validating the identity verification request");
 		   throw e;
 	   }
