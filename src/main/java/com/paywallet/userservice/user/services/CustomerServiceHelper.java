@@ -255,6 +255,8 @@ public class CustomerServiceHelper {
         	requestIdDTO.setVirtualAccountId(saveCustomer.getVirtualAccountId());
         	if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name()))
         		requestIdDTO.setDirectDepositAllocation(true);
+        	else
+				requestIdDTO.setDirectDepositAllocation(false);
         	requestIdDTO.setAbaNumber(saveCustomer.getAccountABANumber());
         	List<FlowTypeEnum> lsFlowType = requestIdDetails.getFlowType();
         	if(lsFlowType != null && lsFlowType.size() > 0) {
