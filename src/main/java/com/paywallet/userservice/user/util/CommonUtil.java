@@ -174,13 +174,13 @@ public class CommonUtil {
 		if (custDtlsFromReq.getLast4TIN().trim().equalsIgnoreCase
 				(custDtlsFromDB.getPersonalProfile().getLast4TIN().trim())) {
 			log.info(" validateRequestAPIDetails : last4 tin matches ");
-			this.validateNamesCombination(custDtlsFromReq,custDtlsFromDB);
+			this.validateNameCombination(custDtlsFromReq,custDtlsFromDB);
 		} else {
              throw new RequestAPIDetailsException(" last4TIN : miss match between request details and Datasource");
 		}
 	}
 
-	private void validateNamesCombination(CreateCustomerRequest custDtlsFromReq, CustomerDetails custDtlsFromDB) throws RequestAPIDetailsException {
+	public void validateNameCombination(CreateCustomerRequest custDtlsFromReq, CustomerDetails custDtlsFromDB) throws RequestAPIDetailsException {
 		log.info(" validating firstName and lastName combination ");
 		String firstNameDB = custDtlsFromDB.getPersonalProfile().getFirstName().trim();
 		String lastNameDB = custDtlsFromDB.getPersonalProfile().getLastName().trim();
