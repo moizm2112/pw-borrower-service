@@ -10,7 +10,11 @@ import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
+import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.exception.RequestAPIDetailsException;
+import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +35,9 @@ public class CommonUtil {
 	
 	@Value("${Luthersales_days_for_FirstDateOfPayment}")
 	private String luthersales_days_for_FirstDateOfPayment;
+
+	@Value("${decimal.part.size:2}")
+	private String decimalLength;
 
 	@Autowired
 	ListOfHolidaysRepo listOfHolidaysRepo;
@@ -144,4 +151,52 @@ public class CommonUtil {
 		return result;
 	}
 
+	public String getFormattedAmount(int amount){
+		try {
+			return String.format("%."+decimalLength+"f",Double.valueOf(amount));
+		}catch (Exception e){
+			log.error(" Exception while formatting the amount : {} ",e.getMessage());
+		}
+		return  String.valueOf(amount);
+	}
+
+	public String getFormattedAmount(double amount){
+		try {
+			return String.format("%."+decimalLength+"f",amount);
+		}catch (Exception e){
+			log.error(" Exception while formatting the amount : {} ",e.getMessage());
+		}
+		return  String.valueOf(amount);
+	}
+
+	public void validateRequestAPIDetails(CreateCustomerRequest custDtlsFromReq, CustomerDetails custDtlsFromDB) throws RequestAPIDetailsException {
+
+		if (custDtlsFromReq.getLast4TIN().trim().equalsIgnoreCase
+				(custDtlsFromDB.getPersonalProfile().getLast4TIN().trim())) {
+			log.info(" validateRequestAPIDetails : last4 tin matches ");
+			this.validateNamesCombination(custDtlsFromReq,custDtlsFromDB);
+		} else {
+             throw new RequestAPIDetailsException(" last4TIN : miss match between request details and Datasource");
+		}
+	}
+
+	private void validateNamesCombination(CreateCustomerRequest custDtlsFromReq, CustomerDetails custDtlsFromDB) throws RequestAPIDetailsException {
+		log.info(" validating firstName and lastName combination ");
+		String firstNameDB = custDtlsFromDB.getPersonalProfile().getFirstName().trim();
+		String lastNameDB = custDtlsFromDB.getPersonalProfile().getLastName().trim();
+		String firstNameReq = custDtlsFromReq.getFirstName().trim();
+		String lastNameReq = custDtlsFromReq.getLastName().trim();
+		if (firstNameDB.equalsIgnoreCase(firstNameReq)) {
+			if (!lastNameDB.equalsIgnoreCase(lastNameReq)) {
+				throw new RequestAPIDetailsException(" lastName : miss match between request details and Datasource");
+			}
+		} else if (firstNameDB.equalsIgnoreCase(lastNameReq)) {
+
+			if (!lastNameDB.equalsIgnoreCase(firstNameReq)) {
+				throw new RequestAPIDetailsException(" lastName : miss match between request details and Datasource");
+			}
+		} else {
+			throw new RequestAPIDetailsException(" firstName : miss match between request details and Datasource");
+		}
+	}
 }

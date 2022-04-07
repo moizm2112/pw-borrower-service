@@ -10,9 +10,9 @@ public class DepositAllocationResponseWrapperModel {
 
 	private String emailId;
 	private String cellPhone;
-	private double installmentAmount;
+	private String installmentAmount;
 	@JsonInclude(value = Include.NON_NULL)
-	private Integer loanAmount;
+	private String loanAmount;
 	private Integer numberOfInstallments;
 	private String virtualAccountNumber;
 	@JsonInclude(value = Include.NON_NULL)

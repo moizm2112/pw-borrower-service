@@ -20,6 +20,9 @@ public class KafkaPublisherUtil {
     @Autowired
     KafkaProducerService kafkaProducerService;
 
+    @Autowired
+    CommonUtil commonUtil;
+
     public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails, double installmentAmount, FlowTypeEnum flowType) {
         try {
         	boolean isDepositAllocation = false;
@@ -32,7 +35,7 @@ public class KafkaPublisherUtil {
                     .phoneNumber(customerDetails.getPersonalProfile().getCellPhone())
                     .email(customerDetails.getPersonalProfile().getEmailId())
                     .employer(requestIdDtls.getEmployer())
-                    .installmentAmount(String.valueOf(installmentAmount))
+                    .installmentAmount(commonUtil.getFormattedAmount(installmentAmount))
                     .payCycle(CommonEnum.PAY_CYCLE.getMessage())
                     .flowType(flowType)
                     .isDirectDepositAllocation(isDepositAllocation).build();

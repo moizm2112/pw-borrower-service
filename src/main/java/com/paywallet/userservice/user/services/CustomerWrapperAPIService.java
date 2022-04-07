@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.paywallet.userservice.user.util.CommonUtil;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +80,9 @@ public class CustomerWrapperAPIService {
 	
     @Autowired
     KafkaPublisherUtil kafkaPublisherUtil;
+
+	@Autowired
+	CommonUtil commonUtil;
     
 	public UpdateCustomerCredentialsResponse updateCustomerCredentials(UpdateCustomerCredentialsModel customerCredentialsModel, String requestId) 
 			throws CustomerNotFoundException, RequestIdNotFoundException {
@@ -371,11 +375,11 @@ public class CustomerWrapperAPIService {
 		depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
 		depositAllocationResponseModel.setNumberOfInstallments(customerDetails.getNumberOfInstallments());
 		if(depositAllocationRequestWrapperModel.getInstallmentAmount() > 0)
-			depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
+			depositAllocationResponseModel.setInstallmentAmount(commonUtil.getFormattedAmount(customerDetails.getInstallmentAmount()));
 		else if(depositAllocationRequestWrapperModel.getLoanAmount() > 0) {
-			depositAllocationResponseModel.setInstallmentAmount(customerService.getInstallmentAmount(depositAllocationRequestWrapperModel.getLoanAmount(),
-					depositAllocationRequestWrapperModel.getInstallmentAmount(), depositAllocationRequestWrapperModel.getNumberOfInstallments()));
-			depositAllocationResponseModel.setLoanAmount(depositAllocationRequestWrapperModel.getLoanAmount());
+			depositAllocationResponseModel.setInstallmentAmount(commonUtil.getFormattedAmount(customerService.getInstallmentAmount(depositAllocationRequestWrapperModel.getLoanAmount(),
+					depositAllocationRequestWrapperModel.getInstallmentAmount(), depositAllocationRequestWrapperModel.getNumberOfInstallments())));
+			depositAllocationResponseModel.setLoanAmount(commonUtil.getFormattedAmount(depositAllocationRequestWrapperModel.getLoanAmount()));
 		}
 		return depositAllocationResponseModel;
 	}
