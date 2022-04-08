@@ -84,7 +84,7 @@ public class CreateCustomerRequest {
 //    @JsonInclude(JsonInclude.Include. NON_NULL)
     private Integer installmentAmount;
     
-    private Boolean IsCheckOutExperience;
+    private Boolean checkOutExperience;
 
 
 
@@ -108,7 +108,7 @@ public class CreateCustomerRequest {
                 .append("repaymentFrequency").append(repaymentFrequency).append(",")
                 .append("numberOfInstallments").append(numberOfInstallments).append(",")
                 .append("installmentAmount").append(installmentAmount).append(",")
-                .append("IsCheckOutExperience").append(IsCheckOutExperience).append("}")
+                .append("checkOutExperience").append(checkOutExperience).append("}")
                 .toString();
     }
 

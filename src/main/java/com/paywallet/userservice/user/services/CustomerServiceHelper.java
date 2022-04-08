@@ -125,7 +125,7 @@ public class CustomerServiceHelper {
 				.addressLine2(customer.getAddressLine2()).zip(customer.getZip()).city(customer.getCity()).state(customer.getState())
 				.last4TIN(customer.getLast4TIN()).dateOfBirth(customer.getDateOfBirth()).build();
 
-		CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile).firstDateOfPayment(customer.getFirstDateOfPayment()).isCheckOutExperience(customer.getIsCheckOutExperience()).
+		CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile).firstDateOfPayment(customer.getFirstDateOfPayment()).checkOutExperience(customer.getCheckOutExperience()).
 				repaymentFrequency(customer.getRepaymentFrequency()).numberOfInstallments(customer.getNumberOfInstallments()).installmentAmount(customer.getInstallmentAmount())
 				.build();
 //         		.financedAmount(customer.getFinancedAmount()).financedAmount(customer.getFinancedAmount())
