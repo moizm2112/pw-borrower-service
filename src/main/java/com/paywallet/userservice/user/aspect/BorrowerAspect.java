@@ -7,6 +7,7 @@ import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
 import com.paywallet.userservice.user.model.ValidateAccountRequest;
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
@@ -36,6 +37,7 @@ public class BorrowerAspect {
             String message = "Customer create INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing customerCreateInProgress events : {}",e);
         }
     }
@@ -48,6 +50,7 @@ public class BorrowerAspect {
             String message = "Customer create FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing customerCreateFailed events : {}",e);
         }
     }
@@ -60,6 +63,7 @@ public class BorrowerAspect {
             String message = "Customer create SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing customerCreateSuccess events : {}",e);
         }
     }
@@ -71,6 +75,7 @@ public class BorrowerAspect {
             String message = "Request id details create INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing requestIdCreateInProgress events : {}",e);
         }
     }
@@ -82,6 +87,7 @@ public class BorrowerAspect {
             String message = "Request id details create FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing requestIdCreateFailed events : {}",e);
         }
     }
@@ -93,6 +99,7 @@ public class BorrowerAspect {
             String message = "Request id details create SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing requestIdCreateSuccess events : {}",e);
         }
     }
@@ -105,6 +112,7 @@ public class BorrowerAspect {
             String message = "Request id details update INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing requestIdUpdateInProgress events : {}",e);
         }
     }
@@ -117,6 +125,7 @@ public class BorrowerAspect {
             String message = "Request id details update FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing requestIdUpdateFailed events : {}",e);
         }
     }
@@ -129,6 +138,7 @@ public class BorrowerAspect {
             String message = "Request id update details SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing requestIdUpdateSuccess events : {}",e);
         }
     }
@@ -140,6 +150,7 @@ public class BorrowerAspect {
             String message = "Create fineract account INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing createFineractAccountInProgress events : {}",e);
         }
     }
@@ -151,6 +162,7 @@ public class BorrowerAspect {
             String message = "Create fineract account FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing createFineractAccountFailed events : {}",e);
         }
     }
@@ -162,6 +174,7 @@ public class BorrowerAspect {
             String message = "Create fineract account SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing createFineractAccountSuccess events : {}",e);
         }
     }
@@ -174,6 +187,7 @@ public class BorrowerAspect {
             String message = "Get customer data by mobile INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataByMobileInProgress events : {}",e);
         }
     }
@@ -186,6 +200,7 @@ public class BorrowerAspect {
             String message = "Get customer data by mobile FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataByMobileFailed events : {}",e);
         }
     }
@@ -198,6 +213,7 @@ public class BorrowerAspect {
             String message = "Get customer data by mobile SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataByMobileSuccess events : {}",e);
         }
     }
@@ -210,6 +226,7 @@ public class BorrowerAspect {
             String message = "Get customer Data INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataInProgress events : {}",e);
         }
     }
@@ -222,6 +239,7 @@ public class BorrowerAspect {
             String message = "Get customer Data FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataFailed events : {}",e);
         }
     }
@@ -234,6 +252,7 @@ public class BorrowerAspect {
             String message = "Get customer Data SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataSuccess events : {}",e);
         }
     }
@@ -246,6 +265,7 @@ public class BorrowerAspect {
             String message = "Get account details INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing getAccountDetailsProgress events : {}",e);
         }
     }
@@ -258,6 +278,7 @@ public class BorrowerAspect {
             String message = "Get account details FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing getAccountDetailsFailed events : {}",e);
         }
     }
@@ -270,6 +291,7 @@ public class BorrowerAspect {
             String message = "Get account details SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing getAccountDetailsSuccess events : {}",e);
         }
     }
@@ -283,6 +305,7 @@ public class BorrowerAspect {
             String message = "Validate account details INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing validateCustomerDetailsProgress events : {}",e);
         }
     }
@@ -296,6 +319,7 @@ public class BorrowerAspect {
             String message = "Validate customer account details FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing validateCustomerDetailsFailed events : {}",e);
         }
     }
@@ -309,6 +333,7 @@ public class BorrowerAspect {
             String message = "Validate customer account details SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing validateCustomerAccountDetailsSuccess events : {}",e);
         }
     }
@@ -321,6 +346,7 @@ public class BorrowerAspect {
             String message = "Lyons Api call INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing lyonsApiCallInProgress events : {}",e);
         }
     }
@@ -333,6 +359,7 @@ public class BorrowerAspect {
             String message = "Lyons Api call FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing lyonsApiCallFailed events : {}",e);
         }
     }
@@ -345,6 +372,7 @@ public class BorrowerAspect {
             String message = "Lyons Api call SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing lyonsApiCallSuccess events : {}",e);
         }
     }
@@ -358,6 +386,7 @@ public class BorrowerAspect {
             String message = "Update customer details INPROGRESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing updateCustomerDetailsInProgress events : {}",e);
         }
     }
@@ -370,6 +399,7 @@ public class BorrowerAspect {
             String message = "Update customer details FAILED";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing updateCustomerDetailsFailed events : {}",e);
         }
     }
@@ -382,6 +412,7 @@ public class BorrowerAspect {
             String message = "Update customer details SUCCESS";
             borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
+            Sentry.captureException(e);
             log.error("Error while publishing updateCustomerDetailsSuccess events : {}",e);
         }
     }

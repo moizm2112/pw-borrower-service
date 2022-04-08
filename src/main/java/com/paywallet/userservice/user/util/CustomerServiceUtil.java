@@ -1,6 +1,7 @@
 package com.paywallet.userservice.user.util;
 
 import com.paywallet.userservice.user.dto.EventDTO;
+import io.sentry.Sentry;
 import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Field;
@@ -10,9 +11,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import com.paywallet.userservice.user.enums.StateEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @UtilityClass
+@Slf4j
 public class CustomerServiceUtil {
     private final String SHA256 = "SHA-256";
 
@@ -54,7 +57,8 @@ public class CustomerServiceUtil {
         try {
             md = MessageDigest.getInstance(SHA256);
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            Sentry.captureException(e);
+            log.error("Error while creating hashing : {}",e.getMessage(),e);
         }
         byte[] hashBytes = md.digest(originalString.getBytes(StandardCharsets.UTF_8));
         String hashedString = Base64.getEncoder().encodeToString(hashBytes);

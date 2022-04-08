@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
+import io.sentry.Sentry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -71,6 +72,7 @@ public class NotificationUtil {
 			}
 		}
 		catch(Exception e) {
+			Sentry.captureException(e);
 			log.error("callNotificationService Exception : " + e.getMessage());
 			if(emailResponse != null || smsResponse != null) {
 				smsEmailResponseValidator = validateSmsEmailResponse(smsResponse, emailResponse, customerDetail);
@@ -111,6 +113,7 @@ public class NotificationUtil {
 		try {
 			uriEmail = new URI(emailUrl);
 		} catch (URISyntaxException e) {
+			Sentry.captureException(e);
 			log.error("error encountered during email notify call " + e.getMessage());
 		}
 		try {
@@ -118,6 +121,7 @@ public class NotificationUtil {
 			emailResponse = response.getStatusCode().toString();
 			log.info("return response from email notification " + response.getBody());
 		} catch (HttpClientErrorException e) {
+			Sentry.captureException(e);
 			log.error("error encountered during sent email call ");
 		}
 
@@ -131,6 +135,7 @@ public class NotificationUtil {
 		try {
 			uriSms = new URI(smsUrl);
 		} catch (URISyntaxException e) {
+			Sentry.captureException(e);
 			log.error("error encountered during sms notify call " + e.getMessage());
 		}
 		try {
@@ -138,6 +143,7 @@ public class NotificationUtil {
 			log.info("return response from sms notification " + response.getBody());
 			smsResponse = response.getStatusCode().toString();
 		} catch (HttpClientErrorException e) {
+			Sentry.captureException(e);
 			log.error("error encountered during sent sms call ");
 		}
 		return smsResponse;

@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.sentry.Sentry;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,6 +177,7 @@ public class CustomerFieldValidator {
 			if(!dateOfBirthCheck(dateOfBirth))
 				errorList.add(DOB_INVALID_MESSAGE);
 		}catch(GeneralCustomException e) {
+			Sentry.captureException(e);
 			errorList.add(e.getMessage());
 		}
 
@@ -223,8 +225,10 @@ public class CustomerFieldValidator {
 			commonUtil.checkIfFirstDateOfPaymentValid(firstDateOfPayment, lender);
 		}
 		catch(GeneralCustomException e) {
+			Sentry.captureException(e);
 			errorList.add(e.getMessage());
 		}catch(Exception e) {
+			Sentry.captureException(e);
 			errorList.add(e.getMessage());
 		}
 		
@@ -293,6 +297,7 @@ public class CustomerFieldValidator {
 		        }
 			}
 		}catch(Exception e) {
+			Sentry.captureException(e);
 			errorList.add(EMAIL_EXIST_VALIDATION_MESSAGE);
 			return errorList;
 		}
@@ -426,10 +431,12 @@ public class CustomerFieldValidator {
         		valid = true;
         	}
         } catch (DateTimeParseException e) {
+			Sentry.captureException(e);
         	valid = false;
         	throw new GeneralCustomException("ERROR", e.getMessage());
             
         } catch (ParseException e) {
+			Sentry.captureException(e);
         	valid = false;
         	throw new GeneralCustomException("ERROR", e.getMessage());
 		}
@@ -460,8 +467,10 @@ public class CustomerFieldValidator {
 					.getBody();
 
 		} catch (ResourceAccessException resourceException) {
+			Sentry.captureException(resourceException);
 			throw new ServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
 		} catch (Exception ex) {
+			Sentry.captureException(ex);
 			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
 		}
 		return lenderConfigInfo;

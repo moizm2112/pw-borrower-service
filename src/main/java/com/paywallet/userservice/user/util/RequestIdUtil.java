@@ -8,6 +8,7 @@ import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.RequestIdResponseDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -66,8 +67,10 @@ public class RequestIdUtil {
                     .getBody();
 
         } catch (ResourceAccessException resourceException) {
+            Sentry.captureException(resourceException);
             throw new ServiceNotAvailableException( HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
         } catch (Exception ex) {
+            Sentry.captureException(ex);
             throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
         }
         log.info("respons from  generateRequestIdDetails : " + requestIdResponse);
@@ -108,8 +111,10 @@ public class RequestIdUtil {
                     .getBody();
 
         } catch (ResourceAccessException resourceException) {
+            Sentry.captureException(resourceException);
             throw new ServiceNotAvailableException( HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
         } catch (Exception ex) {
+            Sentry.captureException(ex);
             throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
         }
         log.info("response from  updateRequestIdDetails : " + requestIdResponse);
@@ -144,8 +149,10 @@ public class RequestIdUtil {
                 throw new RequestIdNotFoundException(" Request ID details not found for request ID : {}" + requestId);
             }
         } catch (ResourceAccessException resourceException) {
+            Sentry.captureException(resourceException);
             throw new ServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
         } catch (Exception ex) {
+            Sentry.captureException(ex);
             throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
         }
     }
@@ -165,6 +172,7 @@ public class RequestIdUtil {
                     .parseClaimsJws(encRequestID).getBody();
             return Optional.ofNullable(claims.getSubject());
         }catch (Exception ex){
+            Sentry.captureException(ex);
             log.error(" Exception while decoding the string {} ",ex.getMessage());
             return Optional.empty();
         }

@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import io.sentry.Sentry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -202,8 +203,10 @@ public class CustomerServiceHelper {
 					.getBody();
 
 		} catch (ResourceAccessException resourceException) {
+			Sentry.captureException(resourceException);
 			throw new ServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
 		} catch (Exception ex) {
+			Sentry.captureException(ex);
 			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
 		}
 		return requestIdResponse;
@@ -238,8 +241,10 @@ public class CustomerServiceHelper {
 					.getBody();
 
 		} catch (ResourceAccessException resourceException) {
+			Sentry.captureException(resourceException);
 			throw new ServiceNotAvailableException( HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
 		} catch (Exception ex) {
+			Sentry.captureException(ex);
 			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
 		}
 		log.info("response from  updateRequestIdDetails : " + requestIdResponse);
@@ -302,6 +307,7 @@ public class CustomerServiceHelper {
         	}
     	}
     	catch(Exception e) {
+			Sentry.captureException(e);
     		throw new GeneralCustomException("ERROR", "Exception occured while updating the request Id details");
     	}
     	return requestIdDTO;
@@ -324,6 +330,7 @@ public class CustomerServiceHelper {
 			linkResponse = restTemplate.postForObject(createLinkUri, request, String.class);
 			log.info(" Response from getLinkFromLinkVerificationService : " + linkResponse);
 		} catch (Exception ex) {
+			Sentry.captureException(ex);
 			log.error("link creation failed " + ex.getMessage());
 			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
 		}
@@ -333,7 +340,7 @@ public class CustomerServiceHelper {
 
 	/**
 	 * Methods that communicates with the account microservice to create a client and savings account for the customer.
-	 * @param customer
+	 * @param customerEntity
 	 * @return
 	 * @throws GeneralCustomException
 	 */
@@ -359,15 +366,19 @@ public class CustomerServiceHelper {
 				throw new FineractAPIException("Error while creating virtual savings account for the customer");
 		}
 		catch(GeneralCustomException e) {
+			Sentry.captureException(e);
 			throw new FineractAPIException("Error while creating virtual savings account for the customer" + e.getMessage());
 		}
 		catch(ResourceAccessException e) {
+			Sentry.captureException(e);
 			throw new ServiceNotAvailableException(ERROR, e.getMessage());
 		}
 		catch(HttpClientErrorException e) {
+			Sentry.captureException(e);
 			throw new FineractAPIException("Error while creating virtual account with fineract API." + e.getMessage());
 		}
 		catch(Exception e) {
+			Sentry.captureException(e);
 			throw new FineractAPIException(e.getMessage());
 		}
 	}
@@ -388,6 +399,7 @@ public class CustomerServiceHelper {
 					.exchange(uriBuilder.toUriString(), HttpMethod.PUT, requestEntity, FineractUpdateLenderResponseDTO.class)
 					.getBody();
 		} catch (Exception ex) {
+			Sentry.captureException(ex);
 			log.error("Exception occured while updating cellPhone for given client in fineract" + ex.getMessage());
 			throw new FineractAPIException(ex.getMessage());
 		}
@@ -417,6 +429,7 @@ public class CustomerServiceHelper {
 					.exchange(uriBuilder.toUriString(), HttpMethod.POST, requestEntity, EmployerSearchDetailsDTO.class)
 					.getBody();
 		} catch (Exception ex) {
+			Sentry.captureException(ex);
 			log.error("Exception occured while getting employer details for given employerID" + ex.getMessage());
 			throw new GeneralCustomException("ERROR",ex.getMessage());
 		}
@@ -433,10 +446,12 @@ public class CustomerServiceHelper {
 		   notificationResponse = notificationUtil.callNotificationService(requestIdDetails, customerDetails, linkResponse);
 	   }
 	   catch(GeneralCustomException e) {
+		   Sentry.captureException(e);
 		   log.error("Create and send link exception " + e.getMessage());
 			throw new SMSAndEmailNotificationException(e.getMessage());
 	   }
 	   catch(Exception e) {
+		   Sentry.captureException(e);
 		   log.error("Create and send link exception " + e.getMessage());
 			throw new SMSAndEmailNotificationException(e.getMessage());
 	   }
@@ -477,16 +492,19 @@ public class CustomerServiceHelper {
 			            json = objectMapper.writeValueAsString(mapErrorList);
 			            log.error("Mandatory fields can't be made optional - " + json);
 			        } catch (JsonProcessingException e) {
+						Sentry.captureException(e);
 			        	throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + mapErrorList);
 			        }
 				   throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + json);
 			   }
 		   }
 	   }catch(GeneralCustomException e) {
+		   Sentry.captureException(e);
 		   log.error("Mandatory fields can't be made optional - " + e.getMessage());
 		   throw new GeneralCustomException(ERROR, e.getMessage());
 	   }
 	   catch(Exception e) {
+		   Sentry.captureException(e);
 		   log.error("Mandatory fields can't be made optional - " + e.getMessage());
 		   throw new GeneralCustomException(ERROR, e.getMessage());
 	   }
@@ -527,10 +545,12 @@ public class CustomerServiceHelper {
 			}
 	   }
 	   catch(ServiceNotAvailableException e) {
+		   Sentry.captureException(e);
 		   log.error("Exception occured while fetching request Id details- Service unavailable");
 		   throw new ServiceNotAvailableException(ERROR ,e.getMessage());
 	   }
 	   catch(Exception e) {
+		   Sentry.captureException(e);
 		   log.error("Exception occured while fetching request Id details");
 		   throw new GeneralCustomException(ERROR ,e.getMessage());
 	   }
