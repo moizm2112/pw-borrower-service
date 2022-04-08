@@ -391,8 +391,8 @@ public class CustomerWrapperAPIService {
 		employmentVerificationResponseModel.setLenderName(customerDetails.getLender());
 		employmentVerificationResponseModel.setEmployer(customerDetails.getEmployer());
 		employmentVerificationResponseModel.setCallbackURLs(employmentVerificationRequestWrapperModel.getCallbackURLs());
-		employmentVerificationResponseModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
-		employmentVerificationResponseModel.setLastName(customerDetails.getPersonalProfile().getLastName());
+		employmentVerificationResponseModel.setFirstName(employmentVerificationRequestWrapperModel.getFirstName());
+		employmentVerificationResponseModel.setLastName(employmentVerificationRequestWrapperModel.getLastName());
 		return employmentVerificationResponseModel;
 	}
 	
@@ -403,8 +403,8 @@ public class CustomerWrapperAPIService {
 		incomeVerificationResponseModel.setNumberOfMonthsRequested(incomeVerificationRequestWrapperModel.getNumberOfMonthsRequested());
 		incomeVerificationResponseModel.setEmployer(customerDetails.getEmployer());
 		incomeVerificationResponseModel.setCallbackURLs(incomeVerificationRequestWrapperModel.getCallbackURLs());
-		incomeVerificationResponseModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
-		incomeVerificationResponseModel.setLastName(customerDetails.getPersonalProfile().getLastName());
+		incomeVerificationResponseModel.setFirstName(incomeVerificationRequestWrapperModel.getFirstName());
+		incomeVerificationResponseModel.setLastName(incomeVerificationRequestWrapperModel.getLastName());
 		return incomeVerificationResponseModel;
 	}
 	
@@ -412,11 +412,11 @@ public class CustomerWrapperAPIService {
 		IdentityVerificationResponseWrapperModel identityVerificationResponseWrapperModel = new IdentityVerificationResponseWrapperModel();
 		identityVerificationResponseWrapperModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
 		identityVerificationResponseWrapperModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
-		identityVerificationResponseWrapperModel.setLast4TIN(customerDetails.getPersonalProfile().getLast4TIN());
+		identityVerificationResponseWrapperModel.setLast4TIN(identityVerificationRequestWrapperModel.getLast4TIN());
 		identityVerificationResponseWrapperModel.setEmployer(customerDetails.getEmployer());
 		identityVerificationResponseWrapperModel.setCallbackURLs(identityVerificationRequestWrapperModel.getCallbackURLs());
-		identityVerificationResponseWrapperModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
-		identityVerificationResponseWrapperModel.setLastName(customerDetails.getPersonalProfile().getLastName());
+		identityVerificationResponseWrapperModel.setFirstName(identityVerificationRequestWrapperModel.getFirstName());
+		identityVerificationResponseWrapperModel.setLastName(identityVerificationRequestWrapperModel.getLastName());
 		return identityVerificationResponseWrapperModel;
 	}
 	

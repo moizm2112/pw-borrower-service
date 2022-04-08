@@ -1315,7 +1315,6 @@ public class CustomerService {
 	        if (byMobileNo.isPresent()) {
 	        	log.info("Exsiting customer with new requestID : " + requestId);
 	        	customerReponse = byMobileNo.get();
-                commonUtil.validateNameCombination(customer,customerReponse);
 	        	customerReponse.setExistingCustomer(true);
 	        	customerReponse.setInstallmentAmount(customer.getInstallmentAmount());
 	        	customerReponse.setNumberOfInstallments(customer.getNumberOfInstallments());

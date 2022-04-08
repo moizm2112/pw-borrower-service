@@ -169,34 +169,4 @@ public class CommonUtil {
 		return  String.valueOf(amount);
 	}
 
-	public void validateRequestAPIDetails(CreateCustomerRequest custDtlsFromReq, CustomerDetails custDtlsFromDB) throws RequestAPIDetailsException {
-
-		if (custDtlsFromReq.getLast4TIN().trim().equalsIgnoreCase
-				(custDtlsFromDB.getPersonalProfile().getLast4TIN().trim())) {
-			log.info(" validateRequestAPIDetails : last4 tin matches ");
-			this.validateNameCombination(custDtlsFromReq,custDtlsFromDB);
-		} else {
-             throw new RequestAPIDetailsException(" last4TIN : miss match between request details and Datasource");
-		}
-	}
-
-	public void validateNameCombination(CreateCustomerRequest custDtlsFromReq, CustomerDetails custDtlsFromDB) throws RequestAPIDetailsException {
-		log.info(" validating firstName and lastName combination ");
-		String firstNameDB = custDtlsFromDB.getPersonalProfile().getFirstName().trim();
-		String lastNameDB = custDtlsFromDB.getPersonalProfile().getLastName().trim();
-		String firstNameReq = custDtlsFromReq.getFirstName().trim();
-		String lastNameReq = custDtlsFromReq.getLastName().trim();
-		if (firstNameDB.equalsIgnoreCase(firstNameReq)) {
-			if (!lastNameDB.equalsIgnoreCase(lastNameReq)) {
-				throw new RequestAPIDetailsException(" lastName : miss match between request details and Datasource");
-			}
-		} else if (firstNameDB.equalsIgnoreCase(lastNameReq)) {
-
-			if (!lastNameDB.equalsIgnoreCase(firstNameReq)) {
-				throw new RequestAPIDetailsException(" lastName : miss match between request details and Datasource");
-			}
-		} else {
-			throw new RequestAPIDetailsException(" firstName : miss match between request details and Datasource");
-		}
-	}
 }
