@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import io.sentry.Sentry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -35,7 +36,7 @@ public class ControllerAdvisor {
 	 */
 	@ExceptionHandler(ServiceNotAvailableException.class)
 	public ResponseEntity<Object> handleServiceNotAvailableException(ServiceNotAvailableException serviceNotAvailableException, HttpServletRequest request) {
-
+		Sentry.captureException(serviceNotAvailableException);
 		String path = request.getRequestURI();
         log.error("General Custom exception ", serviceNotAvailableException);
         Map<String, Object> body = new LinkedHashMap<>();
@@ -55,7 +56,7 @@ public class ControllerAdvisor {
 	@ExceptionHandler(RequestIdNotFoundException.class)
 	@ResponseStatus(value = HttpStatus.NOT_FOUND)
 	public ResponseEntity<Object> handleRequestIdNotFoundException(RequestIdNotFoundException requestIdNotFoundException, HttpServletRequest request) {
-
+		Sentry.captureException(requestIdNotFoundException);
 		String path = request.getRequestURI();
         log.error("Request Id not found ", requestIdNotFoundException);
         Map<String, Object> body = new LinkedHashMap<>();
@@ -68,14 +69,14 @@ public class ControllerAdvisor {
 	
 	/**
 	 * Method handles Notification exception happens while  not found exception
-	 * @param SMSAndEmailNotificationException
+	 * @param smsEmailNotificationException
 	 * @param request
 	 * @return
 	 */
 	@ExceptionHandler(SMSAndEmailNotificationException.class)
 	@ResponseStatus(value = HttpStatus.NOT_FOUND)
 	public ResponseEntity<Object> handleSMSAndEmailNotificationException(SMSAndEmailNotificationException smsEmailNotificationException, HttpServletRequest request) {
-
+		Sentry.captureException(smsEmailNotificationException);
 		String path = request.getRequestURI();
         log.error("SMS and EMail Notification failed ", smsEmailNotificationException);
         Map<String, Object> body = new LinkedHashMap<>();
@@ -103,6 +104,7 @@ public class ControllerAdvisor {
 	 */
 	@ExceptionHandler(GeneralCustomException.class)
 	public ResponseEntity<Object> handleGeneralCustomException(GeneralCustomException generalCustomException, HttpServletRequest request) {
+		Sentry.captureException(generalCustomException);
 		String path = request.getRequestURI();
         log.error("General Custom exception ", generalCustomException);
         Map<String, Object> body = new LinkedHashMap<>();
@@ -121,6 +123,7 @@ public class ControllerAdvisor {
 	 */
 	@ExceptionHandler(FineractAPIException.class)
 	public ResponseEntity<Object> handleGeneralCustomException(FineractAPIException fineractAPIException, HttpServletRequest request) {
+		Sentry.captureException(fineractAPIException);
 		String path = request.getRequestURI();
         log.error("Fineract API exception : ", fineractAPIException);
         Map<String, Object> body = new LinkedHashMap<>();
@@ -140,6 +143,7 @@ public class ControllerAdvisor {
 	@ExceptionHandler(CustomerNotFoundException.class)
 	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	public ResponseEntity<Object> handleCustomerNotFoundException(CustomerNotFoundException customerNotFoundException, HttpServletRequest request) {
+		Sentry.captureException(customerNotFoundException);
 		String path = request.getRequestURI();
         log.error(customerNotFoundException.getMessage());
         Map<String, Object> body = new LinkedHashMap<>();
@@ -159,6 +163,7 @@ public class ControllerAdvisor {
 	@ExceptionHandler(CustomerAccountException.class)
 	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	public ResponseEntity<Object> handleCustomerAccountException(CustomerAccountException customerAccountException, HttpServletRequest request) {
+		Sentry.captureException(customerAccountException);
 		String path = request.getRequestURI();
         log.error(customerAccountException.getMessage());
         Map<String, Object> body = new LinkedHashMap<>();
@@ -171,7 +176,7 @@ public class ControllerAdvisor {
 	
 	/**
 	 * Method handles Create customer exception
-	 * @param CreateCustomerException
+	 * @param ex
 	 * @param request
 	 * @return
 	 */
@@ -179,7 +184,8 @@ public class ControllerAdvisor {
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> handleCreateCustomerException(CreateCustomerException ex, HttpServletRequest request) {
-        String path = request.getRequestURI();
+		Sentry.captureException(ex);
+		String path = request.getRequestURI();
         log.error("Error while creating customer", ex);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", HttpStatus.BAD_REQUEST.toString());
@@ -191,12 +197,12 @@ public class ControllerAdvisor {
 	
 	/**
 	 * Method handles method argument not valid exception
-	 * @param MethodArgumentNotValidException
+	 * @param ex
 	 * @return
 	 */
 	@ExceptionHandler(value = MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-
+		Sentry.captureException(ex);
         List<String> list = new ArrayList<String>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
@@ -219,7 +225,7 @@ public class ControllerAdvisor {
 	 */
 	@ExceptionHandler(value = HttpMessageNotReadableException.class)
     public ResponseEntity<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-
+		Sentry.captureException(ex);
         log.error("Method argument validation exception HttpMessageNotReadableException ", ex);
         List<String> list = new ArrayList<String>();
         List<Reference> errorField = ((InvalidFormatException) (ex.getCause())).getPath();
@@ -239,6 +245,7 @@ public class ControllerAdvisor {
 	@ExceptionHandler(OfferPayAllocationException.class)
 	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	public ResponseEntity<Object> handleOfferPayAllocationException(OfferPayAllocationException offerPayAllocationException, HttpServletRequest request) {
+		Sentry.captureException(offerPayAllocationException);
 		String path = request.getRequestURI();
 		log.error(offerPayAllocationException.getMessage());
 		Map<String, Object> body = new LinkedHashMap<>();
@@ -252,6 +259,7 @@ public class ControllerAdvisor {
 	@ExceptionHandler(RetryException.class)
 	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 	public ResponseEntity<Object> handleRetryException(RetryException retryException, HttpServletRequest request) {
+		Sentry.captureException(retryException);
 		String path = request.getRequestURI();
 		log.error(retryException.getMessage());
 		Map<String, Object> body = new LinkedHashMap<>();

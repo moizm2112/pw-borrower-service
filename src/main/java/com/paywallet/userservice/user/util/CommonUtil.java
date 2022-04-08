@@ -11,10 +11,10 @@ import java.time.format.ResolverStyle;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
-
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.exception.RequestAPIDetailsException;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
+import io.sentry.Sentry;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -73,6 +73,7 @@ public class CommonUtil {
 			}
 
 		} catch (DateTimeParseException e) {
+			Sentry.captureException(e);
 			isDateValid = false;
 			log.error("Please enter date in YYYY-MM-DD format : {}",e.getMessage());
 			throw new GeneralCustomException("ERROR",e.getMessage() + " Please enter correct date in YYYY-MM-DD format");
@@ -90,6 +91,7 @@ public class CommonUtil {
 				convertedVal = Double.parseDouble(strValue);
 			}
 		} catch (Exception ex) {
+			Sentry.captureException(ex);
 			log.error(" Error while parsing the amount : {} ", ex.getMessage(),ex);
 		}
 		return convertedVal;
@@ -103,7 +105,8 @@ public class CommonUtil {
 		try {
 			md = MessageDigest.getInstance(SHA256);
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			Sentry.captureException(e);
+			log.error("Error while generating hash : {}",e.getMessage(),e);
 		}
 		byte[] hashBytes = md.digest(originalString.getBytes(StandardCharsets.UTF_8));
 		String hashedString = Base64.getEncoder().encodeToString(hashBytes);

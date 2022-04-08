@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import io.sentry.Sentry;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -527,7 +528,7 @@ public class CustomerService {
     
     /**
      * Method updates the customer Basic Details
-     * @param UpdateCustomerMobileNoDTO
+     * @param updateCustomerMobileNoDTO
      * @return
      * @throws CustomerNotFoundException
      */
@@ -620,20 +621,24 @@ public class CustomerService {
                 throw new CustomerNotFoundException("CellPhone Number cannot be updated as allocation has already been completed");
         	}
     	}catch(FineractAPIException e) {
+            Sentry.captureException(e);
     		log.error("Exception occured in fineract while updating CellPhone Number for given client "+ e.getMessage());
     		throw new FineractAPIException(e.getMessage());
     	}catch(CustomerNotFoundException e) {
+            Sentry.captureException(e);
     		if(isMobileNoUpdatedInFineract && !isMobileNoUpdatedInCustomerDetails)
     			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getCellPhone(), custDetails.getVirtualClientId());
     		log.error("Exception occured while updating customer details " + e.getMessage());
     		throw new CustomerNotFoundException(e.getMessage());
     	}catch(GeneralCustomException e) {
+            Sentry.captureException(e);
     		if(isMobileNoUpdatedInFineract && !isMobileNoUpdatedInCustomerDetails)
     			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getCellPhone(), custDetails.getVirtualClientId());
     		log.error("Exception occured while updating customer details " + e.getMessage());
     		throw new GeneralCustomException(ERROR, e.getMessage());
     	}
     	catch(Exception e) {
+            Sentry.captureException(e);
     		if(isMobileNoUpdatedInFineract && !isMobileNoUpdatedInCustomerDetails)
     			customerServiceHelper.updateMobileNoInFineract(updateCustomerMobileNoDTO.getCellPhone(), custDetails.getVirtualClientId());
     		log.error("Exception occured while updating customer details " + e.getMessage());
@@ -645,7 +650,7 @@ public class CustomerService {
     
     /**
      * Method updates the customer Basic Details
-     * @param UpdateCustomerMobileNoDTO
+     * @param updateCustomerEmailIdDTO
      * @return
      * @throws CustomerNotFoundException
      */
@@ -737,13 +742,16 @@ public class CustomerService {
                 throw new CustomerNotFoundException("Email Id cannot be updated as allocation has already been completed");
         	}
     	}catch(CustomerNotFoundException e) {
+            Sentry.captureException(e);
     		log.error("Exception occured while updating emailId customer details " + e.getMessage());
     		throw new CustomerNotFoundException(e.getMessage());
     	}catch(GeneralCustomException e) {
+            Sentry.captureException(e);
     		log.error("Exception occured while updating emailIdcustomer details " + e.getMessage());
     		throw new GeneralCustomException(ERROR, e.getMessage());
     	}
     	catch(Exception e) {
+            Sentry.captureException(e);
     		if(e.getMessage().contains("returned non unique result")) {
     			log.error("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
                 throw new CustomerNotFoundException("Updating Email "+updateCustomerEmailIdDTO.getNewEmailId()+" exist in database. Please provide different email");
@@ -777,7 +785,7 @@ public class CustomerService {
     
     /** Method creates a response DTO to orchestrate back to the caller. 
      * This shares the response of customer details, status of request and URI path.
-     * @param customerDetails
+     * @param updateCustomerDetailsResponseDTO
      * @param message
      * @param status
      * @param path
@@ -982,6 +990,7 @@ public class CustomerService {
 			            json = objectMapper.writeValueAsString(mapErrorList);
 			            log.error("Invalid data in customer request - " + json);
 			        } catch (JsonProcessingException e) {
+                        Sentry.captureException(e);
 			        	throw new GeneralCustomException(ERROR, "Invalid data in customer request - " + mapErrorList);
 			        }
 				   throw new GeneralCustomException(ERROR, "Invalid data in customer request - " + json);
@@ -992,8 +1001,10 @@ public class CustomerService {
 			   throw new GeneralCustomException(ERROR, "No data available for given lender in the required fields table");
 		   }
 	   } catch(GeneralCustomException e) {
+           Sentry.captureException(e);
 		   throw e;
 	   } catch(Exception e) {
+           Sentry.captureException(e);
 		   log.error("Exception occured while validating the customer capture request");
 		   throw e;
 	   }
@@ -1013,10 +1024,12 @@ public class CustomerService {
 			   isSuccess = true;
 		   
 	   }catch(GeneralCustomException e) {
+           Sentry.captureException(e);
 		   log.error("Customerservice addCustomerRequiredFields - " + e.getMessage());
 		   throw new GeneralCustomException(ERROR, e.getMessage());
 	   }
 	   catch(Exception e) {
+           Sentry.captureException(e);
 		   log.error("Customerservice addCustomerRequiredFields - addCustomerRequiredFields failed.");
 			throw new GeneralCustomException(ERROR ,"Customerservice addCustomerRequiredFields - addCustomerRequiredFields failed.");
 	   }
@@ -1042,6 +1055,7 @@ public class CustomerService {
                 log.info(" offerPayAllocationResponse : {} : requestId {} ", offerPayAllocationResponse, requestId);
             }
         } catch (Exception ex) {
+            Sentry.captureException(ex);
             log.error(" Error while doing checkAndSavePayAllocation {}  : requestId {} ", ex.getMessage(), requestId);
             throw new OfferPayAllocationException(" save allocation failed : " + ex.getMessage());
         }
@@ -1254,30 +1268,37 @@ public class CustomerService {
             log.info("Customer got created successfully");
     	}
         catch(GeneralCustomException e) {
+            Sentry.captureException(e);
         	log.error("Customerservice createcustomer generalCustomException" + e.getMessage());
         	throw new GeneralCustomException(ERROR ,e.getMessage());
         }catch(CreateCustomerException e1) {
+            Sentry.captureException(e1);
         	log.error("Customerservice createcustomer createCustomerException" + e1.getMessage());
         	if(virtualAccount != -1)
         		throw new CreateCustomerException(e1.getMessage());
         }
         catch(RequestIdNotFoundException e) {
+            Sentry.captureException(e);
         	log.error("Customerservice createcustomer RequestIdNotFoundException" + e.getMessage());
         	throw new RequestIdNotFoundException(e.getMessage());
         }
         catch(ServiceNotAvailableException e) {
+            Sentry.captureException(e);
         	log.error("Customerservice createcustomer ServiceNotAvailableException" + e.getMessage());
         	throw new ServiceNotAvailableException(ERROR, e.getMessage());
         }
         catch(FineractAPIException e) {
+            Sentry.captureException(e);
         	log.error("Customerservice createcustomer FineractAPIException" + e.getMessage());
         	throw new FineractAPIException(e.getMessage());
         }
         catch(SMSAndEmailNotificationException e) {
+            Sentry.captureException(e);
         	log.error("Customerservice createcustomer SMSAndEmailNotificationException"+ e.getMessage());
         	throw new SMSAndEmailNotificationException(e.getMessage());
         }
         catch(Exception e) {
+            Sentry.captureException(e);
         	log.error("Customerservice createcustomer Exception" + e.getMessage());
         	throw new GeneralCustomException(ERROR ,e.getMessage());
         }
@@ -1296,10 +1317,12 @@ public class CustomerService {
 			log.info("Employer search and select from create customer :" + employerSearchDetailsDTO);
     	}
     	catch(GeneralCustomException e) {
+            Sentry.captureException(e);
     		log.error("Create customer -  getEmployerDetailsBasedOnEmplyerIdFromRequest Exception" + e.getMessage());
         	throw new GeneralCustomException(ERROR ,e.getMessage());
     	}
     	catch(Exception e) {
+            Sentry.captureException(e);
     		log.error("Create customer - getEmployerDetailsBasedOnEmplyerIdFromRequest Exception" + e.getMessage());
         	throw new GeneralCustomException(ERROR ,e.getMessage());
     	}
@@ -1328,6 +1351,7 @@ public class CustomerService {
 	        	customerReponse.setExistingCustomer(false);
 	        }
     	}catch(Exception e) {
+            Sentry.captureException(e);
     		throw new GeneralCustomException("ERROR", e.getMessage());
     	}
     	return customerReponse;

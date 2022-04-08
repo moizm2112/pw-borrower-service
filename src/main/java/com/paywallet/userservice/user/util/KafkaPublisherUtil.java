@@ -1,5 +1,6 @@
 package com.paywallet.userservice.user.util;
 
+import io.sentry.Sentry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +43,7 @@ public class KafkaPublisherUtil {
             StatusEnum statusEnum = kafkaProducerService.publishLinkServiceInfo(linkServiceInfo);
             log.info(" requestId : {}  publish status  : {} ", requestIdDtls.getRequestId(), statusEnum);
         } catch (Exception ex) {
+            Sentry.captureException(ex);
             log.error(" Exception occurred while publishing LinkServiceInfo {}  request id :", ex, requestIdDtls.getRequestId());
         }
     }
@@ -61,6 +63,7 @@ public class KafkaPublisherUtil {
             StatusEnum statusEnum = kafkaProducerService.publishLinkServiceInfo(linkServiceInfo);
             log.info(" requestId : {}  publish status  : {} ", requestIdDtls.getRequestId(), statusEnum);
         } catch (Exception ex) {
+            Sentry.captureException(ex);
             log.error(" Exception occurred while publishing LinkServiceInfo {}  request id :", ex, requestIdDtls.getRequestId());
         }
     }

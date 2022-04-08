@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import io.sentry.Sentry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -48,6 +49,7 @@ public class UserService {
 				throw new UserAlreadyPresentException("User already present.. please update the existing user");
 			}
 		} catch (Exception e) {
+			Sentry.captureException(e);
 			log.error("Exception occured for insert user" + e.getMessage());
 		}
 		return createdUser;

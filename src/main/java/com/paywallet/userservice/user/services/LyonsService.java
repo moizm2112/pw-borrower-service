@@ -3,6 +3,7 @@ package com.paywallet.userservice.user.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -85,6 +86,7 @@ public class LyonsService {
 			try {
 				requestDataObject.put(REQUEST_STRING, objectMapper.writeValueAsString(apiRequest));
 			} catch (JsonProcessingException e) {
+				Sentry.captureException(e);
 				requestDataObject.put(ERROR, "Lyons request parsing failed !");
 			}
 		}
@@ -107,8 +109,10 @@ public class LyonsService {
 			String result = new RestTemplate().postForObject(this.lyonsBaseURL + endpoint, request, String.class);
 			apiResponseData.put(RESULT, new JSONObject(result));
 		} catch (JSONException err) {
+			Sentry.captureException(err);
 			apiResponseData.put(ERROR, "Lyons response parsing failed !");
 		} catch (HttpClientErrorException ex) {
+			Sentry.captureException(ex);
 			apiResponseData.put(ERROR, "Error while communicating with Lyons API !");
 		}
 		return apiResponseData;

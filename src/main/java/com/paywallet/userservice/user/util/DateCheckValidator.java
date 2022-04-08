@@ -12,6 +12,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 import com.paywallet.userservice.user.exception.GeneralCustomException;
+import io.sentry.Sentry;
 
 /**
  * This class validates Date of birth field with date validation and field value should be lesser than current date.
@@ -45,10 +46,12 @@ public class DateCheckValidator implements ConstraintValidator<DateCheck, String
         		valid = true;
         	}
         } catch (DateTimeParseException e) {
+			Sentry.captureException(e);
         	valid = false;
         	throw new GeneralCustomException("ERROR", e.getMessage());
             
         } catch (ParseException e) {
+			Sentry.captureException(e);
         	valid = false;
         	throw new GeneralCustomException("ERROR", e.getMessage());
 		}
