@@ -10,7 +10,10 @@ import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.Base64;
 import java.util.List;
-
+import java.util.Optional;
+import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.exception.RequestAPIDetailsException;
+import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import io.sentry.Sentry;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,9 @@ public class CommonUtil {
 	
 	@Value("${Luthersales_days_for_FirstDateOfPayment}")
 	private String luthersales_days_for_FirstDateOfPayment;
+
+	@Value("${decimal.part.size:2}")
+	private String decimalLength;
 
 	@Autowired
 	ListOfHolidaysRepo listOfHolidaysRepo;
@@ -146,6 +152,24 @@ public class CommonUtil {
 			}
 		}
 		return result;
+	}
+
+	public String getFormattedAmount(int amount){
+		try {
+			return String.format("%."+decimalLength+"f",Double.valueOf(amount));
+		}catch (Exception e){
+			log.error(" Exception while formatting the amount : {} ",e.getMessage());
+		}
+		return  String.valueOf(amount);
+	}
+
+	public String getFormattedAmount(double amount){
+		try {
+			return String.format("%."+decimalLength+"f",amount);
+		}catch (Exception e){
+			log.error(" Exception while formatting the amount : {} ",e.getMessage());
+		}
+		return  String.valueOf(amount);
 	}
 
 }

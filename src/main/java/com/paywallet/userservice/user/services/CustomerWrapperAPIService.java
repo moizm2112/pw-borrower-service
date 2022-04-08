@@ -9,7 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+import com.paywallet.userservice.user.util.CommonUtil;
 import io.sentry.Sentry;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -80,6 +80,9 @@ public class CustomerWrapperAPIService {
 	
     @Autowired
     KafkaPublisherUtil kafkaPublisherUtil;
+
+	@Autowired
+	CommonUtil commonUtil;
     
 	public UpdateCustomerCredentialsResponse updateCustomerCredentials(UpdateCustomerCredentialsModel customerCredentialsModel, String requestId) 
 			throws CustomerNotFoundException, RequestIdNotFoundException {
@@ -375,11 +378,11 @@ public class CustomerWrapperAPIService {
 		depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
 		depositAllocationResponseModel.setNumberOfInstallments(customerDetails.getNumberOfInstallments());
 		if(depositAllocationRequestWrapperModel.getInstallmentAmount() > 0)
-			depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
+			depositAllocationResponseModel.setInstallmentAmount(commonUtil.getFormattedAmount(customerDetails.getInstallmentAmount()));
 		else if(depositAllocationRequestWrapperModel.getLoanAmount() > 0) {
-			depositAllocationResponseModel.setInstallmentAmount(customerService.getInstallmentAmount(depositAllocationRequestWrapperModel.getLoanAmount(),
-					depositAllocationRequestWrapperModel.getInstallmentAmount(), depositAllocationRequestWrapperModel.getNumberOfInstallments()));
-			depositAllocationResponseModel.setLoanAmount(depositAllocationRequestWrapperModel.getLoanAmount());
+			depositAllocationResponseModel.setInstallmentAmount(commonUtil.getFormattedAmount(customerService.getInstallmentAmount(depositAllocationRequestWrapperModel.getLoanAmount(),
+					depositAllocationRequestWrapperModel.getInstallmentAmount(), depositAllocationRequestWrapperModel.getNumberOfInstallments())));
+			depositAllocationResponseModel.setLoanAmount(commonUtil.getFormattedAmount(depositAllocationRequestWrapperModel.getLoanAmount()));
 		}
 		return depositAllocationResponseModel;
 	}
@@ -391,8 +394,8 @@ public class CustomerWrapperAPIService {
 		employmentVerificationResponseModel.setLenderName(customerDetails.getLender());
 		employmentVerificationResponseModel.setEmployer(customerDetails.getEmployer());
 		employmentVerificationResponseModel.setCallbackURLs(employmentVerificationRequestWrapperModel.getCallbackURLs());
-		employmentVerificationResponseModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
-		employmentVerificationResponseModel.setLastName(customerDetails.getPersonalProfile().getLastName());
+		employmentVerificationResponseModel.setFirstName(employmentVerificationRequestWrapperModel.getFirstName());
+		employmentVerificationResponseModel.setLastName(employmentVerificationRequestWrapperModel.getLastName());
 		return employmentVerificationResponseModel;
 	}
 	
@@ -403,8 +406,8 @@ public class CustomerWrapperAPIService {
 		incomeVerificationResponseModel.setNumberOfMonthsRequested(incomeVerificationRequestWrapperModel.getNumberOfMonthsRequested());
 		incomeVerificationResponseModel.setEmployer(customerDetails.getEmployer());
 		incomeVerificationResponseModel.setCallbackURLs(incomeVerificationRequestWrapperModel.getCallbackURLs());
-		incomeVerificationResponseModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
-		incomeVerificationResponseModel.setLastName(customerDetails.getPersonalProfile().getLastName());
+		incomeVerificationResponseModel.setFirstName(incomeVerificationRequestWrapperModel.getFirstName());
+		incomeVerificationResponseModel.setLastName(incomeVerificationRequestWrapperModel.getLastName());
 		return incomeVerificationResponseModel;
 	}
 	
@@ -412,11 +415,11 @@ public class CustomerWrapperAPIService {
 		IdentityVerificationResponseWrapperModel identityVerificationResponseWrapperModel = new IdentityVerificationResponseWrapperModel();
 		identityVerificationResponseWrapperModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
 		identityVerificationResponseWrapperModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
-		identityVerificationResponseWrapperModel.setLast4TIN(customerDetails.getPersonalProfile().getLast4TIN());
+		identityVerificationResponseWrapperModel.setLast4TIN(identityVerificationRequestWrapperModel.getLast4TIN());
 		identityVerificationResponseWrapperModel.setEmployer(customerDetails.getEmployer());
 		identityVerificationResponseWrapperModel.setCallbackURLs(identityVerificationRequestWrapperModel.getCallbackURLs());
-		identityVerificationResponseWrapperModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
-		identityVerificationResponseWrapperModel.setLastName(customerDetails.getPersonalProfile().getLastName());
+		identityVerificationResponseWrapperModel.setFirstName(identityVerificationRequestWrapperModel.getFirstName());
+		identityVerificationResponseWrapperModel.setLastName(identityVerificationRequestWrapperModel.getLastName());
 		return identityVerificationResponseWrapperModel;
 	}
 	

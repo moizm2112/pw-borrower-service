@@ -121,15 +121,15 @@ public class EmploymentRetryWrapperAPIService {
 
         if((! customer.getPersonalProfile().getCellPhone().contains(empVerificationRequestDTO.getCellPhone()))&&
                 (!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId()))){
-            throw new RetryException("Both Email ID and Mobile No. does not match with the request ID.");
+            throw new RetryException("Email Id and/or Cellphone number does not match with the Request Id");
         }
 
         if(! customer.getPersonalProfile().getCellPhone().contains(empVerificationRequestDTO.getCellPhone())) {
-            throw new RetryException("Mobile No. does not match with the request ID.");
+            throw new RetryException("Cellphone number does not match with the Request Id.");
         }
 
         if(!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId())) {
-            throw new RetryException("Email Id does not match with the request ID.");
+            throw new RetryException("Email Id does not match with the Request Id.");
         }
 
     	return requestIdDetails;
