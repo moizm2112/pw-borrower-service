@@ -1244,6 +1244,15 @@ public class CustomerService {
             
             RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer, customer.getCallbackURLs(), flowType, requestIdDtls);
         	/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
+
+            // need to optimize this
+            if(flowType.name().equals(FlowTypeEnum.INCOME_VERIFICATION.name())) {
+                log.info(" setting number of months ");
+                if(incomeVerificationRequestWrapperModel.getNumberOfMonthsRequested()!=null){
+                    log.info(" setting into request ID ");
+                    requestIdDTO.setNumberOfMonthsRequested(incomeVerificationRequestWrapperModel.getNumberOfMonthsRequested());
+                }
+            }
             customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri, restTemplate);
             /* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
             //String notificationResponse = createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls, saveCustomer);
