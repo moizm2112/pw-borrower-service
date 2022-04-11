@@ -18,6 +18,7 @@ public final class AppConstants {
 	public static final String INITIATE_EMPLOYMENT_VERIFICATION = "/employment-verification";
 	public static final String INITIATE_INCOME_VERIFICATION = "/income-verification";
 	public static final String INITIATE_IDENTITY_VERIFICATION = "/identity-verification";
+	public static final String CUSTOMER_CONTACT_VERFICATION_UPDATE = "/customer/credential-verification-update";
 	
 	//=============Validation Errors------------------------
 	public static final String FIRST_NAME_VALIDATION_MESSAGE="First Name should contain at least one alphabet.";
