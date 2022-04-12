@@ -86,6 +86,8 @@ public class CustomerService {
 	private static final String EMPLOYMENT_VERIFICATION = "EMPLOYMENT_VERIFICATION";
 	private static final String INCOME_VERIFICATION = "INCOME_VERIFICATION";
 	private static final String IDENTITY_VERIFICATION = "IDENTITY_VERIFICATION";
+	private static final String PDNOTSUPPORTED = "pd Not supported";
+
 
 	@Autowired
 	CustomerRepository customerRepository;
@@ -1131,6 +1133,11 @@ public class CustomerService {
 				if (requestIdDtls.getEmployer() == null || requestIdDtls.getEmployerPWId() == null) {
 					requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(
 							depositAllocationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
+				}
+				//if employer is not pd supported then we can stop the flow here
+				if(!customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls)) {
+					throw new GeneralCustomException(PDNOTSUPPORTED, "Pay distribution is not supported for the employer "
+							+ requestIdDtls.getEmployer());
 				}
 				// Validation of direct deposit allocation request
 				customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,

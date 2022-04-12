@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import io.sentry.Sentry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -47,6 +46,7 @@ import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
 import com.paywallet.userservice.user.model.CallbackURL;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.CustomerRequestFields;
+import com.paywallet.userservice.user.model.EmployerInfoResponseDTO;
 import com.paywallet.userservice.user.model.EmployerSearchDetailsDTO;
 import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
 import com.paywallet.userservice.user.model.FineractLenderAddressDTO;
@@ -54,20 +54,22 @@ import com.paywallet.userservice.user.model.FineractLenderCreationResponseDTO;
 import com.paywallet.userservice.user.model.FineractUpdateLenderAccountDTO;
 import com.paywallet.userservice.user.model.FineractUpdateLenderResponseDTO;
 import com.paywallet.userservice.user.model.LinkRequestProductDTO;
+import com.paywallet.userservice.user.model.ProviderInfo;
 import com.paywallet.userservice.user.model.RequestIdDTO;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.RequestIdResponseDTO;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.util.NotificationUtil;
 
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
-
 
 @Component
 @Slf4j
 public class CustomerServiceHelper {
 
 	private static final String ERROR = "Error";
+	private static final String YES = "yes";
 
 	/**
 	 * This attribute holds the URI path of the Account service provider
@@ -75,10 +77,10 @@ public class CustomerServiceHelper {
 	 */
 	@Value("${createVirtualAccount.eureka.uri}")
 	private String createVirtualAccountUri;
-	
+
 	@Value("${updateVirtualAccount.uri}")
 	private String updateVirtualAccountUri;
-	
+
 	@Value("${employer.uri}")
 	private String searchEmployerUri;
 
@@ -87,54 +89,60 @@ public class CustomerServiceHelper {
 
 	@Value("${fineract.clienttype}")
 	private String fineractClientType;
-	
+
 	@Value("${link.login.domainname}")
 	private String domainNameForLink;
-    
-    @Value("${create.link.uri}")
-	private String createLinkUri;
-    
-    @Autowired
-    NotificationUtil notificationUtil;
 
+	@Value("${create.link.uri}")
+	private String createLinkUri;
 	
+	@Value("${employer.search.uri}")
+	private String employerSearchServicePath;
+
+	@Autowired
+	NotificationUtil notificationUtil;
+
 	private static final String LINK_REQUEST_ID = "requestId";
 	private static final String BORROWER_VERIFICATION_OTP = "borrowerVerificationOtp";
-	
+
 	public void setCustomerDetails(CreateCustomerRequest customer, CustomerDetails custDtls) {
-        PersonalProfile personalProfileToUpdate = custDtls.getPersonalProfile();
-        personalProfileToUpdate.setFirstName(customer.getFirstName());
-        personalProfileToUpdate.setLastName(customer.getLastName());
-        personalProfileToUpdate.setEmailId(customer.getEmailId());
-        personalProfileToUpdate.setZip(customer.getZip());
-        personalProfileToUpdate.setState(customer.getState());
-        personalProfileToUpdate.setDateOfBirth(customer.getDateOfBirth());
-        personalProfileToUpdate.setLast4TIN(customer.getLast4TIN());
-        personalProfileToUpdate.setAddressLine1(customer.getAddressLine1());
-        personalProfileToUpdate.setAddressLine2(customer.getAddressLine2());
-        personalProfileToUpdate.setMiddleName(customer.getMiddleName());
+		PersonalProfile personalProfileToUpdate = custDtls.getPersonalProfile();
+		personalProfileToUpdate.setFirstName(customer.getFirstName());
+		personalProfileToUpdate.setLastName(customer.getLastName());
+		personalProfileToUpdate.setEmailId(customer.getEmailId());
+		personalProfileToUpdate.setZip(customer.getZip());
+		personalProfileToUpdate.setState(customer.getState());
+		personalProfileToUpdate.setDateOfBirth(customer.getDateOfBirth());
+		personalProfileToUpdate.setLast4TIN(customer.getLast4TIN());
+		personalProfileToUpdate.setAddressLine1(customer.getAddressLine1());
+		personalProfileToUpdate.setAddressLine2(customer.getAddressLine2());
+		personalProfileToUpdate.setMiddleName(customer.getMiddleName());
 //        custDtls.setFinancedAmount(customer.getFinancedAmount());
 //        custDtls.setAccountABANumber(customer.getBankABA());
 //        custDtls.setSalaryAccountNumber(customer.getBankAccountNumber());
-    }
+	}
 
 	public CustomerDetails buildCustomerDetails(CreateCustomerRequest customer) {
 		PersonalProfile personalProfile = PersonalProfile.builder().firstName(customer.getFirstName())
 				.lastName(customer.getLastName()).emailId(customer.getEmailId()).cellPhone(customer.getCellPhone())
 				.middleName(customer.getMiddleName()).addressLine1(customer.getAddressLine1())
-				.addressLine2(customer.getAddressLine2()).zip(customer.getZip()).city(customer.getCity()).state(customer.getState())
-				.last4TIN(customer.getLast4TIN()).dateOfBirth(customer.getDateOfBirth()).build();
-
-		CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile).firstDateOfPayment(customer.getFirstDateOfPayment()).
-				repaymentFrequency(customer.getRepaymentFrequency()).numberOfInstallments(customer.getNumberOfInstallments()).installmentAmount(customer.getInstallmentAmount())
+				.addressLine2(customer.getAddressLine2()).zip(customer.getZip()).city(customer.getCity())
+				.state(customer.getState()).last4TIN(customer.getLast4TIN()).dateOfBirth(customer.getDateOfBirth())
 				.build();
+
+		CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile)
+				.firstDateOfPayment(customer.getFirstDateOfPayment())
+				.repaymentFrequency(customer.getRepaymentFrequency())
+				.numberOfInstallments(customer.getNumberOfInstallments())
+				.installmentAmount(customer.getInstallmentAmount()).build();
 //         		.financedAmount(customer.getFinancedAmount()).financedAmount(customer.getFinancedAmount())
 //         		.abaOfSalaryAccount(customer.getBankABA()).salaryAccountNumber(customer.getBankAccountNumber()).build();
 
 		return customerEntity;
 	}
 
-	public FineractCreateLenderDTO setFineractDataToCreateAccount(CustomerDetails customerEntity, String fineractClientType) throws ParseException {
+	public FineractCreateLenderDTO setFineractDataToCreateAccount(CustomerDetails customerEntity,
+			String fineractClientType) throws ParseException {
 		FineractCreateLenderDTO fineractCreateAccountDTO = new FineractCreateLenderDTO();
 		FineractLenderAddressDTO fineractLenderAddressDTO = new FineractLenderAddressDTO();
 		Set<FineractLenderAddressDTO> sFineractLenderAddress = new HashSet<FineractLenderAddressDTO>();
@@ -144,12 +152,12 @@ public class CustomerServiceHelper {
 		fineractLenderAddressDTO.setStateProvinceId(Long.valueOf("1"));
 		fineractLenderAddressDTO.setCountryId(Long.valueOf("1"));
 		sFineractLenderAddress.add(fineractLenderAddressDTO);
-		if(StringUtils.isNotBlank(customerEntity.getPersonalProfile().getFirstName()))
+		if (StringUtils.isNotBlank(customerEntity.getPersonalProfile().getFirstName()))
 			fineractCreateAccountDTO.setFirstname(customerEntity.getPersonalProfile().getFirstName());
 		else
 			fineractCreateAccountDTO.setFirstname(customerEntity.getPersonalProfile().getCellPhone());
-		
-		if(StringUtils.isNotBlank(customerEntity.getPersonalProfile().getLastName()))
+
+		if (StringUtils.isNotBlank(customerEntity.getPersonalProfile().getLastName()))
 			fineractCreateAccountDTO.setLastname(customerEntity.getPersonalProfile().getLastName());
 		else
 			fineractCreateAccountDTO.setLastname(customerEntity.getPersonalProfile().getEmailId());
@@ -178,15 +186,17 @@ public class CustomerServiceHelper {
 		return fineractCreateAccountDTO;
 
 	}
-	
+
 	/**
-     * Method fetches the request details by request ID.
-     * @param requestId
-     * @return
-     * @throws ResourceAccessException
-     * @throws GeneralCustomException
-     */
-    public RequestIdResponseDTO fetchrequestIdDetails(String requestId, String identifyProviderServiceUri, RestTemplate restTemplate) {
+	 * Method fetches the request details by request ID.
+	 * 
+	 * @param requestId
+	 * @return
+	 * @throws ResourceAccessException
+	 * @throws GeneralCustomException
+	 */
+	public RequestIdResponseDTO fetchrequestIdDetails(String requestId, String identifyProviderServiceUri,
+			RestTemplate restTemplate) {
 		log.info("request id :: " + requestId);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
@@ -204,45 +214,49 @@ public class CustomerServiceHelper {
 
 		} catch (ResourceAccessException resourceException) {
 			Sentry.captureException(resourceException);
-			throw new ServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
+			throw new ServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE.toString(),
+					resourceException.getMessage());
 		} catch (Exception ex) {
 			Sentry.captureException(ex);
-			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
+			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
 		}
 		return requestIdResponse;
 	}
-    
-    /**
-     * Method communicates with the identity service provider to update request details by request ID.
-     * @param requestId
-     * @return
-     * @throws ResourceAccessException
-     * @throws GeneralCustomException
-     */
-    public RequestIdResponseDTO updateRequestIdDetails(String requestId, RequestIdDTO requestIdDTO, String identifyProviderServiceUri, RestTemplate restTemplate) 
-    				throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
-    	log.info("Inside updateRequestIdDetails");
-    	
+
+	/**
+	 * Method communicates with the identity service provider to update request
+	 * details by request ID.
+	 * 
+	 * @param requestId
+	 * @return
+	 * @throws ResourceAccessException
+	 * @throws GeneralCustomException
+	 */
+	public RequestIdResponseDTO updateRequestIdDetails(String requestId, RequestIdDTO requestIdDTO,
+			String identifyProviderServiceUri, RestTemplate restTemplate)
+			throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
+		log.info("Inside updateRequestIdDetails");
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.add("x-request-id", requestId);
 		HttpEntity<String> requestEntity = new HttpEntity(requestIdDTO, headers);
-		
+
 		RequestIdResponseDTO requestIdResponse = new RequestIdResponseDTO();
 		try {
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder
-					.fromHttpUrl(identifyProviderServiceUri);
-			
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(identifyProviderServiceUri);
+
 			HttpClient httpClient = HttpClientBuilder.create().build();
 			restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
-			
+
 			requestIdResponse = restTemplate
 					.exchange(uriBuilder.toUriString(), HttpMethod.PATCH, requestEntity, RequestIdResponseDTO.class)
 					.getBody();
 
 		} catch (ResourceAccessException resourceException) {
 			Sentry.captureException(resourceException);
-			throw new ServiceNotAvailableException( HttpStatus.SERVICE_UNAVAILABLE.toString(), resourceException.getMessage());
+			throw new ServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE.toString(),
+					resourceException.getMessage());
 		} catch (Exception ex) {
 			Sentry.captureException(ex);
 			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
@@ -250,71 +264,74 @@ public class CustomerServiceHelper {
 		log.info("response from  updateRequestIdDetails : " + requestIdResponse);
 		return requestIdResponse;
 	}
-    
-    public RequestIdDTO setRequestIdDetails(CustomerDetails saveCustomer, CallbackURL callbackURL, FlowTypeEnum flowType, RequestIdDetails requestIdDetails) {
-    	
-    	RequestIdDTO requestIdDTO = new RequestIdDTO();
-    	try {
-        	requestIdDTO.setUserId(saveCustomer.getCustomerId());
-        	requestIdDTO.setVirtualAccountNumber(saveCustomer.getVirtualAccount());
-        	requestIdDTO.setVirtualAccountId(saveCustomer.getVirtualAccountId());
-        	if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name()))
-        		requestIdDTO.setDirectDepositAllocation(true);
-        	else
+
+	public RequestIdDTO setRequestIdDetails(CustomerDetails saveCustomer, CallbackURL callbackURL,
+			FlowTypeEnum flowType, RequestIdDetails requestIdDetails) {
+
+		RequestIdDTO requestIdDTO = new RequestIdDTO();
+		try {
+			requestIdDTO.setUserId(saveCustomer.getCustomerId());
+			requestIdDTO.setVirtualAccountNumber(saveCustomer.getVirtualAccount());
+			requestIdDTO.setVirtualAccountId(saveCustomer.getVirtualAccountId());
+			if (flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name()))
+				requestIdDTO.setDirectDepositAllocation(true);
+			else
 				requestIdDTO.setDirectDepositAllocation(false);
-        	requestIdDTO.setAbaNumber(saveCustomer.getAccountABANumber());
-        	List<FlowTypeEnum> lsFlowType = requestIdDetails.getFlowType();
-        	if(lsFlowType != null && lsFlowType.size() > 0) {
-        		if(!lsFlowType.contains(flowType))
-        			lsFlowType.add(flowType);
-        	}
-        	else {
-        		lsFlowType =  new ArrayList<FlowTypeEnum>();
-        		lsFlowType.add(flowType);
-        	}
-        	requestIdDTO.setFlowType(lsFlowType);
-        	/*  SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
-        	if(callbackURL != null) {
-        		if(callbackURL.getIdentityCallbackUrls() != null && callbackURL.getIdentityCallbackUrls().size() > 0)
-        			requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
-        		else
-        			requestIdDTO.setIdentityCallbackUrls(requestIdDetails.getIdentityCallbackUrls());
-        		
-        		if(callbackURL.getEmploymentCallbackUrls() != null && callbackURL.getEmploymentCallbackUrls().size() > 0)
-        			requestIdDTO.setEmploymentCallbackUrls(callbackURL.getEmploymentCallbackUrls());
-        		else
-        			requestIdDTO.setEmploymentCallbackUrls(requestIdDetails.getEmploymentCallbackUrls());
-        		
-        		if(callbackURL.getIncomeCallbackUrls() != null && callbackURL.getIncomeCallbackUrls().size() > 0)
-        			requestIdDTO.setIncomeCallbackUrls(callbackURL.getIncomeCallbackUrls());
-        		else
-        			requestIdDTO.setIncomeCallbackUrls(requestIdDetails.getIncomeCallbackUrls());
-        		
-        		if(callbackURL.getAllocationCallbackUrls() != null && callbackURL.getAllocationCallbackUrls().size() > 0)
-        			requestIdDTO.setAllocationCallbackUrls(callbackURL.getAllocationCallbackUrls());
-        		else
-        			requestIdDTO.setAllocationCallbackUrls(requestIdDetails.getAllocationCallbackUrls());
-        		
-        		if(callbackURL.getInsufficientFundCallbackUrls() != null && callbackURL.getInsufficientFundCallbackUrls().size() > 0)
-        			requestIdDTO.setInsufficientFundCallbackUrls(callbackURL.getInsufficientFundCallbackUrls());
-        		else
-        			requestIdDTO.setInsufficientFundCallbackUrls(requestIdDetails.getInsufficientFundCallbackUrls());
-        		
-        		if(callbackURL.getNotificationUrls() != null && callbackURL.getNotificationUrls().size() > 0)
-        			requestIdDTO.setNotificationUrls(callbackURL.getNotificationUrls());
-        		else
-        			requestIdDTO.setNotificationUrls(requestIdDetails.getNotificationUrls());
-        	}
-    	}
-    	catch(Exception e) {
+			requestIdDTO.setAbaNumber(saveCustomer.getAccountABANumber());
+			List<FlowTypeEnum> lsFlowType = requestIdDetails.getFlowType();
+			if (lsFlowType != null && lsFlowType.size() > 0) {
+				if (!lsFlowType.contains(flowType))
+					lsFlowType.add(flowType);
+			} else {
+				lsFlowType = new ArrayList<FlowTypeEnum>();
+				lsFlowType.add(flowType);
+			}
+			requestIdDTO.setFlowType(lsFlowType);
+			/* SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
+			if (callbackURL != null) {
+				if (callbackURL.getIdentityCallbackUrls() != null && callbackURL.getIdentityCallbackUrls().size() > 0)
+					requestIdDTO.setIdentityCallbackUrls(callbackURL.getIdentityCallbackUrls());
+				else
+					requestIdDTO.setIdentityCallbackUrls(requestIdDetails.getIdentityCallbackUrls());
+
+				if (callbackURL.getEmploymentCallbackUrls() != null
+						&& callbackURL.getEmploymentCallbackUrls().size() > 0)
+					requestIdDTO.setEmploymentCallbackUrls(callbackURL.getEmploymentCallbackUrls());
+				else
+					requestIdDTO.setEmploymentCallbackUrls(requestIdDetails.getEmploymentCallbackUrls());
+
+				if (callbackURL.getIncomeCallbackUrls() != null && callbackURL.getIncomeCallbackUrls().size() > 0)
+					requestIdDTO.setIncomeCallbackUrls(callbackURL.getIncomeCallbackUrls());
+				else
+					requestIdDTO.setIncomeCallbackUrls(requestIdDetails.getIncomeCallbackUrls());
+
+				if (callbackURL.getAllocationCallbackUrls() != null
+						&& callbackURL.getAllocationCallbackUrls().size() > 0)
+					requestIdDTO.setAllocationCallbackUrls(callbackURL.getAllocationCallbackUrls());
+				else
+					requestIdDTO.setAllocationCallbackUrls(requestIdDetails.getAllocationCallbackUrls());
+
+				if (callbackURL.getInsufficientFundCallbackUrls() != null
+						&& callbackURL.getInsufficientFundCallbackUrls().size() > 0)
+					requestIdDTO.setInsufficientFundCallbackUrls(callbackURL.getInsufficientFundCallbackUrls());
+				else
+					requestIdDTO.setInsufficientFundCallbackUrls(requestIdDetails.getInsufficientFundCallbackUrls());
+
+				if (callbackURL.getNotificationUrls() != null && callbackURL.getNotificationUrls().size() > 0)
+					requestIdDTO.setNotificationUrls(callbackURL.getNotificationUrls());
+				else
+					requestIdDTO.setNotificationUrls(requestIdDetails.getNotificationUrls());
+			}
+		} catch (Exception e) {
 			Sentry.captureException(e);
-    		throw new GeneralCustomException("ERROR", "Exception occured while updating the request Id details");
-    	}
-    	return requestIdDTO;
-    }
-    
-    public String getLinkFromLinkVerificationService(String requestId,String domainNameForLink, RestTemplate restTemplate, String createLinkUri) {
-    	log.info("Inside getLinkFromLinkVerificationService");
+			throw new GeneralCustomException("ERROR", "Exception occured while updating the request Id details");
+		}
+		return requestIdDTO;
+	}
+
+	public String getLinkFromLinkVerificationService(String requestId, String domainNameForLink,
+			RestTemplate restTemplate, String createLinkUri) {
+		log.info("Inside getLinkFromLinkVerificationService");
 		LinkRequestProductDTO linkeRequest = new LinkRequestProductDTO();
 		linkeRequest.setDomain(domainNameForLink);
 		linkeRequest.setLinkType(BORROWER_VERIFICATION_OTP);
@@ -332,72 +349,74 @@ public class CustomerServiceHelper {
 		} catch (Exception ex) {
 			Sentry.captureException(ex);
 			log.error("link creation failed " + ex.getMessage());
-			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),ex.getMessage());
+			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
 		}
 		log.info("getLinkFromLinkVerificationService response : " + linkResponse);
 		return linkResponse;
 	}
 
 	/**
-	 * Methods that communicates with the account microservice to create a client and savings account for the customer.
+	 * Methods that communicates with the account microservice to create a client
+	 * and savings account for the customer.
+	 * 
 	 * @param customerEntity
 	 * @return
 	 * @throws GeneralCustomException
 	 */
 	public CustomerDetails createFineractVirtualAccount(String requestId, CustomerDetails customerEntity)
-			throws ResourceAccessException, ServiceNotAvailableException, FineractAPIException, HttpClientErrorException {
+			throws ResourceAccessException, ServiceNotAvailableException, FineractAPIException,
+			HttpClientErrorException {
 		try {
-			/* SET DATA FOR FINERACT API CALL*/
-			FineractCreateLenderDTO fineractCreateAccountDTO = setFineractDataToCreateAccount(customerEntity, fineractClientType);
+			/* SET DATA FOR FINERACT API CALL */
+			FineractCreateLenderDTO fineractCreateAccountDTO = setFineractDataToCreateAccount(customerEntity,
+					fineractClientType);
 
-			/* POST CALL TO ACCOUNT SERVICE TO ACCESS FINERACT API*/
-			ObjectMapper objMapper= new ObjectMapper();
+			/* POST CALL TO ACCOUNT SERVICE TO ACCESS FINERACT API */
+			ObjectMapper objMapper = new ObjectMapper();
 			HttpEntity<String> requestEnty = new HttpEntity(fineractCreateAccountDTO);
-			ResponseEntity<Object> response = (ResponseEntity<Object>) restTemplate.postForEntity(createVirtualAccountUri, requestEnty, Object.class);
-			FineractLenderCreationResponseDTO fineractAccountCreationresponse = objMapper.convertValue(response.getBody(), FineractLenderCreationResponseDTO.class);
-			if(fineractAccountCreationresponse != null && fineractAccountCreationresponse.getSavingsId() != null)
-			{
+			ResponseEntity<Object> response = (ResponseEntity<Object>) restTemplate
+					.postForEntity(createVirtualAccountUri, requestEnty, Object.class);
+			FineractLenderCreationResponseDTO fineractAccountCreationresponse = objMapper
+					.convertValue(response.getBody(), FineractLenderCreationResponseDTO.class);
+			if (fineractAccountCreationresponse != null && fineractAccountCreationresponse.getSavingsId() != null) {
 				customerEntity.setVirtualAccount(fineractAccountCreationresponse.getSavingsAccountNumber());
-				customerEntity.setVirtualAccountId(String.valueOf(fineractAccountCreationresponse.getSavingsId().intValue()));
-				customerEntity.setVirtualClientId(String.valueOf(fineractAccountCreationresponse.getClientId().intValue()));
+				customerEntity
+						.setVirtualAccountId(String.valueOf(fineractAccountCreationresponse.getSavingsId().intValue()));
+				customerEntity
+						.setVirtualClientId(String.valueOf(fineractAccountCreationresponse.getClientId().intValue()));
 				return customerEntity;
-			}
-			else
+			} else
 				throw new FineractAPIException("Error while creating virtual savings account for the customer");
-		}
-		catch(GeneralCustomException e) {
+		} catch (GeneralCustomException e) {
 			Sentry.captureException(e);
-			throw new FineractAPIException("Error while creating virtual savings account for the customer" + e.getMessage());
-		}
-		catch(ResourceAccessException e) {
+			throw new FineractAPIException(
+					"Error while creating virtual savings account for the customer" + e.getMessage());
+		} catch (ResourceAccessException e) {
 			Sentry.captureException(e);
 			throw new ServiceNotAvailableException(ERROR, e.getMessage());
-		}
-		catch(HttpClientErrorException e) {
+		} catch (HttpClientErrorException e) {
 			Sentry.captureException(e);
 			throw new FineractAPIException("Error while creating virtual account with fineract API." + e.getMessage());
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			Sentry.captureException(e);
 			throw new FineractAPIException(e.getMessage());
 		}
 	}
-	
+
 	public FineractUpdateLenderResponseDTO updateMobileNoInFineract(String cellPhone, String clientId) {
-    	log.info("Inside getLinkFromLinkVerificationService");
-    	FineractUpdateLenderAccountDTO fineractUpdateRequest = new FineractUpdateLenderAccountDTO();
-    	fineractUpdateRequest.setExternalId(cellPhone);
-    	fineractUpdateRequest.setMobileNo(cellPhone);
-    	FineractUpdateLenderResponseDTO fineractUpdateLenderResponseDTO = null;
-		
+		log.info("Inside getLinkFromLinkVerificationService");
+		FineractUpdateLenderAccountDTO fineractUpdateRequest = new FineractUpdateLenderAccountDTO();
+		fineractUpdateRequest.setExternalId(cellPhone);
+		fineractUpdateRequest.setMobileNo(cellPhone);
+		FineractUpdateLenderResponseDTO fineractUpdateLenderResponseDTO = null;
+
 		try {
-			ObjectMapper objMapper= new ObjectMapper();
+			ObjectMapper objMapper = new ObjectMapper();
 			HttpEntity<FineractUpdateLenderAccountDTO> requestEntity = new HttpEntity<>(fineractUpdateRequest);
 			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(updateVirtualAccountUri + clientId);
 			log.info("uriBuilder url formed: " + uriBuilder.toUriString());
-			fineractUpdateLenderResponseDTO = restTemplate
-					.exchange(uriBuilder.toUriString(), HttpMethod.PUT, requestEntity, FineractUpdateLenderResponseDTO.class)
-					.getBody();
+			fineractUpdateLenderResponseDTO = restTemplate.exchange(uriBuilder.toUriString(), HttpMethod.PUT,
+					requestEntity, FineractUpdateLenderResponseDTO.class).getBody();
 		} catch (Exception ex) {
 			Sentry.captureException(ex);
 			log.error("Exception occured while updating cellPhone for given client in fineract" + ex.getMessage());
@@ -406,24 +425,27 @@ public class CustomerServiceHelper {
 		log.info("updateMobileNoInFineract response : " + fineractUpdateLenderResponseDTO);
 		return fineractUpdateLenderResponseDTO;
 	}
-	
+
 	/**
-	 * This method searches the employer based on provided employerID and updates the data to request details table. 
+	 * This method searches the employer based on provided employerID and updates
+	 * the data to request details table.
+	 * 
 	 * @param employerId
 	 * @param requestId
 	 * @return
 	 */
 	public EmployerSearchDetailsDTO getEmployerDetailsBasedOnEmployerId(String employerId, String requestId) {
-    	log.info("Inside getEmployerDetailsBasedOnEmployerId");
-    	EmployerSearchDetailsDTO employerSearchDetailsDTO = new EmployerSearchDetailsDTO();
+		log.info("Inside getEmployerDetailsBasedOnEmployerId");
+		EmployerSearchDetailsDTO employerSearchDetailsDTO = new EmployerSearchDetailsDTO();
 		try {
-			ObjectMapper objMapper= new ObjectMapper();
+			ObjectMapper objMapper = new ObjectMapper();
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.add("x-request-id", requestId);
 			HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-			
-			UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(searchEmployerUri + employerId + "?pdSupported=true");
+
+			UriComponentsBuilder uriBuilder = UriComponentsBuilder
+					.fromHttpUrl(searchEmployerUri + employerId + "?pdSupported=true");
 			log.info("uriBuilder url formed: " + uriBuilder.toUriString());
 			employerSearchDetailsDTO = restTemplate
 					.exchange(uriBuilder.toUriString(), HttpMethod.POST, requestEntity, EmployerSearchDetailsDTO.class)
@@ -431,130 +453,175 @@ public class CustomerServiceHelper {
 		} catch (Exception ex) {
 			Sentry.captureException(ex);
 			log.error("Exception occured while getting employer details for given employerID" + ex.getMessage());
-			throw new GeneralCustomException("ERROR",ex.getMessage());
+			throw new GeneralCustomException("ERROR", ex.getMessage());
 		}
 		log.info("getEmployerDetailsBasedOnEmployerId response : " + employerSearchDetailsDTO);
 		return employerSearchDetailsDTO;
 	}
-	
-	public String createAndSendLinkSMSAndEmailNotification(String requestId, RequestIdDetails requestIdDetails, CustomerDetails customerDetails) 
-		   throws SMSAndEmailNotificationException, GeneralCustomException {
-	   log.info("Inside createAndSendSMSAndEmailNotification");
-	   String notificationResponse = "FAIL";
-	   try {
-		   String linkResponse  = getLinkFromLinkVerificationService(requestId, domainNameForLink, restTemplate, createLinkUri);
-		   notificationResponse = notificationUtil.callNotificationService(requestIdDetails, customerDetails, linkResponse);
-	   }
-	   catch(GeneralCustomException e) {
-		   Sentry.captureException(e);
-		   log.error("Create and send link exception " + e.getMessage());
+
+	public String createAndSendLinkSMSAndEmailNotification(String requestId, RequestIdDetails requestIdDetails,
+			CustomerDetails customerDetails) throws SMSAndEmailNotificationException, GeneralCustomException {
+		log.info("Inside createAndSendSMSAndEmailNotification");
+		String notificationResponse = "FAIL";
+		try {
+			String linkResponse = getLinkFromLinkVerificationService(requestId, domainNameForLink, restTemplate,
+					createLinkUri);
+			notificationResponse = notificationUtil.callNotificationService(requestIdDetails, customerDetails,
+					linkResponse);
+		} catch (GeneralCustomException e) {
+			Sentry.captureException(e);
+			log.error("Create and send link exception " + e.getMessage());
 			throw new SMSAndEmailNotificationException(e.getMessage());
-	   }
-	   catch(Exception e) {
-		   Sentry.captureException(e);
-		   log.error("Create and send link exception " + e.getMessage());
+		} catch (Exception e) {
+			Sentry.captureException(e);
+			log.error("Create and send link exception " + e.getMessage());
 			throw new SMSAndEmailNotificationException(e.getMessage());
-	   }
-	   log.info("createAndSendSMSAndEmailNotification response : " + notificationResponse);
-	   return notificationResponse;
-   }
-	
+		}
+		log.info("createAndSendSMSAndEmailNotification response : " + notificationResponse);
+		return notificationResponse;
+	}
+
 	public void validateCustomerRequestFields(CustomerRequestFields customerRequestFields) {
-	   List<String> errorList = new ArrayList<String>();
-	   Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
-	   try {
-		   if(customerRequestFields != null) {
-			   if(StringUtils.isNotBlank(customerRequestFields.getFirstName()) && customerRequestFields.getFirstName().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.FIRST_NAME_MANDATORY_MESSAGE);
-				   mapErrorList.put("First Name", errorList);
-			   }
-			   if(StringUtils.isNotBlank(customerRequestFields.getLastName()) && customerRequestFields.getLastName().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.LAST_NAME_MANDATORY_MESSAGE);
-				   mapErrorList.put("Last Name", errorList);
-			   }
-			   if(StringUtils.isNotBlank(customerRequestFields.getCellPhone()) && customerRequestFields.getCellPhone().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.CELLPHONE_MANDATORY_MESSAGE);
-				   mapErrorList.put("CellPhone Number", errorList);
-			   }
-			   if(StringUtils.isNotBlank(customerRequestFields.getEmailId()) && customerRequestFields.getEmailId().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.EMAIL_MANDATORY_MESSAGE);
-				   mapErrorList.put("Email", errorList);
-			   }
-			   if(StringUtils.isNotBlank(customerRequestFields.getCallbackURLs()) && customerRequestFields.getCallbackURLs().equalsIgnoreCase("NO")) {
-				   errorList.add(AppConstants.CALLBACKS_MANDATORY_MESSAGE);
-				   mapErrorList.put("Callback URL", errorList);
-			   }
-			   
-			   if(mapErrorList.size() > 0) {
-				   ObjectMapper objectMapper = new ObjectMapper();
-				   String json = "";
-			        try {
-			            json = objectMapper.writeValueAsString(mapErrorList);
-			            log.error("Mandatory fields can't be made optional - " + json);
-			        } catch (JsonProcessingException e) {
+		List<String> errorList = new ArrayList<String>();
+		Map<String, List<String>> mapErrorList = new HashMap<String, List<String>>();
+		try {
+			if (customerRequestFields != null) {
+				if (StringUtils.isNotBlank(customerRequestFields.getFirstName())
+						&& customerRequestFields.getFirstName().equalsIgnoreCase("NO")) {
+					errorList.add(AppConstants.FIRST_NAME_MANDATORY_MESSAGE);
+					mapErrorList.put("First Name", errorList);
+				}
+				if (StringUtils.isNotBlank(customerRequestFields.getLastName())
+						&& customerRequestFields.getLastName().equalsIgnoreCase("NO")) {
+					errorList.add(AppConstants.LAST_NAME_MANDATORY_MESSAGE);
+					mapErrorList.put("Last Name", errorList);
+				}
+				if (StringUtils.isNotBlank(customerRequestFields.getCellPhone())
+						&& customerRequestFields.getCellPhone().equalsIgnoreCase("NO")) {
+					errorList.add(AppConstants.CELLPHONE_MANDATORY_MESSAGE);
+					mapErrorList.put("CellPhone Number", errorList);
+				}
+				if (StringUtils.isNotBlank(customerRequestFields.getEmailId())
+						&& customerRequestFields.getEmailId().equalsIgnoreCase("NO")) {
+					errorList.add(AppConstants.EMAIL_MANDATORY_MESSAGE);
+					mapErrorList.put("Email", errorList);
+				}
+				if (StringUtils.isNotBlank(customerRequestFields.getCallbackURLs())
+						&& customerRequestFields.getCallbackURLs().equalsIgnoreCase("NO")) {
+					errorList.add(AppConstants.CALLBACKS_MANDATORY_MESSAGE);
+					mapErrorList.put("Callback URL", errorList);
+				}
+
+				if (mapErrorList.size() > 0) {
+					ObjectMapper objectMapper = new ObjectMapper();
+					String json = "";
+					try {
+						json = objectMapper.writeValueAsString(mapErrorList);
+						log.error("Mandatory fields can't be made optional - " + json);
+					} catch (JsonProcessingException e) {
 						Sentry.captureException(e);
-			        	throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + mapErrorList);
-			        }
-				   throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + json);
-			   }
-		   }
-	   }catch(GeneralCustomException e) {
-		   Sentry.captureException(e);
-		   log.error("Mandatory fields can't be made optional - " + e.getMessage());
-		   throw new GeneralCustomException(ERROR, e.getMessage());
-	   }
-	   catch(Exception e) {
-		   Sentry.captureException(e);
-		   log.error("Mandatory fields can't be made optional - " + e.getMessage());
-		   throw new GeneralCustomException(ERROR, e.getMessage());
-	   }
-   }
-	
-	public RequestIdDetails validateRequestId(String requestId, String identifyProviderServiceUri, RestTemplate restTemplate, 
-			CreateCustomerRequest customer, CustomerRepository customerRepository) {
-	   RequestIdDetails requestIdDtls = null;
-	   try {
-		   RequestIdResponseDTO requestIdResponseDTO = Optional.ofNullable(fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
-		   		.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
+						throw new GeneralCustomException(ERROR,
+								"Mandatory fields can't be made optional  - " + mapErrorList);
+					}
+					throw new GeneralCustomException(ERROR, "Mandatory fields can't be made optional  - " + json);
+				}
+			}
+		} catch (GeneralCustomException e) {
+			Sentry.captureException(e);
+			log.error("Mandatory fields can't be made optional - " + e.getMessage());
+			throw new GeneralCustomException(ERROR, e.getMessage());
+		} catch (Exception e) {
+			Sentry.captureException(e);
+			log.error("Mandatory fields can't be made optional - " + e.getMessage());
+			throw new GeneralCustomException(ERROR, e.getMessage());
+		}
+	}
+
+	public RequestIdDetails validateRequestId(String requestId, String identifyProviderServiceUri,
+			RestTemplate restTemplate, CreateCustomerRequest customer, CustomerRepository customerRepository) {
+		RequestIdDetails requestIdDtls = null;
+		try {
+			RequestIdResponseDTO requestIdResponseDTO = Optional
+					.ofNullable(fetchrequestIdDetails(requestId, identifyProviderServiceUri, restTemplate))
+					.orElseThrow(() -> new RequestIdNotFoundException("Request Id not found"));
 			requestIdDtls = requestIdResponseDTO.getData();
-			
-			if(requestIdDtls != null && customer != null) {
-				if(StringUtils.isNotBlank(requestIdDtls.getUserId())) {
-					Optional<CustomerDetails> optionalCustDetails = customerRepository.findByCustomerId(requestIdDtls.getUserId());
+
+			if (requestIdDtls != null && customer != null) {
+				if (StringUtils.isNotBlank(requestIdDtls.getUserId())) {
+					Optional<CustomerDetails> optionalCustDetails = customerRepository
+							.findByCustomerId(requestIdDtls.getUserId());
 					CustomerDetails custDetails = null;
-					if(optionalCustDetails.isPresent()) {
+					if (optionalCustDetails.isPresent()) {
 						custDetails = optionalCustDetails.get();
 					}
-					if(custDetails != null) {
+					if (custDetails != null) {
 						String cellPhone = custDetails.getPersonalProfile().getCellPhone();
 						String emailId = custDetails.getPersonalProfile().getEmailId();
-						if(!(cellPhone.equalsIgnoreCase(customer.getCellPhone()) && emailId.equalsIgnoreCase(customer.getEmailId()))) {
-							log.error("Customer already associated with this request Id. CellPhone or EmailId does not match with the customer profile");
-							throw new GeneralCustomException(ERROR ,"Customer already associated with this request Id. CellPhone or EmailId does not match with the customer profile");
+						if (!(cellPhone.equalsIgnoreCase(customer.getCellPhone())
+								&& emailId.equalsIgnoreCase(customer.getEmailId()))) {
+							log.error(
+									"Customer already associated with this request Id. CellPhone or EmailId does not match with the customer profile");
+							throw new GeneralCustomException(ERROR,
+									"Customer already associated with this request Id. CellPhone or EmailId does not match with the customer profile");
 						}
 					}
 				}
-				if(StringUtils.isNotBlank(requestIdDtls.getAllocationStatus())) {
-					log.error("Customerservice createcustomer - Active/Failed Allocation has already been made for this requestId");
-					throw new GeneralCustomException(ERROR ,"Active/Failed Allocation has already been made for this requestId");
-			   }
-			}
-			else {
+				if (StringUtils.isNotBlank(requestIdDtls.getAllocationStatus())) {
+					log.error(
+							"Customerservice createcustomer - Active/Failed Allocation has already been made for this requestId");
+					throw new GeneralCustomException(ERROR,
+							"Active/Failed Allocation has already been made for this requestId");
+				}
+			} else {
 				log.error("Exception occured while fetching request Id details");
-				throw new GeneralCustomException(ERROR ,"Request details does not exist");
+				throw new GeneralCustomException(ERROR, "Request details does not exist");
 			}
-	   }
-	   catch(ServiceNotAvailableException e) {
-		   Sentry.captureException(e);
-		   log.error("Exception occured while fetching request Id details- Service unavailable");
-		   throw new ServiceNotAvailableException(ERROR ,e.getMessage());
-	   }
-	   catch(Exception e) {
-		   Sentry.captureException(e);
-		   log.error("Exception occured while fetching request Id details");
-		   throw new GeneralCustomException(ERROR ,e.getMessage());
-	   }
-	   return requestIdDtls;
-   }
+		} catch (ServiceNotAvailableException e) {
+			Sentry.captureException(e);
+			log.error("Exception occured while fetching request Id details- Service unavailable");
+			throw new ServiceNotAvailableException(ERROR, e.getMessage());
+		} catch (Exception e) {
+			Sentry.captureException(e);
+			log.error("Exception occured while fetching request Id details");
+			throw new GeneralCustomException(ERROR, e.getMessage());
+		}
+		return requestIdDtls;
+	}
 
+	public EmployerInfoResponseDTO getEmployerInfoFromDbById(RequestIdDetails requestIdDetail) {
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.add(REQUEST_ID, requestIdDetail.getRequestId());
+		HttpEntity<RequestIdDetails> requestEntity = new HttpEntity<>(headers);
+		UriComponentsBuilder uriBuilder = UriComponentsBuilder
+				.fromHttpUrl(employerSearchServicePath + requestIdDetail.getEmployerPWId());
+
+		log.info("Url formed for employer search by id :: " + uriBuilder.toUriString());
+		EmployerInfoResponseDTO employerInfo = restTemplate
+				.exchange(uriBuilder.toUriString(), HttpMethod.GET, requestEntity, EmployerInfoResponseDTO.class)
+				.getBody();
+
+		if (null == employerInfo) {
+			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(),
+					"No employer data found for the employer id");
+		}
+		return employerInfo;
+	}
+
+	public boolean  checkIfEmployerPdSuported(RequestIdDetails requestIdDtls) {
+		boolean isEmployerPdSupported = false;
+		EmployerInfoResponseDTO employerResponseDto = getEmployerInfoFromDbById(requestIdDtls);
+		for (ProviderInfo providerInfo : employerResponseDto.getData().getProviderInfo()) {
+			log.info("pd support for employer ::" + providerInfo.getPdSupported());
+			if (providerInfo.getProviderName().equalsIgnoreCase(requestIdDtls.getProvider())
+					&& providerInfo.getPdSupported().equalsIgnoreCase(YES)) {
+				log.info("pd support for checked method ::" + providerInfo.getProviderName() + "=========" + "******"
+						+ requestIdDtls.getProvider());
+				isEmployerPdSupported = true;
+			}
+		}
+		return isEmployerPdSupported;
+		
+	}
 }
