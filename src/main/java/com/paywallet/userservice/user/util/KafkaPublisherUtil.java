@@ -59,6 +59,7 @@ public class KafkaPublisherUtil {
                     .employer(requestIdDtls.getEmployer())
                     .payCycle(CommonEnum.PAY_CYCLE.getMessage())
                     .flowType(flowType)
+                    .linkFlag(true)
                     .build();
             StatusEnum statusEnum = kafkaProducerService.publishLinkServiceInfo(linkServiceInfo);
             log.info(" requestId : {}  publish status  : {} ", requestIdDtls.getRequestId(), statusEnum);
