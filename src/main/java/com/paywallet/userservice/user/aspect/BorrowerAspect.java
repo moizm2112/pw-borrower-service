@@ -1,12 +1,17 @@
 package com.paywallet.userservice.user.aspect;
 
+import com.paywallet.userservice.user.dto.AdditionalInfoDTO;
+import com.paywallet.userservice.user.dto.EventDTO;
 import com.paywallet.userservice.user.enums.BorrowerEventEnum;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.enums.ProgressLevel;
 import com.paywallet.userservice.user.event.BorrowerEvent;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
 import com.paywallet.userservice.user.model.ValidateAccountRequest;
+import com.paywallet.userservice.user.util.CommonUtil;
+import com.paywallet.userservice.user.util.RequestIdUtil;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -27,41 +32,45 @@ public class BorrowerAspect {
     @Autowired
     BorrowerEvent borrowerEvent;
 
+    @Autowired
+    RequestIdUtil requestIdUtil;
+
+    @Autowired
+    CommonUtil commonUtil;
+
+
     private static final String SERVICE_NAME = "Borrower";
 
-    @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.createCustomer(..)) && args(customer,apiKey,request)")
-    public void customerCreateInProgress(CreateCustomerRequest customer, String apiKey, HttpServletRequest request) {
+    @Before("execution(* com.paywallet.userservice.user.services.CustomerService.createCustomer(..)) && args(customer,requestId,obj,flowType)")
+    public <T> void customerCreateInProgress(CreateCustomerRequest customer, String requestId, T obj, FlowTypeEnum flowType) {
         try{
-            String requestId = apiKey;
             String code = BorrowerEventEnum.UMS_CUST_CREATE_INPROG.getMessage();
             String message = "Customer create INPROGRESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing customerCreateInProgress events : {}",e);
         }
     }
 
-    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.createCustomer(..)) && args(customer,apiKey,request)")
-    public void customerCreateFailed(CreateCustomerRequest customer, String apiKey, HttpServletRequest request) {
+    @AfterThrowing("execution(* com.paywallet.userservice.user.services.CustomerService.createCustomer(..)) && args(customer,requestId,obj,flowType)")
+    public <T> void customerCreateFailed(CreateCustomerRequest customer, String requestId, T obj, FlowTypeEnum flowType) {
         try{
-            String requestId = apiKey;
             String code = BorrowerEventEnum.UMS_CUST_CREATE_FAIL.getMessage();
             String message = "Customer create FAILED";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing customerCreateFailed events : {}",e);
         }
     }
 
-    @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerController.createCustomer(..)) && args(customer,apiKey,request)")
-    public void customerCreateSuccess(CreateCustomerRequest customer, String apiKey, HttpServletRequest request) {
+    @AfterReturning("execution(* com.paywallet.userservice.user.services.CustomerService.createCustomer(..)) && args(customer,requestId,obj,flowType)")
+    public <T> void customerCreateSuccess(CreateCustomerRequest customer, String requestId, T obj, FlowTypeEnum flowType) {
         try{
-            String requestId = apiKey;
             String code = BorrowerEventEnum.UMS_CUST_CREATE_SUCC.getMessage();
             String message = "Customer create SUCCESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing customerCreateSuccess events : {}",e);
@@ -73,7 +82,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_GET_REQ_DETAIL_INPROG.getMessage();
             String message = "Request id details create INPROGRESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing requestIdCreateInProgress events : {}",e);
@@ -85,7 +94,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_GET_REQ_DETAIL_FAIL.getMessage();
             String message = "Request id details create FAILED";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing requestIdCreateFailed events : {}",e);
@@ -97,7 +106,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_GET_REQ_DETAIL_SUCC.getMessage();
             String message = "Request id details create SUCCESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing requestIdCreateSuccess events : {}",e);
@@ -110,7 +119,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_UPD_REQ_DETAIL_INPROG.getMessage();
             String message = "Request id details update INPROGRESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing requestIdUpdateInProgress events : {}",e);
@@ -123,7 +132,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_UPD_REQ_DETAIL_FAIL.getMessage();
             String message = "Request id details update FAILED";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing requestIdUpdateFailed events : {}",e);
@@ -136,7 +145,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_UPD_REQ_DETAIL_SUCC.getMessage();
             String message = "Request id update details SUCCESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing requestIdUpdateSuccess events : {}",e);
@@ -148,7 +157,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_CUST_CREATE_FINERACT_VIRTUAL_ACCT_INPROG.getMessage();
             String message = "Create fineract account INPROGRESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing createFineractAccountInProgress events : {}",e);
@@ -160,7 +169,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_CUST_CREATE_FINERACT_VIRTUAL_ACCT_FAIL.getMessage();
             String message = "Create fineract account FAILED";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.FAILED);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing createFineractAccountFailed events : {}",e);
@@ -172,33 +181,41 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_CUST_CREATE_FINERACT_VIRTUAL_ACCT_SUCC.getMessage();
             String message = "Create fineract account SUCCESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEvent(requestIdUtil.getDecodedRequestID(requestId).get(),code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing createFineractAccountSuccess events : {}",e);
         }
     }
 
-    @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(cellPhone,request)")
+    /* @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(cellPhone,request)")
     public void getCustomerDataByMobileInProgress(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = cellPhone;
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_GET_BY_MOBILE_INPROG.getMessage();
             String message = "Get customer data by mobile INPROGRESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(cellPhone);
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataByMobileInProgress events : {}",e);
         }
     }
 
-    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(cellPhone,request)")
+   @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(cellPhone,request)")
     public void getCustomerDataByMobileFailed(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = cellPhone;
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_GET_BY_MOBILE_FAIL.getMessage();
             String message = "Get customer data by mobile FAILED";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(cellPhone);
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataByMobileFailed events : {}",e);
@@ -208,10 +225,14 @@ public class BorrowerAspect {
     @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomerByMobile(..)) && args(cellPhone,request)")
     public void getCustomerDataByMobileSuccess(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = cellPhone;
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_GET_BY_MOBILE_SUCC.getMessage();
             String message = "Get customer data by mobile SUCCESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(cellPhone);
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataByMobileSuccess events : {}",e);
@@ -221,10 +242,14 @@ public class BorrowerAspect {
     @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomer(..)) && args(customerId,request)")
     public void getCustomerDataInProgress(String customerId, HttpServletRequest request) {
         try{
-            String requestId = customerId;
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_GET_INPROG.getMessage();
             String message = "Get customer Data INPROGRESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCustomerId(customerId);
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataInProgress events : {}",e);
@@ -234,10 +259,14 @@ public class BorrowerAspect {
     @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.getCustomer(..)) && args(customerId,request)")
     public void getCustomerDataFailed(String customerId, HttpServletRequest request) {
         try{
-            String requestId = customerId;
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_GET_FAIL.getMessage();
             String message = "Get customer Data FAILED";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCustomerId(customerId);
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataFailed events : {}",e);
@@ -250,20 +279,28 @@ public class BorrowerAspect {
             String requestId = customerId;
             String code = BorrowerEventEnum.UMS_CUST_GET_SUCC.getMessage();
             String message = "Get customer Data SUCCESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCustomerId(customerId);
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing getCustomerDataSuccess events : {}",e);
         }
     }
-
+*/
     @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.getAccountDetails(..)) && args(cellPhone,request)")
     public void getAccountDetailsProgress(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = cellPhone;
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_ACCT_GET_BY_MOBILE_INPROG.getMessage();
             String message = "Get account details INPROGRESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(cellPhone);
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing getAccountDetailsProgress events : {}",e);
@@ -273,10 +310,14 @@ public class BorrowerAspect {
     @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.getAccountDetails(..)) && args(cellPhone,request)")
     public void getAccountDetailsFailed(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = cellPhone;
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_ACCT_GET_BY_MOBILE_FAIL.getMessage();
             String message = "Get account details FAILED";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(cellPhone);
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing getAccountDetailsFailed events : {}",e);
@@ -286,10 +327,14 @@ public class BorrowerAspect {
     @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerController.getAccountDetails(..)) && args(cellPhone,request)")
     public void getAccountDetailsSuccess(String cellPhone, HttpServletRequest request) {
         try{
-            String requestId = cellPhone;
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_ACCT_GET_BY_MOBILE_SUCC.getMessage();
             String message = "Get account details SUCCESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(cellPhone);
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing getAccountDetailsSuccess events : {}",e);
@@ -300,10 +345,14 @@ public class BorrowerAspect {
     public void validateCustomerDetailsProgress(ValidateAccountRequest validateAccountRequest,
                                           HttpServletRequest request) {
         try{
-            String requestId = validateAccountRequest.getCellPhone();
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_ACCT_VAL_INPROG.getMessage();
             String message = "Validate account details INPROGRESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(validateAccountRequest.getCellPhone());
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing validateCustomerDetailsProgress events : {}",e);
@@ -314,10 +363,14 @@ public class BorrowerAspect {
     public void validateCustomerDetailsFailed(ValidateAccountRequest validateAccountRequest,
                                         HttpServletRequest request) {
         try{
-            String requestId = validateAccountRequest.getCellPhone();
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_ACCT_VAL_FAIL.getMessage();
             String message = "Validate customer account details FAILED";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(validateAccountRequest.getCellPhone());
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing validateCustomerDetailsFailed events : {}",e);
@@ -328,10 +381,14 @@ public class BorrowerAspect {
     public void validateCustomerAccountDetailsSuccess(ValidateAccountRequest validateAccountRequest,
                                          HttpServletRequest request) {
         try{
-            String requestId = validateAccountRequest.getCellPhone();
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_ACCT_VAL_SUCC.getMessage();
             String message = "Validate customer account details SUCCESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(validateAccountRequest.getCellPhone());
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing validateCustomerAccountDetailsSuccess events : {}",e);
@@ -341,10 +398,14 @@ public class BorrowerAspect {
     @Before("execution(* com.paywallet.userservice.user.services.LyonsService.checkAccountOwnership(..)) && args(apiRequest)")
     public void lyonsApiCallInProgress(LyonsAPIRequestDTO apiRequest) {
         try{
-            String requestId = apiRequest.getAccountNumber();
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_LYON_ACCT_VAL_INPROG.getMessage();
             String message = "Lyons Api call INPROGRESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setSalaryAccountNumber(apiRequest.getAccountNumber());
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing lyonsApiCallInProgress events : {}",e);
@@ -354,10 +415,14 @@ public class BorrowerAspect {
     @AfterThrowing("execution(* com.paywallet.userservice.user.services.LyonsService.checkAccountOwnership(..)) && args(apiRequest)")
     public void lyonsApiCallFailed(LyonsAPIRequestDTO apiRequest) {
         try{
-            String requestId = apiRequest.getAccountNumber();
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_LYON_ACCT_VAL_FAIL.getMessage();
             String message = "Lyons Api call FAILED";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setSalaryAccountNumber(apiRequest.getAccountNumber());
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing lyonsApiCallFailed events : {}",e);
@@ -367,10 +432,14 @@ public class BorrowerAspect {
     @AfterReturning("execution(* com.paywallet.userservice.user.services.LyonsService.checkAccountOwnership(..)) && args(apiRequest)")
     public void lyonsApiCallSuccess(LyonsAPIRequestDTO apiRequest) {
         try{
-            String requestId = apiRequest.getAccountNumber();
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_LYON_ACCT_VAL_SUCC.getMessage();
             String message = "Lyons Api call SUCCESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setSalaryAccountNumber(apiRequest.getAccountNumber());
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing lyonsApiCallSuccess events : {}",e);
@@ -381,10 +450,14 @@ public class BorrowerAspect {
     @Before("execution(* com.paywallet.userservice.user.controller.CustomerController.updateCustomer(..)) && args(updateCustomerRequest,request)")
     public void updateCustomerDetailsInProgress(UpdateCustomerRequestDTO updateCustomerRequest, HttpServletRequest request) {
         try{
-            String requestId = updateCustomerRequest.getCellPhone();
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_UPD_INPROG.getMessage();
             String message = "Update customer details INPROGRESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(updateCustomerRequest.getCellPhone());
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing updateCustomerDetailsInProgress events : {}",e);
@@ -394,10 +467,14 @@ public class BorrowerAspect {
     @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerController.updateCustomer(..)) && args(updateCustomerRequest,request)")
     public void updateCustomerDetailsFailed(UpdateCustomerRequestDTO updateCustomerRequest, HttpServletRequest request) {
         try{
-            String requestId = updateCustomerRequest.getCellPhone();
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_UPD_FAIL.getMessage();
             String message = "Update customer details FAILED";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(updateCustomerRequest.getCellPhone());
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing updateCustomerDetailsFailed events : {}",e);
@@ -410,7 +487,11 @@ public class BorrowerAspect {
             String requestId = updateCustomerRequest.getCellPhone();
             String code = BorrowerEventEnum.UMS_CUST_UPD_SUCC.getMessage();
             String message = "Update customer details SUCCESS";
-            borrowerEvent.triggerEvent(requestId,code,message,SERVICE_NAME,ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            AdditionalInfoDTO additionalInfoDTO= new AdditionalInfoDTO();
+            additionalInfoDTO.setCellPhone(updateCustomerRequest.getCellPhone());
+            eventDTO.setAdditionalInfoDTO(additionalInfoDTO);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing updateCustomerDetailsSuccess events : {}",e);
