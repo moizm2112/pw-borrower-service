@@ -19,6 +19,7 @@ import com.paywallet.userservice.user.exception.RetryException;
 import com.paywallet.userservice.user.model.LenderConfigInfo;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.WrapperRetryRequest;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.employement.EmploymentVerificationResponseDTO;
@@ -66,7 +67,7 @@ public class EmploymentRetryWrapperAPIService {
     /**
      * checking for allow retry status, if retry is allowed, then re-initiating employment verification
      **/
-    public EmploymentResponseInfo retryEmploymentVerification(String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
+    public EmploymentResponseInfo retryEmploymentVerification(String requestId, WrapperRetryRequest empVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
 
         RequestIdDetails requestIdDetails= requestIdUtil.fetchRequestIdDetails(requestId);
         allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
@@ -75,7 +76,7 @@ public class EmploymentRetryWrapperAPIService {
 
     }
 
-    public CustomerDetails initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) throws RetryException {
+    public CustomerDetails initiateEmploymentVerification(RequestIdDetails requestIdDetails, String requestId, WrapperRetryRequest empVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateEmploymentVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
@@ -85,7 +86,7 @@ public class EmploymentRetryWrapperAPIService {
     	return customer;
     }
 
-    public EmploymentResponseInfo prepareEmploymentResponseInfo(CustomerDetails customer, EmploymentVerificationRequestWrapperModel empVerificationRequestDTO){
+    public EmploymentResponseInfo prepareEmploymentResponseInfo(CustomerDetails customer, WrapperRetryRequest empVerificationRequestDTO){
        // Need to change the reading fields from request
         return EmploymentResponseInfo.builder()
                 .employer(empVerificationRequestDTO.getEmployerId())
@@ -105,7 +106,7 @@ public class EmploymentRetryWrapperAPIService {
     }
     
     public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
-    		EmploymentVerificationRequestWrapperModel empVerificationRequestDTO) throws RetryException {
+    		WrapperRetryRequest empVerificationRequestDTO) throws RetryException {
     	log.info("Inside validateInput");
     	log.info(customer.getPersonalProfile().getCellPhone());
     	log.info(customer.getPersonalProfile().getEmailId());
@@ -121,15 +122,15 @@ public class EmploymentRetryWrapperAPIService {
 
         if((! customer.getPersonalProfile().getCellPhone().contains(empVerificationRequestDTO.getCellPhone()))&&
                 (!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId()))){
-            throw new RetryException("Both Email ID and Mobile No. does not match with the request ID.");
+            throw new RetryException("Email Id and/or Cellphone number does not match with the Request Id");
         }
 
         if(! customer.getPersonalProfile().getCellPhone().contains(empVerificationRequestDTO.getCellPhone())) {
-            throw new RetryException("Mobile No. does not match with the request ID.");
+            throw new RetryException("Cellphone number does not match with the Request Id.");
         }
 
         if(!customer.getPersonalProfile().getEmailId().equals(empVerificationRequestDTO.getEmailId())) {
-            throw new RetryException("Email Id does not match with the request ID.");
+            throw new RetryException("Email Id does not match with the Request Id.");
         }
 
     	return requestIdDetails;

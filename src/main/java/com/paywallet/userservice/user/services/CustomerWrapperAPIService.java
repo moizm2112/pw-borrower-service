@@ -1,17 +1,12 @@
 package com.paywallet.userservice.user.services;
 
-import static com.paywallet.userservice.user.constant.AppConstants.BANKABA_LENGTH_VALIDATION_MESSAGE;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import io.sentry.Sentry;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +19,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
-import com.paywallet.userservice.user.entities.PersonalProfile;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.CreateCustomerException;
 import com.paywallet.userservice.user.exception.CustomerNotFoundException;
@@ -33,9 +27,7 @@ import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
 import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
-import com.paywallet.userservice.user.model.CallbackURL;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
-import com.paywallet.userservice.user.model.CustomerRequestFields;
 import com.paywallet.userservice.user.model.LenderConfigInfo;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.UpdateCustomerCredentialsModel;
@@ -52,8 +44,10 @@ import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationRespo
 import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationResponseWrapperModel;
 import com.paywallet.userservice.user.repository.CustomerRepository;
+import com.paywallet.userservice.user.util.CommonUtil;
 import com.paywallet.userservice.user.util.KafkaPublisherUtil;
 
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -80,7 +74,11 @@ public class CustomerWrapperAPIService {
 	
     @Autowired
     KafkaPublisherUtil kafkaPublisherUtil;
-    
+
+	@Autowired
+	CommonUtil commonUtil;
+	
+
 	public UpdateCustomerCredentialsResponse updateCustomerCredentials(UpdateCustomerCredentialsModel customerCredentialsModel, String requestId) 
 			throws CustomerNotFoundException, RequestIdNotFoundException {
 		Map<String, List<String>> mapErrorList =  new HashMap<String, List<String>>();
@@ -321,7 +319,7 @@ public class CustomerWrapperAPIService {
 	
 	public DepositAllocationResponseWrapperModel initiateDepositAllocation(DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel, String requestId)
 			throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, SMSAndEmailNotificationException {
-		
+
 		CreateCustomerRequest customer = new CreateCustomerRequest();
 		setCustomerRequest(depositAllocationRequestWrapperModel, customer);
 		
@@ -329,7 +327,7 @@ public class CustomerWrapperAPIService {
 		DepositAllocationResponseWrapperModel depositAllocationResponse = setDepositAllocationResponse(customerDetails, depositAllocationRequestWrapperModel);
 		return depositAllocationResponse;
 	}
-	
+
 	public EmploymentVerificationResponseWrapperModel initiateEmploymentVerification(EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel,
 			String requestId) throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException, RequestIdNotFoundException, 
 				SMSAndEmailNotificationException {
@@ -375,11 +373,11 @@ public class CustomerWrapperAPIService {
 		depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
 		depositAllocationResponseModel.setNumberOfInstallments(customerDetails.getNumberOfInstallments());
 		if(depositAllocationRequestWrapperModel.getInstallmentAmount() > 0)
-			depositAllocationResponseModel.setInstallmentAmount(customerDetails.getInstallmentAmount());
+			depositAllocationResponseModel.setInstallmentAmount(commonUtil.getFormattedAmount(customerDetails.getInstallmentAmount()));
 		else if(depositAllocationRequestWrapperModel.getLoanAmount() > 0) {
-			depositAllocationResponseModel.setInstallmentAmount(customerService.getInstallmentAmount(depositAllocationRequestWrapperModel.getLoanAmount(),
-					depositAllocationRequestWrapperModel.getInstallmentAmount(), depositAllocationRequestWrapperModel.getNumberOfInstallments()));
-			depositAllocationResponseModel.setLoanAmount(depositAllocationRequestWrapperModel.getLoanAmount());
+			depositAllocationResponseModel.setInstallmentAmount(commonUtil.getFormattedAmount(customerService.getInstallmentAmount(depositAllocationRequestWrapperModel.getLoanAmount(),
+					depositAllocationRequestWrapperModel.getInstallmentAmount(), depositAllocationRequestWrapperModel.getNumberOfInstallments())));
+			depositAllocationResponseModel.setLoanAmount(commonUtil.getFormattedAmount(depositAllocationRequestWrapperModel.getLoanAmount()));
 		}
 		return depositAllocationResponseModel;
 	}
@@ -391,8 +389,8 @@ public class CustomerWrapperAPIService {
 		employmentVerificationResponseModel.setLenderName(customerDetails.getLender());
 		employmentVerificationResponseModel.setEmployer(customerDetails.getEmployer());
 		employmentVerificationResponseModel.setCallbackURLs(employmentVerificationRequestWrapperModel.getCallbackURLs());
-		employmentVerificationResponseModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
-		employmentVerificationResponseModel.setLastName(customerDetails.getPersonalProfile().getLastName());
+		employmentVerificationResponseModel.setFirstName(employmentVerificationRequestWrapperModel.getFirstName());
+		employmentVerificationResponseModel.setLastName(employmentVerificationRequestWrapperModel.getLastName());
 		return employmentVerificationResponseModel;
 	}
 	
@@ -403,8 +401,8 @@ public class CustomerWrapperAPIService {
 		incomeVerificationResponseModel.setNumberOfMonthsRequested(incomeVerificationRequestWrapperModel.getNumberOfMonthsRequested());
 		incomeVerificationResponseModel.setEmployer(customerDetails.getEmployer());
 		incomeVerificationResponseModel.setCallbackURLs(incomeVerificationRequestWrapperModel.getCallbackURLs());
-		incomeVerificationResponseModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
-		incomeVerificationResponseModel.setLastName(customerDetails.getPersonalProfile().getLastName());
+		incomeVerificationResponseModel.setFirstName(incomeVerificationRequestWrapperModel.getFirstName());
+		incomeVerificationResponseModel.setLastName(incomeVerificationRequestWrapperModel.getLastName());
 		return incomeVerificationResponseModel;
 	}
 	
@@ -412,11 +410,11 @@ public class CustomerWrapperAPIService {
 		IdentityVerificationResponseWrapperModel identityVerificationResponseWrapperModel = new IdentityVerificationResponseWrapperModel();
 		identityVerificationResponseWrapperModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
 		identityVerificationResponseWrapperModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
-		identityVerificationResponseWrapperModel.setLast4TIN(customerDetails.getPersonalProfile().getLast4TIN());
+		identityVerificationResponseWrapperModel.setLast4TIN(identityVerificationRequestWrapperModel.getLast4TIN());
 		identityVerificationResponseWrapperModel.setEmployer(customerDetails.getEmployer());
 		identityVerificationResponseWrapperModel.setCallbackURLs(identityVerificationRequestWrapperModel.getCallbackURLs());
-		identityVerificationResponseWrapperModel.setFirstName(customerDetails.getPersonalProfile().getFirstName());
-		identityVerificationResponseWrapperModel.setLastName(customerDetails.getPersonalProfile().getLastName());
+		identityVerificationResponseWrapperModel.setFirstName(identityVerificationRequestWrapperModel.getFirstName());
+		identityVerificationResponseWrapperModel.setLastName(identityVerificationRequestWrapperModel.getLastName());
 		return identityVerificationResponseWrapperModel;
 	}
 	

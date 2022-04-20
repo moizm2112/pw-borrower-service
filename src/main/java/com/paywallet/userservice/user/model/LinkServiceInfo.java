@@ -25,5 +25,6 @@ public class LinkServiceInfo {
     private String payCycle;
     private boolean isDirectDepositAllocation;
     private FlowTypeEnum flowType;
+    private boolean linkFlag;
 
 }
