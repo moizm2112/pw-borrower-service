@@ -57,8 +57,10 @@ public class CustomerDetails {
     private boolean smsNotificationSuccess;
     private String virtualAccountId;
     private String virtualClientId;
+    private Boolean checkOutExperience;
     private VerificationStatusEnum cellPhoneVerificationStatus;
     
    	private VerificationStatusEnum emailIdVerificationStatus;
+
 
 }

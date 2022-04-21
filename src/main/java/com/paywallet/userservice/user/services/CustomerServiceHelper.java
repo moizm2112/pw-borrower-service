@@ -133,7 +133,7 @@ public class CustomerServiceHelper {
 		CustomerDetails customerEntity = CustomerDetails.builder().personalProfile(personalProfile)
 				.firstDateOfPayment(customer.getFirstDateOfPayment())
 				.repaymentFrequency(customer.getRepaymentFrequency())
-				.numberOfInstallments(customer.getNumberOfInstallments())
+				.numberOfInstallments(customer.getNumberOfInstallments()).checkOutExperience(customer.getCheckOutExperience())
 				.installmentAmount(customer.getInstallmentAmount()).build();
 //         		.financedAmount(customer.getFinancedAmount()).financedAmount(customer.getFinancedAmount())
 //         		.abaOfSalaryAccount(customer.getBankABA()).salaryAccountNumber(customer.getBankAccountNumber()).build();
