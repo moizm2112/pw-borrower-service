@@ -5,6 +5,7 @@ import com.paywallet.userservice.user.exception.GeneralCustomException;
 import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
 import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.WrapperRetryRequest;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationResponseDTO;
@@ -42,7 +43,7 @@ public class IncomeVerificationWrapperAPIController {
      */
     @PostMapping(INCOME_VERIFICATION_RETRY)
     public IncomeVerificationResponseDTO retryIncomeVerification(@RequestHeader(REQUEST_ID) String requestId,
-                                                                 @Valid @RequestBody IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO,
+                                                                 @Valid @RequestBody WrapperRetryRequest incomeVerificationRequestDTO,
                                                                  HttpServletRequest request) throws RequestIdNotFoundException, RetryException {
 
         log.debug("Income Verification retry request received : {}  request ID : {} ", incomeVerificationRequestDTO, requestId);

@@ -270,4 +270,17 @@ public class ControllerAdvisor {
 		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
 	}
 
+	@ExceptionHandler(RequestAPIDetailsException.class)
+	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+	public ResponseEntity<Object> handleRequestAPIDetailsException(RequestAPIDetailsException requestAPIDetailsException, HttpServletRequest request) {
+		String path = request.getRequestURI();
+		log.error(requestAPIDetailsException.getMessage());
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("code", HttpStatus.BAD_REQUEST.toString());
+		body.put("message", requestAPIDetailsException.getMessage());
+		body.put("timestamp", new Date());
+		body.put("path", path);
+		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+	}
+
 }

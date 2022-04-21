@@ -5,12 +5,20 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
+import com.paywallet.userservice.user.dto.EventDTO;
+import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.enums.ProgressLevel;
+import com.paywallet.userservice.user.exception.RequestAPIDetailsException;
+import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import io.sentry.Sentry;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +40,15 @@ public class CommonUtil {
 	
 	@Value("${Luthersales_days_for_FirstDateOfPayment}")
 	private String luthersales_days_for_FirstDateOfPayment;
+
+	@Value("${decimal.part.size:2}")
+	private String decimalLength;
+
+	@Value("${time.zone:America/New_York}")
+	private String timeZone;
+
+	@Value("${date.time.pattern:MM/dd/yyyy HH:mm:ss 'EST'}")
+	private String dateTimePattern;
 
 	@Autowired
 	ListOfHolidaysRepo listOfHolidaysRepo;
@@ -146,6 +163,48 @@ public class CommonUtil {
 			}
 		}
 		return result;
+	}
+
+	public String getFormattedAmount(int amount){
+		try {
+			return String.format("%."+decimalLength+"f",Double.valueOf(amount));
+		}catch (Exception e){
+			log.error(" Exception while formatting the amount : {} ",e.getMessage());
+		}
+		return  String.valueOf(amount);
+	}
+
+	public String getFormattedAmount(double amount){
+		try {
+			return String.format("%."+decimalLength+"f",amount);
+		}catch (Exception e){
+			log.error(" Exception while formatting the amount : {} ",e.getMessage());
+		}
+		return  String.valueOf(amount);
+	}
+
+	public EventDTO prepareEvent(String requestId, String code, String source, String message, ProgressLevel level){
+		return EventDTO.builder()
+				.requestId(requestId)
+				.code(code)
+				.source(source)
+				.message(message)
+				.level(level)
+				.dateTime(getESTTime())
+				.build();
+	}
+
+	public String getESTTime() {
+		try {
+			DateTimeFormatter etFormat = DateTimeFormatter.ofPattern(dateTimePattern);
+			ZonedDateTime currentTime = ZonedDateTime.now();
+			ZonedDateTime currentETime = currentTime
+					.withZoneSameInstant(ZoneId.of(timeZone));
+			return etFormat.format(currentETime);
+		} catch (Exception e) {
+			log.error("Error while parsing date : {}",e);
+		}
+		return null;
 	}
 
 }

@@ -16,7 +16,7 @@ import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
 import com.paywallet.userservice.user.exception.RetryException;
 import com.paywallet.userservice.user.model.LenderConfigInfo;
 import com.paywallet.userservice.user.model.RequestIdDetails;
-import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
+import com.paywallet.userservice.user.model.wrapperAPI.WrapperRetryRequest;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeResponseInfo;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationRequestDTO;
 import com.paywallet.userservice.user.model.wrapperAPI.income.IncomeVerificationResponseDTO;
@@ -62,7 +62,7 @@ public class IncomeRetryWrapperAPIService {
     /**
      * checking for allow retry status, if retry is allowed, then re-initiating income verification
      **/
-    public IncomeResponseInfo retryIncomeVerification(String requestId, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
+    public IncomeResponseInfo retryIncomeVerification(String requestId, WrapperRetryRequest incomeVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
 
         RequestIdDetails requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
         allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
@@ -72,7 +72,7 @@ public class IncomeRetryWrapperAPIService {
 
     }
 
-    public CustomerDetails initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) throws RetryException {
+    public CustomerDetails initiateIncomeVerification(RequestIdDetails requestIdDetails, String requestId, WrapperRetryRequest incomeVerificationRequestDTO) throws RetryException {
     	log.info(" Inside initiateIncomeVerification, with RequestDetails as ::" , requestIdDetails);
     	CustomerDetails customer = Optional.ofNullable(customerService.getCustomer(requestIdDetails.getUserId()))
 		   		.orElseThrow(() -> new RequestIdNotFoundException("Customer not found"));
@@ -82,7 +82,7 @@ public class IncomeRetryWrapperAPIService {
     	return customer;
     }
 
-    public IncomeResponseInfo prepareIncomeResponseInfo(CustomerDetails customer, IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) {
+    public IncomeResponseInfo prepareIncomeResponseInfo(CustomerDetails customer, WrapperRetryRequest incomeVerificationRequestDTO) {
         // Need to change the reading fields from request
         return IncomeResponseInfo.builder()
                 .employer(incomeVerificationRequestDTO.getEmployerId())
@@ -102,7 +102,7 @@ public class IncomeRetryWrapperAPIService {
     }
     
     public RequestIdDetails validateInput(CustomerDetails customer,String requestId, RequestIdDetails requestIdDetails,
-    		IncomeVerificationRequestWrapperModel incomeVerificationRequestDTO) throws RetryException {
+    		WrapperRetryRequest incomeVerificationRequestDTO) throws RetryException {
     	log.info("Inside validateInput");
     	log.info(customer.getPersonalProfile().getCellPhone());
     	log.info(customer.getPersonalProfile().getEmailId());
@@ -119,11 +119,11 @@ public class IncomeRetryWrapperAPIService {
 
         if((!customer.getPersonalProfile().getCellPhone().contains(incomeVerificationRequestDTO.getCellPhone()) )&&
                 (!customer.getPersonalProfile().getEmailId().equals(incomeVerificationRequestDTO.getEmailId()))){
-            throw new RetryException("Both Email ID and Mobile No. does not match with the request ID.");
+            throw new RetryException("Email Id and/or Cellphone number does not match with the Request Id");
         }
 
         if(! customer.getPersonalProfile().getCellPhone().contains(incomeVerificationRequestDTO.getCellPhone())) {
-            throw new RetryException("Mobile No. does not match with the request ID.");
+            throw new RetryException("Cellphone number does not match with the request ID.");
         }
 
         if(	!customer.getPersonalProfile().getEmailId().equals(incomeVerificationRequestDTO.getEmailId())) {

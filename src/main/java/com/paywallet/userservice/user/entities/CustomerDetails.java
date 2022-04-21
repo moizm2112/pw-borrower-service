@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.paywallet.userservice.user.enums.VerificationStatusEnum;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -56,5 +57,10 @@ public class CustomerDetails {
     private boolean smsNotificationSuccess;
     private String virtualAccountId;
     private String virtualClientId;
+    private Boolean checkOutExperience;
+    private VerificationStatusEnum cellPhoneVerificationStatus;
+    
+   	private VerificationStatusEnum emailIdVerificationStatus;
+
 
 }
