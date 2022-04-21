@@ -170,7 +170,7 @@ public class CustomerController {
     
     /**
      * Method updates the customer cellPhone
-     * @param UpdateCustomerMobileNoDTO
+     * @param updateCustomerDetailsDTO
      * @param request
      * @return
      * @throws CustomerNotFoundException
@@ -187,7 +187,7 @@ public class CustomerController {
     
     /**
      * Method updates the customer cellPhone
-     * @param UpdateCustomerMobileNoDTO
+     * @param updateCustomerEmailIdDTO
      * @param request
      * @return
      * @throws CustomerNotFoundException

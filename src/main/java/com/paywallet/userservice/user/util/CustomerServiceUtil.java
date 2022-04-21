@@ -38,17 +38,6 @@ public class CustomerServiceUtil {
     	return false;
     }
 
-    public EventDTO prepareEvent(String requestId, String code, String source, String message, String level){
-        return EventDTO.builder()
-                .requestId(requestId)
-                .code(code)
-                .source(source)
-                .message(message)
-                .level(level)
-                .time(new Date())
-                .build();
-    }
-
     public String hashString(String originalString) {
         if(StringUtils.isBlank(originalString))
             return "";

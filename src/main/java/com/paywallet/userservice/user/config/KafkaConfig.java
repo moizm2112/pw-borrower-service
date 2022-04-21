@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Configuration
 public class KafkaConfig {
-
+/*
     @Value("${spring.kafka.bootstrap-servers}")
     String kafkaConfig;
     @Bean
@@ -33,6 +33,5 @@ public class KafkaConfig {
         return new KafkaTemplate<String, LinkServiceInfo>(producerFactory());
     }
 
-
-
+*/
 }
