@@ -207,4 +207,10 @@ public class CommonUtil {
 		return null;
 	}
 
+	public void addSentryTransactionIdentifier(final String requestId) {
+		Sentry.configureScope(scope -> {
+			scope.setTag("transaction_id", requestId);
+		});
+	}
+
 }
