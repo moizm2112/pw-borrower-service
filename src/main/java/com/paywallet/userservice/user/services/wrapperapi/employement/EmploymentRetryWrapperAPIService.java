@@ -70,7 +70,7 @@ public class EmploymentRetryWrapperAPIService {
     public EmploymentResponseInfo retryEmploymentVerification(String requestId, WrapperRetryRequest empVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
 
         RequestIdDetails requestIdDetails= requestIdUtil.fetchRequestIdDetails(requestId);
-        allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
+        allowRetryAPIUtil.checkForRetryStatus(requestIdDetails,FlowTypeEnum.EMPLOYMENT_VERIFICATION);
         CustomerDetails customer = initiateEmploymentVerification(requestIdDetails, requestId , empVerificationRequestDTO);
         return this.prepareEmploymentResponseInfo(customer, empVerificationRequestDTO);
 

@@ -66,7 +66,7 @@ public class IdentityRetryWrapperAPIService {
     public IdentityResponseInfo retryIdentityVerification(String requestId, WrapperRetryRequest identityVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
 
         RequestIdDetails requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
-        allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
+        allowRetryAPIUtil.checkForRetryStatus(requestIdDetails, FlowTypeEnum.IDENTITY_VERIFICATION);
         // initiate retry code logic -> need to add
         CustomerDetails customer = initiateIdentityVerification(requestIdDetails, requestId, identityVerificationRequestDTO);
         return this.prepareIdentityResponseInfo(customer,identityVerificationRequestDTO);
