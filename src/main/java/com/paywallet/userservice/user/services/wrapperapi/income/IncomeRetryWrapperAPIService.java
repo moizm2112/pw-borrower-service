@@ -65,7 +65,7 @@ public class IncomeRetryWrapperAPIService {
     public IncomeResponseInfo retryIncomeVerification(String requestId, WrapperRetryRequest incomeVerificationRequestDTO) throws RequestIdNotFoundException, ResourceAccessException, GeneralCustomException, RetryException {
 
         RequestIdDetails requestIdDetails = requestIdUtil.fetchRequestIdDetails(requestId);
-        allowRetryAPIUtil.checkForRetryStatus(requestIdDetails);
+        allowRetryAPIUtil.checkForRetryStatus(requestIdDetails,FlowTypeEnum.INCOME_VERIFICATION);
         // initiate retry code logic -> need to add
         CustomerDetails customer = initiateIncomeVerification(requestIdDetails, requestId, incomeVerificationRequestDTO);
         return this.prepareIncomeResponseInfo(customer, incomeVerificationRequestDTO);
