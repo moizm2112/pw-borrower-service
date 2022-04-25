@@ -21,9 +21,9 @@ public interface RetryAPIConstants {
     String NOT_BOTH_INVALID_EMAIL_MOBILE_MESSAGE = "Previous allocation notification is not failed with both Invalid EmailID and Invalid Mobile No., we can allow retry API";
 
     // Retry error message
-    String INCOME_RETRY_NOT_ALLOWED="Income API is not been initiated earlier, please initiate Income API.";
-    String EMP_RETRY_NOT_ALLOWED="Employment API is not been initiated earlier, please initiate Employment API.";
-    String IDENTITY_RETRY_NOT_ALLOWED="Identity API is not been initiated earlier, please initiate Identity API.";
+    String INCOME_RETRY_NOT_ALLOWED="Retry is not allowed unless the Income Verification API was invoked earlier.";
+    String EMP_RETRY_NOT_ALLOWED="Retry is not allowed unless the Employment Verification API was invoked earlier.";
+    String IDENTITY_RETRY_NOT_ALLOWED="Retry is not allowed unless the Identity Verification API was invoked earlier.";
 
 
 }
