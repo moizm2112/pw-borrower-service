@@ -14,6 +14,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,7 @@ import static com.paywallet.userservice.user.util.NullableWrapperUtil.*;
 
 @Component
 @Slf4j
+@RefreshScope
 public class RequestIdUtil {
 
     @Value("${identifyProviderService.eureka.uri}")
