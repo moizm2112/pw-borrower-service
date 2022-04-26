@@ -20,6 +20,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -45,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
+@RefreshScope
 public class CustomerFieldValidator {
 
 	@Value("${admin.service.url}")

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import io.sentry.Sentry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
+@RefreshScope
 public class NotificationUtil {
 	@Autowired
 	RestTemplate restTemplate;
