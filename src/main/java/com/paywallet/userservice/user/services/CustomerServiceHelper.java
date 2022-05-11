@@ -1,31 +1,24 @@
 package com.paywallet.userservice.user.services;
 
-import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.paywallet.userservice.user.constant.AppConstants;
+import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.entities.PersonalProfile;
+import com.paywallet.userservice.user.enums.FlowTypeEnum;
+import com.paywallet.userservice.user.exception.*;
+import com.paywallet.userservice.user.model.*;
+import com.paywallet.userservice.user.repository.CustomerRepository;
+import com.paywallet.userservice.user.util.NotificationUtil;
+import io.sentry.Sentry;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -33,37 +26,12 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.paywallet.userservice.user.constant.AppConstants;
-import com.paywallet.userservice.user.entities.CustomerDetails;
-import com.paywallet.userservice.user.entities.PersonalProfile;
-import com.paywallet.userservice.user.enums.FlowTypeEnum;
-import com.paywallet.userservice.user.exception.FineractAPIException;
-import com.paywallet.userservice.user.exception.GeneralCustomException;
-import com.paywallet.userservice.user.exception.RequestIdNotFoundException;
-import com.paywallet.userservice.user.exception.SMSAndEmailNotificationException;
-import com.paywallet.userservice.user.exception.ServiceNotAvailableException;
-import com.paywallet.userservice.user.model.CallbackURL;
-import com.paywallet.userservice.user.model.CreateCustomerRequest;
-import com.paywallet.userservice.user.model.CustomerRequestFields;
-import com.paywallet.userservice.user.model.EmployerInfoResponseDTO;
-import com.paywallet.userservice.user.model.EmployerSearchDetailsDTO;
-import com.paywallet.userservice.user.model.FineractCreateLenderDTO;
-import com.paywallet.userservice.user.model.FineractLenderAddressDTO;
-import com.paywallet.userservice.user.model.FineractLenderCreationResponseDTO;
-import com.paywallet.userservice.user.model.FineractUpdateLenderAccountDTO;
-import com.paywallet.userservice.user.model.FineractUpdateLenderResponseDTO;
-import com.paywallet.userservice.user.model.LinkRequestProductDTO;
-import com.paywallet.userservice.user.model.ProviderInfo;
-import com.paywallet.userservice.user.model.RequestIdDTO;
-import com.paywallet.userservice.user.model.RequestIdDetails;
-import com.paywallet.userservice.user.model.RequestIdResponseDTO;
-import com.paywallet.userservice.user.repository.CustomerRepository;
-import com.paywallet.userservice.user.util.NotificationUtil;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
-import io.sentry.Sentry;
-import lombok.extern.slf4j.Slf4j;
+import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 
 @Component
 @Slf4j
@@ -625,5 +593,29 @@ public class CustomerServiceHelper {
 		}
 		return isEmployerPdSupported;
 		
+	}
+
+	public Optional<FlowTypeEnum> fetchInProgressRequestFlow(RequestIdDetails requestIdDetails) {
+		return Optional.ofNullable(requestIdDetails.getFlowType())
+				.orElse(new ArrayList<>())
+				.stream()
+				.filter(flowTypeEnum -> {
+					boolean status = false;
+					switch (flowTypeEnum) {
+						case DEPOSIT_ALLOCATION:
+							status = StringUtils.isBlank(requestIdDetails.getAllocationStatus());
+							break;
+						case IDENTITY_VERIFICATION:
+							status = StringUtils.isBlank(requestIdDetails.getIdentifyStatus());
+							break;
+						case EMPLOYMENT_VERIFICATION:
+							status = StringUtils.isBlank(requestIdDetails.getEmploymentStatus());
+							break;
+						case INCOME_VERIFICATION:
+							status = StringUtils.isBlank(requestIdDetails.getIncomeValidation());
+							break;
+					}
+					return status;
+				}).findFirst();
 	}
 }

@@ -1085,6 +1085,14 @@ public class CustomerService {
 			lenderConfigInfo = Optional.ofNullable(lenderConfigInfo)
 					.orElseThrow(() -> new GeneralCustomException("ERROR",
 							"Error while fetching lender configuration for validating callback urls"));
+			//CHECKING REQUEST IN PROGRESS
+			Optional<FlowTypeEnum> optionalFlowTypeEnum = customerServiceHelper.fetchInProgressRequestFlow(requestIdDtls);
+			if(optionalFlowTypeEnum.isPresent()){
+				FlowTypeEnum flowTypeEnum = optionalFlowTypeEnum.get();
+				log.warn("Request {} in progress for the requestId Please complete the request and re-try again",flowTypeEnum);
+				throw new GeneralCustomException("ERROR",new StringBuilder("Request [").append(flowTypeEnum).append("] in progress for the requestId Please complete the request and re-try again").toString());
+			}
+
 			switch (flowType.name()) {
 			case GENERAL: {
 				validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
