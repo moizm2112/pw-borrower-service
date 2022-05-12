@@ -289,6 +289,7 @@ public class CustomerServiceHelper {
 				lsFlowType.add(flowType);
 			}
 			requestIdDTO.setFlowType(lsFlowType);
+			requestIdDTO.setCurrentFlowType(flowType);
 			/* SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
 			if (callbackURL != null) {
 				if (callbackURL.getIdentityCallbackUrls() != null && callbackURL.getIdentityCallbackUrls().size() > 0)

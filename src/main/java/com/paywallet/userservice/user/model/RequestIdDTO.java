@@ -51,4 +51,5 @@ public class RequestIdDTO {
     private boolean isDirectDepositAllocation;
     private List<FlowTypeEnum> flowType;
     private String numberOfMonthsRequested;
+    private FlowTypeEnum currentFlowType;
 }
