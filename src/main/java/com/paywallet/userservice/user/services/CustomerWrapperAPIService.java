@@ -373,15 +373,16 @@ public class CustomerWrapperAPIService {
 		
 		if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
 			depositAllocationResponseModel.setVirtualAccountNumber(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-		else
+		else {
 			depositAllocationResponseModel.setVirtualAccountNumber(customerDetails.getVirtualAccount());
+			depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
+		}
 		
 		if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))
 			depositAllocationResponseModel.setVirtualAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 		else
 			depositAllocationResponseModel.setVirtualAccountABANumber(customerDetails.getAccountABANumber());
 		
-		depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
 		depositAllocationResponseModel.setNumberOfInstallments(customerDetails.getNumberOfInstallments());
 		if(depositAllocationRequestWrapperModel.getInstallmentAmount() > 0)
 			depositAllocationResponseModel.setInstallmentAmount(commonUtil.getFormattedAmount(customerDetails.getInstallmentAmount()));
