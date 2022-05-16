@@ -370,9 +370,19 @@ public class CustomerWrapperAPIService {
 		DepositAllocationResponseWrapperModel depositAllocationResponseModel = new DepositAllocationResponseWrapperModel();
 		depositAllocationResponseModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
 		depositAllocationResponseModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
-		depositAllocationResponseModel.setVirtualAccountNumber(customerDetails.getVirtualAccount());
-		depositAllocationResponseModel.setVirtualAccountABANumber(customerDetails.getAccountABANumber());
-		depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
+		
+		if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
+			depositAllocationResponseModel.setVirtualAccountNumber(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+		else {
+			depositAllocationResponseModel.setVirtualAccountNumber(customerDetails.getVirtualAccount());
+			depositAllocationResponseModel.setVirtualAccountId(customerDetails.getVirtualAccountId());
+		}
+		
+		if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))
+			depositAllocationResponseModel.setVirtualAccountABANumber(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		else
+			depositAllocationResponseModel.setVirtualAccountABANumber(customerDetails.getAccountABANumber());
+		
 		depositAllocationResponseModel.setNumberOfInstallments(customerDetails.getNumberOfInstallments());
 		if(depositAllocationRequestWrapperModel.getInstallmentAmount() > 0)
 			depositAllocationResponseModel.setInstallmentAmount(commonUtil.getFormattedAmount(customerDetails.getInstallmentAmount()));
