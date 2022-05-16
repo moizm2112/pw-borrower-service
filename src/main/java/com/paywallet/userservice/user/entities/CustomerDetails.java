@@ -61,6 +61,8 @@ public class CustomerDetails {
     private VerificationStatusEnum cellPhoneVerificationStatus;
     
    	private VerificationStatusEnum emailIdVerificationStatus;
+   	private String externalAccount;
+   	private String externalAccountABA;
 
 
 }

@@ -273,13 +273,24 @@ public class CustomerServiceHelper {
 		RequestIdDTO requestIdDTO = new RequestIdDTO();
 		try {
 			requestIdDTO.setUserId(saveCustomer.getCustomerId());
-			requestIdDTO.setVirtualAccountNumber(saveCustomer.getVirtualAccount());
-			requestIdDTO.setVirtualAccountId(saveCustomer.getVirtualAccountId());
+			if(saveCustomer.getVirtualAccount() != null && saveCustomer.getVirtualAccount().length() > 0)
+				requestIdDTO.setVirtualAccountNumber(saveCustomer.getVirtualAccount());
+			else 
+				requestIdDTO.setVirtualAccountNumber(saveCustomer.getExternalAccount());
+			
+			if(saveCustomer.getVirtualAccountId() != null && saveCustomer.getVirtualAccountId().length() > 0)
+				requestIdDTO.setVirtualAccountId(saveCustomer.getVirtualAccountId());
+			
 			if (flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name()))
 				requestIdDTO.setDirectDepositAllocation(true);
 			else
 				requestIdDTO.setDirectDepositAllocation(false);
-			requestIdDTO.setAbaNumber(saveCustomer.getAccountABANumber());
+			
+			if(saveCustomer.getAccountABANumber() != null && saveCustomer.getAccountABANumber().length() > 0)
+				requestIdDTO.setAbaNumber(saveCustomer.getAccountABANumber());
+			else
+				requestIdDTO.setAbaNumber(saveCustomer.getExternalAccountABA());
+			
 			List<FlowTypeEnum> lsFlowType = requestIdDetails.getFlowType();
 			if (lsFlowType != null && lsFlowType.size() > 0) {
 				if (!lsFlowType.contains(flowType))

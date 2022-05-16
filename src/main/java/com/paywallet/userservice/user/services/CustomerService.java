@@ -1156,10 +1156,8 @@ public class CustomerService {
 					if (StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount())
 							&& StringUtils.isNotBlank(
 									depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
-						customerEntity
-								.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-						customerEntity.setAccountABANumber(
-								depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+						customerEntity.setExternalAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+						customerEntity.setExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 					} else if (StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount())
 							|| StringUtils.isBlank(
 									depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
@@ -1174,8 +1172,8 @@ public class CustomerService {
 							&& StringUtils.isNotBlank(
 									depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
 						customerEntity
-								.setVirtualAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-						customerEntity.setAccountABANumber(
+								.setExternalAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+						customerEntity.setExternalAccountABA(
 								depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 					} else if (StringUtils.isBlank(customerEntity.getVirtualAccount())
 							&& StringUtils.isBlank(customerEntity.getAccountABANumber())) {
