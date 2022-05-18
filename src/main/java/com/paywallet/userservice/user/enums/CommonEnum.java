@@ -24,7 +24,10 @@ public enum CommonEnum {
     COMMON_RETRY_FALED_MSG("Customer has already completed the Employer Login. Retry not allowed"),
     COMMON_RETRY_SUCCESS_MSG("Link resend to the customer has been initiated."),
 
-    SUCCESS_HTTP_RESPONSE_MSG(200,"Success");
+    SUCCESS_HTTP_RESPONSE_MSG(200,"Success"),
+    CUSTOMER_PAY_ROLL_UPDATE_SUCCESS_STATUS_MSG("Customer payroll profile updated successfully"),
+    CUSTOMER_PAY_ROLL_UPDATE_FAILED_STATUS_MSG("Customer payroll profile update failed"),
+    ;
 	
     private String message;
     private int code;

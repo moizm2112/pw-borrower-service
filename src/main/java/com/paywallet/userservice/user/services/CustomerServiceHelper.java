@@ -4,11 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.entities.CustomerDetails;
+import com.paywallet.userservice.user.entities.CustomerProvidedDetails;
 import com.paywallet.userservice.user.entities.PersonalProfile;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.exception.*;
 import com.paywallet.userservice.user.model.*;
+import com.paywallet.userservice.user.repository.CustomerDetailsRepository;
 import com.paywallet.userservice.user.repository.CustomerRepository;
+import com.paywallet.userservice.user.util.CommonUtil;
 import com.paywallet.userservice.user.util.NotificationUtil;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +74,12 @@ public class CustomerServiceHelper {
 
 	@Autowired
 	NotificationUtil notificationUtil;
+
+	@Autowired
+	CommonUtil commonUtil;
+
+	@Autowired
+	CustomerDetailsRepository customerDetailsRepository;
 
 	private static final String LINK_REQUEST_ID = "requestId";
 	private static final String BORROWER_VERIFICATION_OTP = "borrowerVerificationOtp";
@@ -629,5 +638,30 @@ public class CustomerServiceHelper {
 					}
 					return status;
 				}).findFirst();
+	}
+
+	public CustomerProvidedDetails prepareCustomerProvidedDetails(String requestId, String customerId, CreateCustomerRequest clientDetails) {
+		CustomerProvidedDetails customerProvidedDetails = new CustomerProvidedDetails();
+		String decodedRequestId = commonUtil.decodeRequestId(requestId);
+		customerProvidedDetails.setRequestId(decodedRequestId);
+		customerProvidedDetails.setCustomerId(customerId);
+		customerProvidedDetails.setFirstName(clientDetails.getFirstName());
+		customerProvidedDetails.setLastName(clientDetails.getLastName());
+		customerProvidedDetails.setMiddleName(clientDetails.getMiddleName());
+		customerProvidedDetails.setCellPhone(clientDetails.getCellPhone());
+		customerProvidedDetails.setCity(clientDetails.getCity());
+		customerProvidedDetails.setEmailId(clientDetails.getEmailId());
+		customerProvidedDetails.setDateOfBirth(clientDetails.getDateOfBirth());
+		customerProvidedDetails.setAddressLine1(clientDetails.getAddressLine1());
+		customerProvidedDetails.setAddressLine2(clientDetails.getAddressLine2());
+		customerProvidedDetails.setState(clientDetails.getState());
+		customerProvidedDetails.setZip(clientDetails.getZip());
+		customerProvidedDetails.setLast4TIN(clientDetails.getLast4TIN());
+		return customerProvidedDetails;
+	}
+
+	public CustomerProvidedDetails upsertCustomerProvidedDetails(String requestId, String customerId, CreateCustomerRequest customer) throws JsonProcessingException {
+		CustomerProvidedDetails customerProvidedDetails = prepareCustomerProvidedDetails(requestId, customerId, customer);
+		return customerDetailsRepository.upsert(customerProvidedDetails);
 	}
 }

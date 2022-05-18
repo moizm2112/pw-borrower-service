@@ -10,28 +10,22 @@ import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOM
 import static com.paywallet.userservice.user.constant.AppConstants.UPDATE_CUSTOMER_CELLPHONE;
 import static com.paywallet.userservice.user.constant.AppConstants.VALIDATE_CUSTOMER_ACCOUNT;
 
-import java.util.Optional;
-
 import static com.paywallet.userservice.user.constant.AppConstants.REQUEST_ID;
 import static com.paywallet.userservice.user.constant.AppConstants.ADD_REQUIRED_FIELDS;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.paywallet.userservice.user.constant.URIConstants;
+import com.paywallet.userservice.user.dto.PayrollProviderDetailsDTO;
+import com.paywallet.userservice.user.entities.CustomerProvidedDetails;
 import com.paywallet.userservice.user.util.CustomerServiceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.CommonEnum;
@@ -214,6 +208,24 @@ public class CustomerController {
         else
         	return ResponseEntity.status(HttpStatus.OK)
                     .body("Failed");		
+    }
+
+    @GetMapping(URIConstants.GET_CUSTOMER_PROVIDED_DETAILS)
+    public ResponseEntity getCustomerProviderDetails(@PathVariable("requestId") String requestId, HttpServletRequest request) {
+        CustomerProvidedDetails customerProvidedDetails = customerService.getCustomerProvidedDetails(requestId);
+        return customerService.prepareResponse(customerProvidedDetails,request.getRequestURI());
+    }
+
+    @PatchMapping(URIConstants.PATCH_PAYROLL_PROFILE)
+    public ResponseEntity updatePayRollData(@PathVariable("customerId") String customerId, @RequestBody PayrollProviderDetailsDTO payrollProviderDetailsDTO, HttpServletRequest request) throws JsonProcessingException {
+        String res = customerService.updatePayrollProfileDetails(customerId, payrollProviderDetailsDTO);
+        return customerService.prepareResponse(res,request.getRequestURI());
+    }
+
+    @GetMapping(URIConstants.GET_PAYROLL_PROFILE)
+    public ResponseEntity getPayrollProviderDetails(@PathVariable("customerId") String customerId, HttpServletRequest request) throws JsonProcessingException {
+        PayrollProviderDetailsDTO payrollProviderDetailsDTO = customerService.getPayrollProfileDetails(customerId);
+        return customerService.prepareResponse(payrollProviderDetailsDTO,request.getRequestURI());
     }
 
 }

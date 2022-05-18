@@ -19,6 +19,10 @@ import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.ProgressLevel;
 import com.paywallet.userservice.user.exception.RequestAPIDetailsException;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Header;
+import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.Jwts;
 import io.sentry.Sentry;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -213,6 +217,15 @@ public class CommonUtil {
 		Sentry.configureScope(scope -> {
 			scope.setTag("transaction_id", requestId);
 		});
+	}
+
+	public String decodeRequestId(String jwtToken) {
+		Optional.ofNullable(jwtToken).orElseThrow(()->new RuntimeException("Empty jwt token"));
+		jwtToken = jwtToken.trim();
+		int i = jwtToken.lastIndexOf('.');
+		String withoutSignature = jwtToken.substring(0, i+1);
+		Jwt<Header, Claims> untrusted = Jwts.parser().parseClaimsJwt(withoutSignature);
+		return untrusted.getBody().getSubject();
 	}
 
 }
