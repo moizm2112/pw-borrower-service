@@ -1143,6 +1143,7 @@ public class CustomerService {
 							+ requestIdDtls.getEmployer());
 				}
 				// Validation of direct deposit allocation request
+				log.info("validation started******"+depositAllocationRequestWrapperModel.getExternalVirtualAccount()+"==="+depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 				checkABAandVirtualAccountNumber(depositAllocationRequestWrapperModel);
 				customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
@@ -1346,8 +1347,9 @@ public class CustomerService {
 		log.info("validation started--------------");
 		try {
 		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
-		   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get());
+		log.info("validation started==========");
 		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
+			   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get().getExternalAccount()+"==="+findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA());
 			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
 		   }
 		}catch (Exception e) {
