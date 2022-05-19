@@ -1144,7 +1144,11 @@ public class CustomerService {
 				}
 				// Validation of direct deposit allocation request
 				log.info("validation started******"+depositAllocationRequestWrapperModel.getExternalVirtualAccount()+"==="+depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
-				checkABAandVirtualAccountNumber(depositAllocationRequestWrapperModel);
+				Boolean checkABAandVirtualAccountNumber = checkABAandVirtualAccountNumber(depositAllocationRequestWrapperModel);
+				if(checkABAandVirtualAccountNumber) {
+					log.info("query resulted the data as true");
+					 throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
+				}
 				customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
 				if (depositAllocationRequestWrapperModel.getLoanAmount() > 0) {
@@ -1342,19 +1346,21 @@ public class CustomerService {
 		return saveCustomer;
 	}
 
-	private void checkABAandVirtualAccountNumber(
+	private Boolean checkABAandVirtualAccountNumber(
 			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel) {
 		log.info("validation started--------------");
-		try {
 		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 		log.info("validation started==========");
 		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
 			   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get().getExternalAccount()+"==="+findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA());
-			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
+//			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
+			   return true;
+		   }else {
+			   log.warn("No ABA and Virtual number");
+			   return false;
 		   }
-		}catch (CreateCustomerABAException e) {
-			log.warn("No ABA and Virtual number");
-		}
+		
+		
 	}
 
 	public RequestIdDetails getEmployerDetailsBasedOnEmplyerIdFromRequest(String employerId, String requestId,
