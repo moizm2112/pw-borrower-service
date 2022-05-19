@@ -1340,7 +1340,7 @@ public class CustomerService {
 		}
 		catch (Exception e) {
 			Sentry.captureException(e);
-			log.error("Customerservice createcustomer Exception" + e.getMessage());
+			log.error("Customerservice createcustomer Exception" + e.getMessage(),e);
 			throw new GeneralCustomException(ERROR, e.getMessage());
 		}
 		return saveCustomer;
