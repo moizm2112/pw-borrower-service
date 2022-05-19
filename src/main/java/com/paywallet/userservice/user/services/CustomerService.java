@@ -1148,6 +1148,8 @@ public class CustomerService {
 				   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get());
 				   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
 					   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
+				   }else {
+					   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.isEmpty());
 				   }
 				customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
