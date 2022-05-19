@@ -29,6 +29,7 @@ import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
 import com.paywallet.userservice.user.enums.StateStatus;
 import com.paywallet.userservice.user.enums.VerificationStatusEnum;
+import com.paywallet.userservice.user.exception.CreateCustomerABAException;
 import com.paywallet.userservice.user.exception.CreateCustomerException;
 import com.paywallet.userservice.user.exception.CustomerAccountException;
 import com.paywallet.userservice.user.exception.CustomerNotFoundException;
@@ -1142,6 +1143,12 @@ public class CustomerService {
 							+ requestIdDtls.getEmployer());
 				}
 				// Validation of direct deposit allocation request
+				log.info("validation started******"+depositAllocationRequestWrapperModel.getExternalVirtualAccount()+"==="+depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+				Boolean checkABAandVirtualAccountNumber = checkABAandVirtualAccountNumber(depositAllocationRequestWrapperModel, requestId);
+				if(checkABAandVirtualAccountNumber) {
+					log.info("query resulted the data as true");
+					 throw new CreateCustomerABAException("ExternalVirtualAccountABANumber and ExternalVirtualAccountNumber should not be same");
+				}
 				customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
 				if (depositAllocationRequestWrapperModel.getLoanAmount() > 0) {
@@ -1328,12 +1335,38 @@ public class CustomerService {
 			Sentry.captureException(e);
 			log.error("Customerservice createcustomer SMSAndEmailNotificationException" + e.getMessage());
 			throw new SMSAndEmailNotificationException(e.getMessage());
-		} catch (Exception e) {
+		}catch (CreateCustomerABAException e) {
+			throw e;
+		}
+		catch (Exception e) {
 			Sentry.captureException(e);
-			log.error("Customerservice createcustomer Exception" + e.getMessage());
+			log.error("Customerservice createcustomer Exception" + e.getMessage(),e);
 			throw new GeneralCustomException(ERROR, e.getMessage());
 		}
 		return saveCustomer;
+	}
+
+	private Boolean checkABAandVirtualAccountNumber(
+			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel,String requestId) {
+		log.info("validation started--------------");
+		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), 
+				depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		log.info("validation started==========");
+		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
+			   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get().getExternalAccount()+"==="+findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA());
+//			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
+			  if(findByExternalAccountAndExternalAccountABA.get().getPersonalProfile().getCellPhone()
+					  .equals(depositAllocationRequestWrapperModel.getCellPhone())){				  
+				   return false;
+			   }
+			  log.info("ABA and Account Number exists in DB {}",requestId );
+			   return true;
+		   }else {
+			   log.warn("No ABA and Virtual number");
+			   return false;
+		   }
+		
+		
 	}
 
 	public RequestIdDetails getEmployerDetailsBasedOnEmplyerIdFromRequest(String employerId, String requestId,
