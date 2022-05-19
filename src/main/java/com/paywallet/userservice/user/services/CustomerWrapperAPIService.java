@@ -548,12 +548,7 @@ public class CustomerWrapperAPIService {
 						   mapErrorList.put("Installment Amount", errorList);
 				   }
 			   }
-		   }
-		   Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(allocationRequest.getExternalVirtualAccount(), allocationRequest.getExternalVirtualAccountABANumber());
-		   
-		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
-			   throw new CreateCustomerException("ABA Number and virtual Account number should not be same");
-		   }
+		   }		   
 		   if(mapErrorList.size() > 0) {
 			   ObjectMapper objectMapper = new ObjectMapper();
 			   String json = "";
