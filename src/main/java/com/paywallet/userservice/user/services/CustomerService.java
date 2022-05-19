@@ -1349,7 +1349,8 @@ public class CustomerService {
 	private Boolean checkABAandVirtualAccountNumber(
 			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel) {
 		log.info("validation started--------------");
-		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABAAndPersonalProfileCellPhone(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), 
+				depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber(),depositAllocationRequestWrapperModel.getCellPhone());
 		log.info("validation started==========");
 		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
 			   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get().getExternalAccount()+"==="+findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA());
