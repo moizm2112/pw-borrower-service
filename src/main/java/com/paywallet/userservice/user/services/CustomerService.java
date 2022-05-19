@@ -29,6 +29,7 @@ import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
 import com.paywallet.userservice.user.enums.StateStatus;
 import com.paywallet.userservice.user.enums.VerificationStatusEnum;
+import com.paywallet.userservice.user.exception.CreateCustomerABAException;
 import com.paywallet.userservice.user.exception.CreateCustomerException;
 import com.paywallet.userservice.user.exception.CustomerAccountException;
 import com.paywallet.userservice.user.exception.CustomerNotFoundException;
@@ -1146,7 +1147,7 @@ public class CustomerService {
 				Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 				   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get());
 				   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
-					   throw new CreateCustomerException("ABA Number and virtual Account number should not be same");
+					   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
 				   }
 				customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
@@ -1334,7 +1335,10 @@ public class CustomerService {
 			Sentry.captureException(e);
 			log.error("Customerservice createcustomer SMSAndEmailNotificationException" + e.getMessage());
 			throw new SMSAndEmailNotificationException(e.getMessage());
-		} catch (Exception e) {
+		}catch (CreateCustomerABAException e) {
+			throw e;
+		}
+		catch (Exception e) {
 			Sentry.captureException(e);
 			log.error("Customerservice createcustomer Exception" + e.getMessage());
 			throw new GeneralCustomException(ERROR, e.getMessage());

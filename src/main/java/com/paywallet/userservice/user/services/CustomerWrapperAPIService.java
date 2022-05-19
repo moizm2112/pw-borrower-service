@@ -326,13 +326,10 @@ public class CustomerWrapperAPIService {
 		CreateCustomerRequest customer = new CreateCustomerRequest();
 		setCustomerRequest(depositAllocationRequestWrapperModel, customer);
 		DepositAllocationResponseWrapperModel depositAllocationResponse =null;
-		try {
+		
 		CustomerDetails customerDetails = customerService.createCustomer(customer, requestId, depositAllocationRequestWrapperModel, FlowTypeEnum.DEPOSIT_ALLOCATION);
 		
 		depositAllocationResponse= setDepositAllocationResponse(customerDetails, depositAllocationRequestWrapperModel);
-		}catch (Exception e) {
-			throw new CreateCustomerException("Error in creating customer  "+ e.getMessage());
-		}
 		return depositAllocationResponse;
 	}
 
