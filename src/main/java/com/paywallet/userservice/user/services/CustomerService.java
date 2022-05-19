@@ -1147,7 +1147,7 @@ public class CustomerService {
 				Boolean checkABAandVirtualAccountNumber = checkABAandVirtualAccountNumber(depositAllocationRequestWrapperModel, requestId);
 				if(checkABAandVirtualAccountNumber) {
 					log.info("query resulted the data as true");
-					 throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
+					 throw new CreateCustomerABAException("ExternalVirtualAccountABANumber and ExternalVirtualAccountNumber should not be same");
 				}
 				customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
