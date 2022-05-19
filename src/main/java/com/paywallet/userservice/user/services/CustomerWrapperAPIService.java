@@ -331,7 +331,7 @@ public class CustomerWrapperAPIService {
 		
 		depositAllocationResponse= setDepositAllocationResponse(customerDetails, depositAllocationRequestWrapperModel);
 		}catch (Exception e) {
-			throw new CreateCustomerException("Error in creating customer");
+			throw new CreateCustomerException("Error in creating customer  "+ e.getMessage());
 		}
 		return depositAllocationResponse;
 	}
