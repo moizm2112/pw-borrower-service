@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -548,6 +549,11 @@ public class CustomerWrapperAPIService {
 				   }
 			   }
 		   }
+		   Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(allocationRequest.getExternalVirtualAccount(), allocationRequest.getExternalVirtualAccountABANumber());
+		   
+		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
+			   throw new CreateCustomerException("ABA Number and virtual Account number should not be same");
+		   }
 		   if(mapErrorList.size() > 0) {
 			   ObjectMapper objectMapper = new ObjectMapper();
 			   String json = "";
@@ -560,6 +566,7 @@ public class CustomerWrapperAPIService {
 		        }
 			   throw new GeneralCustomException("ERROR", "Invalid data in deposit allocation request - " + json);
 		   }
+		   
 	   } catch(GeneralCustomException e) {
 		   Sentry.captureException(e);
 		   throw e;
