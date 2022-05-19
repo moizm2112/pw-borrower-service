@@ -1349,12 +1349,17 @@ public class CustomerService {
 	private Boolean checkABAandVirtualAccountNumber(
 			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel) {
 		log.info("validation started--------------");
-		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABAAndPersonalProfileCellPhone(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), 
-				depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber(),depositAllocationRequestWrapperModel.getCellPhone());
+		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), 
+				depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 		log.info("validation started==========");
 		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
 			   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get().getExternalAccount()+"==="+findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA());
 //			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
+			  if(findByExternalAccountAndExternalAccountABA.get().getPersonalProfile().getCellPhone()
+					  .equals(depositAllocationRequestWrapperModel.getCellPhone())){
+				  log.warn("No ABA and Virtual number");
+				   return false;
+			   }			   
 			   return true;
 		   }else {
 			   log.warn("No ABA and Virtual number");
