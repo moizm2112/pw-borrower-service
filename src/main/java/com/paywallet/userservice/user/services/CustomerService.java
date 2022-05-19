@@ -1143,14 +1143,7 @@ public class CustomerService {
 							+ requestIdDtls.getEmployer());
 				}
 				// Validation of direct deposit allocation request
-				log.info("validation started--------------");
-				Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
-				   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get());
-				   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
-					   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
-				   }else {
-					   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.isEmpty());
-				   }
+				checkABAandVirtualAccountNumber(depositAllocationRequestWrapperModel);
 				customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
 				if (depositAllocationRequestWrapperModel.getLoanAmount() > 0) {
@@ -1346,6 +1339,20 @@ public class CustomerService {
 			throw new GeneralCustomException(ERROR, e.getMessage());
 		}
 		return saveCustomer;
+	}
+
+	private void checkABAandVirtualAccountNumber(
+			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel) {
+		log.info("validation started--------------");
+		try {
+		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get());
+		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
+			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
+		   }
+		}catch (Exception e) {
+			log.warn("No ABA and Virtual number");
+		}
 	}
 
 	public RequestIdDetails getEmployerDetailsBasedOnEmplyerIdFromRequest(String employerId, String requestId,
