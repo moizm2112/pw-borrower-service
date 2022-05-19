@@ -325,9 +325,14 @@ public class CustomerWrapperAPIService {
 
 		CreateCustomerRequest customer = new CreateCustomerRequest();
 		setCustomerRequest(depositAllocationRequestWrapperModel, customer);
-		
+		DepositAllocationResponseWrapperModel depositAllocationResponse =null;
+		try {
 		CustomerDetails customerDetails = customerService.createCustomer(customer, requestId, depositAllocationRequestWrapperModel, FlowTypeEnum.DEPOSIT_ALLOCATION);
-		DepositAllocationResponseWrapperModel depositAllocationResponse = setDepositAllocationResponse(customerDetails, depositAllocationRequestWrapperModel);
+		
+		depositAllocationResponse= setDepositAllocationResponse(customerDetails, depositAllocationRequestWrapperModel);
+		}catch (Exception e) {
+			throw new CreateCustomerException("Error in creating customer");
+		}
 		return depositAllocationResponse;
 	}
 
@@ -369,6 +374,7 @@ public class CustomerWrapperAPIService {
 	
 	public DepositAllocationResponseWrapperModel setDepositAllocationResponse(CustomerDetails customerDetails, DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel) {
 		DepositAllocationResponseWrapperModel depositAllocationResponseModel = new DepositAllocationResponseWrapperModel();
+		log.info("EmailID**********"+ customerDetails.getPersonalProfile().getEmailId());
 		depositAllocationResponseModel.setEmailId(customerDetails.getPersonalProfile().getEmailId());
 		depositAllocationResponseModel.setCellPhone(customerDetails.getPersonalProfile().getCellPhone());
 		
