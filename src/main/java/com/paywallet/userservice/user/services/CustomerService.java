@@ -1144,7 +1144,7 @@ public class CustomerService {
 				}
 				// Validation of direct deposit allocation request
 				log.info("validation started******"+depositAllocationRequestWrapperModel.getExternalVirtualAccount()+"==="+depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
-				Boolean checkABAandVirtualAccountNumber = checkABAandVirtualAccountNumber(depositAllocationRequestWrapperModel);
+				Boolean checkABAandVirtualAccountNumber = checkABAandVirtualAccountNumber(depositAllocationRequestWrapperModel, requestId);
 				if(checkABAandVirtualAccountNumber) {
 					log.info("query resulted the data as true");
 					 throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
@@ -1347,7 +1347,7 @@ public class CustomerService {
 	}
 
 	private Boolean checkABAandVirtualAccountNumber(
-			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel) {
+			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel,String requestId) {
 		log.info("validation started--------------");
 		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), 
 				depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
@@ -1356,10 +1356,10 @@ public class CustomerService {
 			   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get().getExternalAccount()+"==="+findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA());
 //			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
 			  if(findByExternalAccountAndExternalAccountABA.get().getPersonalProfile().getCellPhone()
-					  .equals(depositAllocationRequestWrapperModel.getCellPhone())){
-				  log.warn("No ABA and Virtual number");
+					  .equals(depositAllocationRequestWrapperModel.getCellPhone())){				  
 				   return false;
-			   }			   
+			   }
+			  log.info("ABA and Account Number exists in DB {}",requestId );
 			   return true;
 		   }else {
 			   log.warn("No ABA and Virtual number");
