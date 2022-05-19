@@ -1352,7 +1352,7 @@ public class CustomerService {
 			   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get().getExternalAccount()+"==="+findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA());
 			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
 		   }
-		}catch (Exception e) {
+		}catch (CreateCustomerABAException e) {
 			log.warn("No ABA and Virtual number");
 		}
 	}
