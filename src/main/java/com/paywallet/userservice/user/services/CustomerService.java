@@ -1144,10 +1144,14 @@ public class CustomerService {
 				}
 				// Validation of direct deposit allocation request
 				log.info("validation started******"+depositAllocationRequestWrapperModel.getExternalVirtualAccount()+"==="+depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
-				Boolean checkABAandVirtualAccountNumber = checkABAandVirtualAccountNumber(depositAllocationRequestWrapperModel, requestId);
-				if(checkABAandVirtualAccountNumber) {
-					log.info("query resulted the data as true");
-					 throw new CreateCustomerABAException("ExternalVirtualAccountABANumber and ExternalVirtualAccountNumber should not be same");
+				if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount())
+						&& StringUtils.isNotBlank(
+								depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
+					Boolean checkABAandVirtualAccountNumber = checkABAandVirtualAccountNumber(depositAllocationRequestWrapperModel, requestId);
+					if(checkABAandVirtualAccountNumber) {
+						log.info("query resulted the data as true");
+						 throw new CreateCustomerABAException("ExternalVirtualAccountABANumber and ExternalVirtualAccountNumber should not be same");
+					}
 				}
 				customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
