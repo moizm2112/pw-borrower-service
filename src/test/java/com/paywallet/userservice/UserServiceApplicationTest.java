@@ -33,10 +33,6 @@ class UserServiceApplicationTest {
         String requestId = "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJwYXl3YWxsZXQiLCJpYXQiOjE2NTIyODI2MzQsInN1YiI6ImFjNTVlMmNjLTEzYjItNDJhYy1iMDI2LWQ1OWU1MzJmYWRlNiIsImlzcyI6InRlc3QiLCJleHAiOjE2NjgzNTMwMzR9.ZlAlYNb-CBEvKU0Tb0l0nRE7-vWJkxBtggZJ8ml3dVw";
         String customerId = "123456789";
         CreateCustomerRequest customerRequest = new CreateCustomerRequest();
-//        customerRequest.setFirstName("Mahesh");
-//        customerRequest.setLastName("kumar");
-//        customerRequest.setCellPhone("7204504977");
-//        customerRequest.setEmailId("maheshkg@maveric-systems.com");
         customerRequest.setAddressLine1("Street 1 town");
         customerRequest.setAddressLine2("behind post office");
         customerRequest.setCity("bengaluru");
@@ -57,8 +53,8 @@ class UserServiceApplicationTest {
     public void testUpdatePayrollProvidedData() throws JsonProcessingException {
         String customerId = "62824d0e6c721f6eb79f504f";
         PayrollProfile payrollProfile = new PayrollProfile();
-        payrollProfile.setFirstName("Mahesh");
-        payrollProfile.setLastName("kumar");
+        payrollProfile.setFirstName("Jone");
+        payrollProfile.setLastName("Dane");
         payrollProfile.setCellPhone("999999999");
         payrollProfile.setCity("New york");
         String res = commonRepository.updatePayrollProfile(customerId, payrollProfile);
