@@ -8,6 +8,7 @@ import com.paywallet.userservice.user.repository.CustomerDetailsRepository;
 import com.paywallet.userservice.user.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -150,8 +151,6 @@ public class CustomerService {
 
 	@Autowired
 	CommonUtil commonUtil;
-	@Autowired
-	PayrollProfileObjectMapper payrollProfileObjectMapper;
 
 	/**
 	 * Method fetches customer details by cellPhone
@@ -1438,12 +1437,14 @@ public class CustomerService {
 	}
 
 	public String updatePayrollProfileDetails(String customerId, PayrollProviderDetailsDTO payrollProviderDetailsDTO) throws JsonProcessingException {
+		PayrollProfileObjectMapper payrollProfileObjectMapper = Mappers.getMapper(PayrollProfileObjectMapper.class);
 		PayrollProfile payrollProfile = payrollProfileObjectMapper.convertToProfile(payrollProviderDetailsDTO);
 		return customerProvidedDetailsRepository.updatePayrollProfile(customerId, payrollProfile);
 	}
 
 	public PayrollProviderDetailsDTO getPayrollProfileDetails(String customerId) {
 		PayrollProfile payrollProfile = customerProvidedDetailsRepository.findPayrollProviderDetailsById(customerId);
+		PayrollProfileObjectMapper payrollProfileObjectMapper = Mappers.getMapper(PayrollProfileObjectMapper.class);
 		PayrollProviderDetailsDTO payrollProviderDetailsDTO = payrollProfileObjectMapper.convertToDTO(payrollProfile);
 		return payrollProviderDetailsDTO;
 	}

@@ -65,6 +65,7 @@ class UserServiceApplicationTest {
     public void testGetPayrollProviderDetails() {
         String customerId = "62824d0e6c721f6eb79f504f";
         PayrollProviderDetailsDTO payrollProviderDetailsDTO = customerService.getPayrollProfileDetails(customerId);
+        System.out.println(payrollProviderDetailsDTO);
         Assertions.assertNotNull(payrollProviderDetailsDTO);
     }
 
