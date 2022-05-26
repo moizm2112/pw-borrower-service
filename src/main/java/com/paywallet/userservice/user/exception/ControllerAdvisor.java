@@ -282,5 +282,26 @@ public class ControllerAdvisor {
 		body.put("path", path);
 		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
 	}
+	
+	/**
+	 * Method handles Create customer exception
+	 * @param ex
+	 * @param request
+	 * @return
+	 */
+	@ExceptionHandler(value = CreateCustomerABAException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleCreateCustomerABAException(CreateCustomerABAException ex, HttpServletRequest request) {
+		Sentry.captureException(ex);
+		String path = request.getRequestURI();
+        log.error("Error while creating customer with same ABA and Virtual Account number", ex);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("code", HttpStatus.BAD_REQUEST.toString());
+        body.put("message", "Create Customer Failed : " + ex.getMessage());
+        body.put("timestamp", new Date());
+        body.put("path", path);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
 
 }
