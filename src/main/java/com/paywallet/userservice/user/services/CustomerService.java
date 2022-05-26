@@ -496,9 +496,9 @@ public class CustomerService {
 							isMobileNoUpdatedInCustomerDetails = true;
 						} else {
 							log.error("CellPhone Number to be updated " + updateCustomerMobileNoDTO.getNewCellPhone()
-									+ " exist in database");
+									+ " exists in database");
 							throw new CustomerNotFoundException("CellPhone Number to be updated "
-									+ updateCustomerMobileNoDTO.getNewCellPhone() + " exist in database");
+									+ updateCustomerMobileNoDTO.getNewCellPhone() + " exists in database");
 						}
 					} else {
 						log.error(
@@ -508,9 +508,9 @@ public class CustomerService {
 					}
 				} else {
 					log.error("Customer does not exists with the CellPhone Number: "
-							+ updateCustomerMobileNoDTO.getCellPhone() + " to update");
+							+ updateCustomerMobileNoDTO.getCellPhone());
 					throw new CustomerNotFoundException("Customer does not exists with the CellPhone Number: "
-							+ updateCustomerMobileNoDTO.getCellPhone() + " to update");
+							+ updateCustomerMobileNoDTO.getCellPhone());
 				}
 //	        	}
 //	        	else {
@@ -639,10 +639,10 @@ public class CustomerService {
 													+ ") do not match with the existing customer details");
 								}
 							} else {
-								log.error("Updating Email " + updateCustomerEmailIdDTO.getNewEmailId()
+								log.error("EmailId " + updateCustomerEmailIdDTO.getNewEmailId()
 										+ " exist in database. Please provide different email");
 								throw new CustomerNotFoundException(
-										"Updating Email " + updateCustomerEmailIdDTO.getNewEmailId()
+										"Email Id " + updateCustomerEmailIdDTO.getNewEmailId()
 												+ " exist in database. Please provide different email");
 							}
 						} else {
@@ -659,9 +659,9 @@ public class CustomerService {
 					}
 				} else {
 					log.error("Customer does not exists with the cellPhone number: "
-							+ updateCustomerEmailIdDTO.getCellPhone() + " to update");
+							+ updateCustomerEmailIdDTO.getCellPhone());
 					throw new CustomerNotFoundException("Customer does not exists with the cellPhone number: "
-							+ updateCustomerEmailIdDTO.getCellPhone() + " to update");
+							+ updateCustomerEmailIdDTO.getCellPhone());
 				}
 //        		}
 //    			else {
@@ -685,9 +685,9 @@ public class CustomerService {
 		} catch (Exception e) {
 			Sentry.captureException(e);
 			if (e.getMessage().contains("returned non unique result")) {
-				log.error("Updating Email " + updateCustomerEmailIdDTO.getNewEmailId()
+				log.error("Email Id " + updateCustomerEmailIdDTO.getNewEmailId()
 						+ " exist in database. Please provide different email");
-				throw new CustomerNotFoundException("Updating Email " + updateCustomerEmailIdDTO.getNewEmailId()
+				throw new CustomerNotFoundException("Email Id " + updateCustomerEmailIdDTO.getNewEmailId()
 						+ " exist in database. Please provide different email");
 			} else {
 				log.error("Exception occured while updating emailId customer details " + e.getMessage());
