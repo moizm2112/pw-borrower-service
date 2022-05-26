@@ -119,14 +119,15 @@ public class CommonUtil {
 			return "";
 
 		MessageDigest md = null;
+		String hashedString = "";
 		try {
 			md = MessageDigest.getInstance(SHA256);
+			byte[] hashBytes = md.digest(originalString.getBytes(StandardCharsets.UTF_8));
+			hashedString = Base64.getEncoder().encodeToString(hashBytes);
 		} catch (NoSuchAlgorithmException e) {
 			Sentry.captureException(e);
 			log.error("Error while generating hash : {}",e.getMessage(),e);
 		}
-		byte[] hashBytes = md.digest(originalString.getBytes(StandardCharsets.UTF_8));
-		String hashedString = Base64.getEncoder().encodeToString(hashBytes);
 		return hashedString;
 
 	}
