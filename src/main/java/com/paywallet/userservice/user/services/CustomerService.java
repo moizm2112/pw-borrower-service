@@ -1,15 +1,14 @@
 package com.paywallet.userservice.user.services;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
+import com.paywallet.userservice.user.dto.PayrollProviderDetailsDTO;
+import com.paywallet.userservice.user.entities.*;
+import com.paywallet.userservice.user.repository.CustomerDetailsRepository;
+import com.paywallet.userservice.user.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -22,9 +21,6 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.constant.AppConstants;
-import com.paywallet.userservice.user.entities.CustomerDetails;
-import com.paywallet.userservice.user.entities.OfferPayAllocationRequest;
-import com.paywallet.userservice.user.entities.OfferPayAllocationResponse;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
 import com.paywallet.userservice.user.enums.StateStatus;
@@ -62,11 +58,6 @@ import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationReque
 import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
 import com.paywallet.userservice.user.repository.CustomerRepository;
 import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository;
-import com.paywallet.userservice.user.util.CommonUtil;
-import com.paywallet.userservice.user.util.CustomerServiceUtil;
-import com.paywallet.userservice.user.util.KafkaPublisherUtil;
-import com.paywallet.userservice.user.util.LinkServiceUtil;
-import com.paywallet.userservice.user.util.RequestIdUtil;
 
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
@@ -112,6 +103,9 @@ public class CustomerService {
 
 	@Autowired
 	CustomerFieldValidator customerFieldValidator;
+
+	@Autowired
+	CustomerDetailsRepository customerProvidedDetailsRepository;
 
 	@Value("${lyons.api.baseURL}")
 	private String lyonsBaseURL;
@@ -1086,6 +1080,14 @@ public class CustomerService {
 			lenderConfigInfo = Optional.ofNullable(lenderConfigInfo)
 					.orElseThrow(() -> new GeneralCustomException("ERROR",
 							"Error while fetching lender configuration for validating callback urls"));
+			//PWMVP2-503 || CHECKING REQUEST IN PROGRESS
+			Optional<FlowTypeEnum> optionalFlowTypeEnum = customerServiceHelper.fetchInProgressRequestFlow(requestIdDtls);
+			if(optionalFlowTypeEnum.isPresent()){
+				FlowTypeEnum flowTypeEnum = optionalFlowTypeEnum.get();
+				log.warn("Request {} in progress for the requestId Please complete the request and re-try again",flowTypeEnum);
+				throw new GeneralCustomException("ERROR",new StringBuilder("Request [").append(flowTypeEnum).append("] in progress for the requestId Please complete the request and re-try again").toString());
+			}
+
 			switch (flowType.name()) {
 			case GENERAL: {
 				validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
@@ -1286,6 +1288,10 @@ public class CustomerService {
 					customer.getCallbackURLs(), flowType, requestIdDtls);
 			/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
 
+			//PWMVP2-503 || saving customer provided details
+			customerServiceHelper.upsertCustomerProvidedDetails(requestId, saveCustomer.getCustomerId(), customer);
+
+
 			// need to optimize this
 			if (flowType.name().equals(FlowTypeEnum.INCOME_VERIFICATION.name())) {
 				log.info(" setting number of months ");
@@ -1462,4 +1468,31 @@ public class CustomerService {
 		}
 		return isCredentialsVerified;
 	}
+
+	public CustomerProvidedDetails getCustomerProvidedDetails(String requestId){
+		return customerProvidedDetailsRepository.findByRequestId(requestId);
+	}
+
+	public String updatePayrollProfileDetails(String customerId, PayrollProviderDetailsDTO payrollProviderDetailsDTO) throws JsonProcessingException {
+		PayrollProfileObjectMapper payrollProfileObjectMapper = Mappers.getMapper(PayrollProfileObjectMapper.class);
+		PayrollProfile payrollProfile = payrollProfileObjectMapper.convertToProfile(payrollProviderDetailsDTO);
+		return customerProvidedDetailsRepository.updatePayrollProfile(customerId, payrollProfile);
+	}
+
+	public PayrollProviderDetailsDTO getPayrollProfileDetails(String customerId) {
+		PayrollProfile payrollProfile = customerProvidedDetailsRepository.findPayrollProviderDetailsById(customerId);
+		PayrollProfileObjectMapper payrollProfileObjectMapper = Mappers.getMapper(PayrollProfileObjectMapper.class);
+		PayrollProviderDetailsDTO payrollProviderDetailsDTO = payrollProfileObjectMapper.convertToDTO(payrollProfile);
+		return payrollProviderDetailsDTO;
+	}
+
+	public ResponseEntity prepareResponse(Object obj, String path) {
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("data", obj);
+		body.put("message", "SUCCESS");
+		body.put("timestamp", new Date());
+		body.put("path", path);
+		return new ResponseEntity<>(body, HttpStatus.OK);
+	}
+
 }

@@ -64,5 +64,7 @@ public class CustomerDetails {
    	private String externalAccount;
    	private String externalAccountABA;
 
+       private PayrollProfile payrollProvidedDetails;
+
 
 }

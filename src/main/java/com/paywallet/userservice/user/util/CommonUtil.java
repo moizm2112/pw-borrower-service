@@ -19,6 +19,10 @@ import com.paywallet.userservice.user.entities.CustomerDetails;
 import com.paywallet.userservice.user.enums.ProgressLevel;
 import com.paywallet.userservice.user.exception.RequestAPIDetailsException;
 import com.paywallet.userservice.user.model.CreateCustomerRequest;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Header;
+import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.Jwts;
 import io.sentry.Sentry;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,14 +119,15 @@ public class CommonUtil {
 			return "";
 
 		MessageDigest md = null;
+		String hashedString = "";
 		try {
 			md = MessageDigest.getInstance(SHA256);
+			byte[] hashBytes = md.digest(originalString.getBytes(StandardCharsets.UTF_8));
+			hashedString = Base64.getEncoder().encodeToString(hashBytes);
 		} catch (NoSuchAlgorithmException e) {
 			Sentry.captureException(e);
 			log.error("Error while generating hash : {}",e.getMessage(),e);
 		}
-		byte[] hashBytes = md.digest(originalString.getBytes(StandardCharsets.UTF_8));
-		String hashedString = Base64.getEncoder().encodeToString(hashBytes);
 		return hashedString;
 
 	}
@@ -213,6 +218,15 @@ public class CommonUtil {
 		Sentry.configureScope(scope -> {
 			scope.setTag("transaction_id", requestId);
 		});
+	}
+
+	public String decodeRequestId(String jwtToken) {
+		Optional.ofNullable(jwtToken).orElseThrow(()->new RuntimeException("Empty jwt token"));
+		jwtToken = jwtToken.trim();
+		int i = jwtToken.lastIndexOf('.');
+		String withoutSignature = jwtToken.substring(0, i+1);
+		Jwt<Header, Claims> untrusted = Jwts.parser().parseClaimsJwt(withoutSignature);
+		return untrusted.getBody().getSubject();
 	}
 
 }
