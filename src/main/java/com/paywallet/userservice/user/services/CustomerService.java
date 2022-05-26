@@ -1462,5 +1462,4 @@ public class CustomerService {
 		}
 		return isCredentialsVerified;
 	}
-
 }
