@@ -508,7 +508,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_DEPOSIT_ALLOCATION_INPROG.getMessage();
             String message = "Initiate Deposit Allocation INPROGRESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -521,7 +521,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_DEPOSIT_ALLOCATION_FAIL.getMessage();
             String message = "Initiate Deposit Allocation FAILED";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.FAILED);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -534,7 +534,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_DEPOSIT_ALLOCATION_SUCC.getMessage();
             String message = "Initiate Deposit Allocation SUCCESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -547,7 +547,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_EMPLOYMENT_VERIFICATION_INPROG.getMessage();
             String message = "Initiate Employment Verification INPROGRESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -560,7 +560,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_EMPLOYMENT_VERIFICATION_FAIL.getMessage();
             String message = "Initiate Employment Verification FAILED";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.FAILED);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -573,7 +573,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_EMPLOYMENT_VERIFICATION_SUCC.getMessage();
             String message = "Initiate Employment Verification SUCCESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -586,7 +586,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_INCOME_VERIFICATION_INPROG.getMessage();
             String message = "Initiate Income Verification INPROGRESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -599,7 +599,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_INCOME_VERIFICATION_FAIL.getMessage();
             String message = "Initiate Income Verification FAILED";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.FAILED);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -612,7 +612,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_INCOME_VERIFICATION_SUCC.getMessage();
             String message = "Initiate Income Verification SUCCESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -625,7 +625,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_IDENTITY_VERIFICATION_INPROG.getMessage();
             String message = "Initiate Identity Verification INPROGRESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -638,7 +638,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_IDENTITY_VERIFICATION_FAIL.getMessage();
             String message = "Initiate Identity Verification FAILED";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.FAILED);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -651,7 +651,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INITIATE_IDENTITY_VERIFICATION_SUCC.getMessage();
             String message = "Initiate Identity Verification SUCCESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -664,7 +664,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_EMPLOYMENT_VERIFICATION_RETRY_INPROG.getMessage();
             String message = "Initiate Retry Employment Verification INPROGRESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -677,7 +677,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_EMPLOYMENT_VERIFICATION_RETRY_FAIL.getMessage();
             String message = "Initiate Retry Employment Verification FAILED";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.FAILED);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -690,7 +690,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_EMPLOYMENT_VERIFICATION_RETRY_SUCC.getMessage();
             String message = "Initiate Retry Employment Verification SUCCESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -703,7 +703,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_IDENTITY_VERIFICATION_RETRY_INPROG.getMessage();
             String message = "Initiate Retry Identity Verification INPROGRESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -716,7 +716,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_IDENTITY_VERIFICATION_RETRY_FAIL.getMessage();
             String message = "Initiate Retry Identity Verification FAILED";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.FAILED);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -729,7 +729,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_IDENTITY_VERIFICATION_RETRY_SUCC.getMessage();
             String message = "Initiate Retry Identity Verification SUCCESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -742,7 +742,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INCOME_VERIFICATION_RETRY_INPROG.getMessage();
             String message = "Initiate Retry Income Verification INPROGRESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -755,7 +755,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INCOME_VERIFICATION_RETRY_FAIL.getMessage();
             String message = "Initiate Retry Income Verification FAILED";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.FAILED);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
@@ -768,7 +768,7 @@ public class BorrowerAspect {
         try{
             String code = BorrowerEventEnum.UMS_INCOME_VERIFICATION_RETRY_SUCC.getMessage();
             String message = "Initiate Retry Income Verification SUCCESS";
-            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            EventDTO eventDTO = commonUtil.prepareEvent(requestIdUtil.getDecodedRequestID(requestId).get(), code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
             borrowerEvent.triggerEventWithAdditionalData(eventDTO);
         } catch (Throwable e) {
             Sentry.captureException(e);
