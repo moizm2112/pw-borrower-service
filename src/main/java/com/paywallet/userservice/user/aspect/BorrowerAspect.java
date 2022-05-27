@@ -10,6 +10,7 @@ import com.paywallet.userservice.user.model.CreateCustomerRequest;
 import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerRequestDTO;
 import com.paywallet.userservice.user.model.ValidateAccountRequest;
+import com.paywallet.userservice.user.model.wrapperAPI.*;
 import com.paywallet.userservice.user.util.CommonUtil;
 import com.paywallet.userservice.user.util.RequestIdUtil;
 import io.sentry.Sentry;
@@ -484,7 +485,7 @@ public class BorrowerAspect {
     @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerController.updateCustomer(..)) && args(updateCustomerRequest,request)")
     public void updateCustomerDetailsSuccess(UpdateCustomerRequestDTO updateCustomerRequest, HttpServletRequest request) {
         try{
-            String requestId = updateCustomerRequest.getCellPhone();
+            String requestId = null;
             String code = BorrowerEventEnum.UMS_CUST_UPD_SUCC.getMessage();
             String message = "Update customer details SUCCESS";
             EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
@@ -495,6 +496,283 @@ public class BorrowerAspect {
         } catch (Throwable e) {
             Sentry.captureException(e);
             log.error("Error while publishing updateCustomerDetailsSuccess events : {}",e);
+        }
+    }
+
+    /*
+    ******** PWMVP3-86 ******************
+    Event logging changes for wrapper Api's
+    */
+    @Before("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.inititateDepositAllocation(..)) && args(depositAllocationRequestWrapperModel,requestId,request)")
+    public void initiateDepositAllocationInProgress(DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel,String requestId,HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_DEPOSIT_ALLOCATION_INPROG.getMessage();
+            String message = "Initiate Deposit Allocation INPROGRESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateDepositAllocationInProgress events : {}",e);
+        }
+    }
+
+    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.inititateDepositAllocation(..)) && args(depositAllocationRequestWrapperModel,requestId,request)")
+    public void initiateDepositAllocationFailed(DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel,String requestId,HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_DEPOSIT_ALLOCATION_FAIL.getMessage();
+            String message = "Initiate Deposit Allocation FAILED";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateDepositAllocationFailed events : {}",e);
+        }
+    }
+
+    @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.inititateDepositAllocation(..)) && args(depositAllocationRequestWrapperModel,requestId,request)")
+    public void initiateDepositAllocationSuccess(DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel,String requestId,HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_DEPOSIT_ALLOCATION_SUCC.getMessage();
+            String message = "Initiate Deposit Allocation SUCCESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateDepositAllocationSuccess events : {}",e);
+        }
+    }
+
+    @Before("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.initiateEmploymentVerification(..)) && args(employmentVerificationRequestWrapperModel,requestId,request)")
+    public void initiateEmploymentVerificationInProgress(EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel, String requestId, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_EMPLOYMENT_VERIFICATION_INPROG.getMessage();
+            String message = "Initiate Employment Verification INPROGRESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateEmploymentVerification events : {}",e);
+        }
+    }
+
+    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.initiateEmploymentVerification(..)) && args(employmentVerificationRequestWrapperModel,requestId,request)")
+    public void initiateEmploymentVerificationFailed(EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel,String requestId,HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_EMPLOYMENT_VERIFICATION_FAIL.getMessage();
+            String message = "Initiate Employment Verification FAILED";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateEmploymentVerification events : {}",e);
+        }
+    }
+
+    @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.initiateEmploymentVerification(..)) && args(employmentVerificationRequestWrapperModel,requestId,request)")
+    public void initiateEmploymentVerificationSuccess(EmploymentVerificationRequestWrapperModel employmentVerificationRequestWrapperModel,String requestId,HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_EMPLOYMENT_VERIFICATION_SUCC.getMessage();
+            String message = "Initiate Employment Verification SUCCESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateEmploymentVerification events : {}",e);
+        }
+    }
+
+    @Before("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.initiateIncomeVerification(..)) && args(incomeVerificationRequestWrapperModel,requestId,request)")
+    public void initiateIncomeVerificationInProgress(IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel, String requestId, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_INCOME_VERIFICATION_INPROG.getMessage();
+            String message = "Initiate Income Verification INPROGRESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateIncomeVerification events : {}",e);
+        }
+    }
+
+    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.initiateIncomeVerification(..)) && args(incomeVerificationRequestWrapperModel,requestId,request)")
+    public void initiateIncomeVerificationFailed(IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel,String requestId,HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_INCOME_VERIFICATION_FAIL.getMessage();
+            String message = "Initiate Income Verification FAILED";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateIncomeVerification events : {}",e);
+        }
+    }
+
+    @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.initiateIncomeVerification(..)) && args(incomeVerificationRequestWrapperModel,requestId,request)")
+    public void initiateIncomeVerificationSuccess(IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel, String requestId, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_INCOME_VERIFICATION_SUCC.getMessage();
+            String message = "Initiate Income Verification SUCCESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateIncomeVerification events : {}",e);
+        }
+    }
+
+    @Before("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.initiateIdentityVerification(..)) && args(identityVerificationRequestWrapperModel,requestId,request)")
+    public void initiateIdentityVerificationInProgress(IdentityVerificationRequestWrapperModel identityVerificationRequestWrapperModel, String requestId, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_IDENTITY_VERIFICATION_INPROG.getMessage();
+            String message = "Initiate Identity Verification INPROGRESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateIdentityVerification events : {}",e);
+        }
+    }
+
+    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.initiateIdentityVerification(..)) && args(identityVerificationRequestWrapperModel,requestId,request)")
+    public void initiateIdentityVerificationFailed(IdentityVerificationRequestWrapperModel identityVerificationRequestWrapperModel,String requestId,HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_IDENTITY_VERIFICATION_FAIL.getMessage();
+            String message = "Initiate Identity Verification FAILED";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateIdentityVerification events : {}",e);
+        }
+    }
+
+    @AfterReturning("execution(* com.paywallet.userservice.user.controller.CustomerWrapperApiController.initiateIdentityVerification(..)) && args(identityVerificationRequestWrapperModel,requestId,request)")
+    public void initiateIdentityVerificationSuccess(IdentityVerificationRequestWrapperModel identityVerificationRequestWrapperModel, String requestId, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INITIATE_IDENTITY_VERIFICATION_SUCC.getMessage();
+            String message = "Initiate Identity Verification SUCCESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing initiateIdentityVerification events : {}",e);
+        }
+    }
+
+    @Before("execution(* com.paywallet.userservice.user.controller.wrapperAPI.EmploymentVerificationWrapperAPIController.retryEmploymentVerification(..)) && args(requestId,empVerificationRequestDTO,request)")
+    public void retryEmploymentVerificationInProgress(String requestId, WrapperRetryRequest empVerificationRequestDTO, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_EMPLOYMENT_VERIFICATION_RETRY_INPROG.getMessage();
+            String message = "Initiate Retry Employment Verification INPROGRESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing retryEmploymentVerification events : {}",e);
+        }
+    }
+
+    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.wrapperAPI.EmploymentVerificationWrapperAPIController.retryEmploymentVerification(..)) && args(requestId,empVerificationRequestDTO,request)")
+    public void retryEmploymentVerificationFailed(String requestId, WrapperRetryRequest empVerificationRequestDTO, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_EMPLOYMENT_VERIFICATION_RETRY_FAIL.getMessage();
+            String message = "Initiate Retry Employment Verification FAILED";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing retryEmploymentVerification events : {}",e);
+        }
+    }
+
+    @AfterReturning("execution(* com.paywallet.userservice.user.controller.wrapperAPI.EmploymentVerificationWrapperAPIController.retryEmploymentVerification(..)) && args(requestId,empVerificationRequestDTO,request)")
+    public void retryEmploymentVerificationSuccess(String requestId, WrapperRetryRequest empVerificationRequestDTO, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_EMPLOYMENT_VERIFICATION_RETRY_SUCC.getMessage();
+            String message = "Initiate Retry Employment Verification SUCCESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing retryEmploymentVerification events : {}",e);
+        }
+    }
+
+    @Before("execution(* com.paywallet.userservice.user.controller.wrapperAPI.IdentityVerificationWrapperAPIController.retryIdentityVerification(..)) && args(requestId,identityVerificationRequestDTO,request)")
+    public void retryIdentityVerificationInProgress(String requestId, WrapperRetryRequest identityVerificationRequestDTO, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_IDENTITY_VERIFICATION_RETRY_INPROG.getMessage();
+            String message = "Initiate Retry Identity Verification INPROGRESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing retryIdentityVerification events : {}",e);
+        }
+    }
+
+    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.wrapperAPI.IdentityVerificationWrapperAPIController.retryIdentityVerification(..)) && args(requestId,identityVerificationRequestDTO,request)")
+    public void retryIdentityVerificationFailed(String requestId, WrapperRetryRequest identityVerificationRequestDTO, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_IDENTITY_VERIFICATION_RETRY_FAIL.getMessage();
+            String message = "Initiate Retry Identity Verification FAILED";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing retryIdentityVerification events : {}",e);
+        }
+    }
+
+    @AfterReturning("execution(* com.paywallet.userservice.user.controller.wrapperAPI.IdentityVerificationWrapperAPIController.retryIdentityVerification(..)) && args(requestId,identityVerificationRequestDTO,request)")
+    public void retryIdentityVerificationSuccess(String requestId, WrapperRetryRequest identityVerificationRequestDTO, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_IDENTITY_VERIFICATION_RETRY_SUCC.getMessage();
+            String message = "Initiate Retry Identity Verification SUCCESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing retryIdentityVerification events : {}",e);
+        }
+    }
+
+    @Before("execution(* com.paywallet.userservice.user.controller.wrapperAPI.IncomeVerificationWrapperAPIController.retryIncomeVerification(..)) && args(requestId,incomeVerificationRequestDTO,request)")
+    public void retryIncomeVerificationInProgress(String requestId, WrapperRetryRequest incomeVerificationRequestDTO, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INCOME_VERIFICATION_RETRY_INPROG.getMessage();
+            String message = "Initiate Retry Income Verification INPROGRESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.IN_PROGRESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing retryIncomeVerification events : {}",e);
+        }
+    }
+
+    @AfterThrowing("execution(* com.paywallet.userservice.user.controller.wrapperAPI.IncomeVerificationWrapperAPIController.retryIncomeVerification(..)) && args(requestId,incomeVerificationRequestDTO,request)")
+    public void retryIncomeVerificationFailed(String requestId, WrapperRetryRequest incomeVerificationRequestDTO, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INCOME_VERIFICATION_RETRY_FAIL.getMessage();
+            String message = "Initiate Retry Income Verification FAILED";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.FAILED);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing retryIncomeVerification events : {}",e);
+        }
+    }
+
+    @AfterReturning("execution(* com.paywallet.userservice.user.controller.wrapperAPI.IncomeVerificationWrapperAPIController.retryIncomeVerification(..)) && args(requestId,incomeVerificationRequestDTO,request)")
+    public void retryIncomeVerificationSuccess(String requestId, WrapperRetryRequest incomeVerificationRequestDTO, HttpServletRequest request) {
+        try{
+            String code = BorrowerEventEnum.UMS_INCOME_VERIFICATION_RETRY_SUCC.getMessage();
+            String message = "Initiate Retry Income Verification SUCCESS";
+            EventDTO eventDTO = commonUtil.prepareEvent(requestId, code, SERVICE_NAME, message, ProgressLevel.SUCCESS);
+            borrowerEvent.triggerEventWithAdditionalData(eventDTO);
+        } catch (Throwable e) {
+            Sentry.captureException(e);
+            log.error("Error while publishing retryIncomeVerification events : {}",e);
         }
     }
 }
