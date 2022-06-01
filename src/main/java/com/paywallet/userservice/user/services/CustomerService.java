@@ -1087,6 +1087,9 @@ public class CustomerService {
 				log.warn("Request {} in progress for the requestId Please complete the request and re-try again",flowTypeEnum);
 				throw new GeneralCustomException("ERROR",new StringBuilder("Request [").append(flowTypeEnum).append("] in progress for the requestId Please complete the request and re-try again").toString());
 			}
+			
+			//Check if the employer PD supported
+			boolean isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
 
 			switch (flowType.name()) {
 			case GENERAL: {
@@ -1139,11 +1142,14 @@ public class CustomerService {
 					requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(
 							depositAllocationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 				}
+				
+				
+				
 				//if employer is not pd supported then we can stop the flow here
-				if(!customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls)) {
-					throw new GeneralCustomException(PDNOTSUPPORTED, "Pay distribution is not supported for the employer "
-							+ requestIdDtls.getEmployer());
-				}
+//				if(!customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls)) {
+//					throw new GeneralCustomException(PDNOTSUPPORTED, "Pay distribution is not supported for the employer "
+//							+ requestIdDtls.getEmployer());
+//				}
 				// Validation of direct deposit allocation request
 				log.info("validation started******"+depositAllocationRequestWrapperModel.getExternalVirtualAccount()+"==="+depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 				if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount())
@@ -1285,7 +1291,7 @@ public class CustomerService {
 			saveCustomer.setRequestId(requestId);
 
 			RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer,
-					customer.getCallbackURLs(), flowType, requestIdDtls);
+					customer.getCallbackURLs(), flowType, requestIdDtls, isEmployerPdSupported);
 			/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
 
 			//PWMVP2-503 || saving customer provided details

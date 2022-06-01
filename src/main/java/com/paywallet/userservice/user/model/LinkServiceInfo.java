@@ -26,5 +26,6 @@ public class LinkServiceInfo {
     private boolean isDirectDepositAllocation;
     private FlowTypeEnum flowType;
     private boolean linkFlag;
+    private boolean isPdSupported;
 
 }
