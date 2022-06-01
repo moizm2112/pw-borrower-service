@@ -24,7 +24,8 @@ public class KafkaPublisherUtil {
     @Autowired
     CommonUtil commonUtil;
 
-    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails, double installmentAmount, FlowTypeEnum flowType) {
+    public void publishLinkServiceInfo(RequestIdDetails requestIdDtls, CustomerDetails customerDetails, double installmentAmount, FlowTypeEnum flowType,
+    		boolean isEmployerPdSupported) {
         try {
         	boolean isDepositAllocation = false;
         	if(flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION))
@@ -39,7 +40,9 @@ public class KafkaPublisherUtil {
                     .installmentAmount(commonUtil.getFormattedAmount(installmentAmount))
                     .payCycle(CommonEnum.PAY_CYCLE.getMessage())
                     .flowType(flowType)
-                    .isDirectDepositAllocation(isDepositAllocation).build();
+                    .isDirectDepositAllocation(isDepositAllocation)
+                    .isPdSupported(isEmployerPdSupported)
+                    .build();
             StatusEnum statusEnum = kafkaProducerService.publishLinkServiceInfo(linkServiceInfo);
             log.info(" requestId : {}  publish status  : {} ", requestIdDtls.getRequestId(), statusEnum);
         } catch (Exception ex) {

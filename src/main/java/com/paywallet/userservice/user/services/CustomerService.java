@@ -634,10 +634,10 @@ public class CustomerService {
 								}
 							} else {
 								log.error("EmailId " + updateCustomerEmailIdDTO.getNewEmailId()
-										+ " exist in database. Please provide different email");
+										+ " exists in database. Please provide different email");
 								throw new CustomerNotFoundException(
-										"Email Id " + updateCustomerEmailIdDTO.getNewEmailId()
-												+ " exist in database. Please provide different email");
+										"EmailId " + updateCustomerEmailIdDTO.getNewEmailId()
+												+ " exists in database. Please provide different email");
 							}
 						} else {
 							log.error("Provided email doesn't match with the customer's email");
@@ -680,9 +680,9 @@ public class CustomerService {
 			Sentry.captureException(e);
 			if (e.getMessage().contains("returned non unique result")) {
 				log.error("Email Id " + updateCustomerEmailIdDTO.getNewEmailId()
-						+ " exist in database. Please provide different email");
+						+ " exists in database. Please provide different email");
 				throw new CustomerNotFoundException("Email Id " + updateCustomerEmailIdDTO.getNewEmailId()
-						+ " exist in database. Please provide different email");
+						+ " exists in database. Please provide different email");
 			} else {
 				log.error("Exception occured while updating emailId customer details " + e.getMessage());
 				throw new GeneralCustomException(ERROR, e.getMessage());
@@ -1316,13 +1316,13 @@ public class CustomerService {
 			if (flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name())
 					&& directDepositAllocationInstallmentAmount > 0) {
 				kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls, saveCustomer,
-						directDepositAllocationInstallmentAmount, flowType);
+						directDepositAllocationInstallmentAmount, flowType, isEmployerPdSupported);
 				customer.setInstallmentAmount((int) directDepositAllocationInstallmentAmount);
 				checkAndSavePayAllocation(requestIdDtls, customer, flowType,
 						depositAllocationRequestWrapperModel.getLoanAmount());
 			} else {
 				kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls, saveCustomer,
-						(double) customer.getInstallmentAmount(), flowType);
+						(double) customer.getInstallmentAmount(), flowType, isEmployerPdSupported);
 				checkAndSavePayAllocation(requestIdDtls, customer, flowType, 0);
 			}
 			log.info("Customer got created successfully");
