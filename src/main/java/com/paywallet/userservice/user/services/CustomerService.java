@@ -1057,6 +1057,7 @@ public class CustomerService {
 		IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel = null;
 		double directDepositAllocationInstallmentAmount = 0;
 		boolean isFineractAccountCreatedForExistingCustomer = false;
+		boolean isEmployerPdSupported = true;
 
 		if (!flowType.name().equals(FlowTypeEnum.GENERAL.name())) {
 			if (obj.getClass().getSimpleName().equals((DepositAllocationRequestWrapperModel.class).getSimpleName()))
@@ -1087,13 +1088,13 @@ public class CustomerService {
 				log.warn("Request {} in progress for the requestId Please complete the request and re-try again",flowTypeEnum);
 				throw new GeneralCustomException("ERROR",new StringBuilder("Request [").append(flowTypeEnum).append("] in progress for the requestId Please complete the request and re-try again").toString());
 			}
-			
-			//Check if the employer PD supported
-			boolean isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
 
 			switch (flowType.name()) {
 			case GENERAL: {
 				validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
+				//Check if the employer PD supported
+				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+				 
 				customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
 				if (!customerEntity.isExistingCustomer()) {
 					if ("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
@@ -1143,7 +1144,8 @@ public class CustomerService {
 							depositAllocationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 				}
 				
-				
+				//Check if the employer PD supported
+				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
 				
 				//if employer is not pd supported then we can stop the flow here
 //				if(!customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls)) {
@@ -1223,6 +1225,9 @@ public class CustomerService {
 					requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(
 							employmentVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 				}
+				
+				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+				
 				// VALIDATION PENDING
 				customerWrapperAPIService.validateEmploymentVerificationRequest(
 						employmentVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
@@ -1246,6 +1251,9 @@ public class CustomerService {
 					requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(
 							incomeVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 				}
+				
+				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+				
 				// VALIDATION PENDING
 				customerWrapperAPIService.validateIncomeVerificationRequest(incomeVerificationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
@@ -1269,6 +1277,9 @@ public class CustomerService {
 					requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(
 							identityVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 				}
+				
+				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+				
 				// VALIDATION PENDING
 				customerWrapperAPIService.validateIdentityVerificationRequest(identityVerificationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
