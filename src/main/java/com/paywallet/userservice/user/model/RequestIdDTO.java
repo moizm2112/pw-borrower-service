@@ -52,4 +52,5 @@ public class RequestIdDTO {
     private List<FlowTypeEnum> flowType;
     private String numberOfMonthsRequested;
     private FlowTypeEnum currentFlowType;
+    private boolean isPdSupported;
 }

@@ -245,10 +245,11 @@ public class CustomerServiceHelper {
 	}
 
 	public RequestIdDTO setRequestIdDetails(CustomerDetails saveCustomer, CallbackURL callbackURL,
-			FlowTypeEnum flowType, RequestIdDetails requestIdDetails) {
+			FlowTypeEnum flowType, RequestIdDetails requestIdDetails, boolean isEmployerPdSupported) {
 
 		RequestIdDTO requestIdDTO = new RequestIdDTO();
 		try {
+			requestIdDTO.setPdSupported(isEmployerPdSupported);
 			requestIdDTO.setUserId(saveCustomer.getCustomerId());
 			if(saveCustomer.getVirtualAccount() != null && saveCustomer.getVirtualAccount().length() > 0)
 				requestIdDTO.setVirtualAccountNumber(saveCustomer.getVirtualAccount());

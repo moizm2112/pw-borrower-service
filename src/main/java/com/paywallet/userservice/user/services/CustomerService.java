@@ -634,10 +634,10 @@ public class CustomerService {
 								}
 							} else {
 								log.error("EmailId " + updateCustomerEmailIdDTO.getNewEmailId()
-										+ " exist in database. Please provide different email");
+										+ " exists in database. Please provide different email");
 								throw new CustomerNotFoundException(
-										"Email Id " + updateCustomerEmailIdDTO.getNewEmailId()
-												+ " exist in database. Please provide different email");
+										"EmailId " + updateCustomerEmailIdDTO.getNewEmailId()
+												+ " exists in database. Please provide different email");
 							}
 						} else {
 							log.error("Provided email doesn't match with the customer's email");
@@ -680,9 +680,9 @@ public class CustomerService {
 			Sentry.captureException(e);
 			if (e.getMessage().contains("returned non unique result")) {
 				log.error("Email Id " + updateCustomerEmailIdDTO.getNewEmailId()
-						+ " exist in database. Please provide different email");
+						+ " exists in database. Please provide different email");
 				throw new CustomerNotFoundException("Email Id " + updateCustomerEmailIdDTO.getNewEmailId()
-						+ " exist in database. Please provide different email");
+						+ " exists in database. Please provide different email");
 			} else {
 				log.error("Exception occured while updating emailId customer details " + e.getMessage());
 				throw new GeneralCustomException(ERROR, e.getMessage());
@@ -1057,6 +1057,7 @@ public class CustomerService {
 		IncomeVerificationRequestWrapperModel incomeVerificationRequestWrapperModel = null;
 		double directDepositAllocationInstallmentAmount = 0;
 		boolean isFineractAccountCreatedForExistingCustomer = false;
+		boolean isEmployerPdSupported = true;
 
 		if (!flowType.name().equals(FlowTypeEnum.GENERAL.name())) {
 			if (obj.getClass().getSimpleName().equals((DepositAllocationRequestWrapperModel.class).getSimpleName()))
@@ -1091,6 +1092,9 @@ public class CustomerService {
 			switch (flowType.name()) {
 			case GENERAL: {
 				validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
+				//Check if the employer PD supported
+				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+				 
 				customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
 				if (!customerEntity.isExistingCustomer()) {
 					if ("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
@@ -1139,11 +1143,15 @@ public class CustomerService {
 					requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(
 							depositAllocationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 				}
+				
+				//Check if the employer PD supported
+				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+				
 				//if employer is not pd supported then we can stop the flow here
-				if(!customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls)) {
-					throw new GeneralCustomException(PDNOTSUPPORTED, "Pay distribution is not supported for the employer "
-							+ requestIdDtls.getEmployer());
-				}
+//				if(!customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls)) {
+//					throw new GeneralCustomException(PDNOTSUPPORTED, "Pay distribution is not supported for the employer "
+//							+ requestIdDtls.getEmployer());
+//				}
 				// Validation of direct deposit allocation request
 				log.info("validation started******"+depositAllocationRequestWrapperModel.getExternalVirtualAccount()+"==="+depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
 				if(StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount())
@@ -1217,6 +1225,9 @@ public class CustomerService {
 					requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(
 							employmentVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 				}
+				
+				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+				
 				// VALIDATION PENDING
 				customerWrapperAPIService.validateEmploymentVerificationRequest(
 						employmentVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
@@ -1240,6 +1251,9 @@ public class CustomerService {
 					requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(
 							incomeVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 				}
+				
+				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+				
 				// VALIDATION PENDING
 				customerWrapperAPIService.validateIncomeVerificationRequest(incomeVerificationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
@@ -1263,6 +1277,9 @@ public class CustomerService {
 					requestIdDtls = getEmployerDetailsBasedOnEmplyerIdFromRequest(
 							identityVerificationRequestWrapperModel.getEmployerId(), requestId, requestIdDtls);
 				}
+				
+				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+				
 				// VALIDATION PENDING
 				customerWrapperAPIService.validateIdentityVerificationRequest(identityVerificationRequestWrapperModel,
 						requestId, requestIdDtls, lenderConfigInfo);
@@ -1285,7 +1302,7 @@ public class CustomerService {
 			saveCustomer.setRequestId(requestId);
 
 			RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer,
-					customer.getCallbackURLs(), flowType, requestIdDtls);
+					customer.getCallbackURLs(), flowType, requestIdDtls, isEmployerPdSupported);
 			/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
 
 			//PWMVP2-503 || saving customer provided details
@@ -1310,13 +1327,13 @@ public class CustomerService {
 			if (flowType.name().equals(FlowTypeEnum.DEPOSIT_ALLOCATION.name())
 					&& directDepositAllocationInstallmentAmount > 0) {
 				kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls, saveCustomer,
-						directDepositAllocationInstallmentAmount, flowType);
+						directDepositAllocationInstallmentAmount, flowType, isEmployerPdSupported);
 				customer.setInstallmentAmount((int) directDepositAllocationInstallmentAmount);
 				checkAndSavePayAllocation(requestIdDtls, customer, flowType,
 						depositAllocationRequestWrapperModel.getLoanAmount());
 			} else {
 				kafkaPublisherUtil.publishLinkServiceInfo(requestIdDtls, saveCustomer,
-						(double) customer.getInstallmentAmount(), flowType);
+						(double) customer.getInstallmentAmount(), flowType, isEmployerPdSupported);
 				checkAndSavePayAllocation(requestIdDtls, customer, flowType, 0);
 			}
 			log.info("Customer got created successfully");

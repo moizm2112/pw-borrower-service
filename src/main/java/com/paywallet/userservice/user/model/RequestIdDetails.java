@@ -48,5 +48,6 @@ public class RequestIdDetails {
     private List<String> notificationUrls;
     private List<FlowTypeEnum> flowType;
     private String loginSdkStatus;
+    private boolean isPdSupported;
 
 }
