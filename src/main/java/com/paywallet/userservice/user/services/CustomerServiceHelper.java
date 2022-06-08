@@ -613,11 +613,12 @@ public class CustomerServiceHelper {
 		EmployerInfoResponseDTO employerResponseDto = getEmployerInfoFromDbById(requestIdDtls);
 		for (ProviderInfo providerInfo : employerResponseDto.getData().getProviderInfo()) {
 			log.info("pd support for employer ::" + providerInfo.getPdSupported());
-			if (providerInfo.getProviderName().equalsIgnoreCase(requestIdDtls.getProvider())
+			if (providerInfo.getProviderName().equalsIgnoreCase(requestIdDtls.getProvider()) 
 					&& providerInfo.getPdSupported().equalsIgnoreCase(YES)) {
 				log.info("pd support for checked method ::" + providerInfo.getProviderName() + "=========" + "******"
 						+ requestIdDtls.getProvider());
 				isEmployerPdSupported = true;
+				break;
 			}
 		}
 		return isEmployerPdSupported;
