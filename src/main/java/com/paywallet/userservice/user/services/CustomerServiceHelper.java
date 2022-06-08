@@ -214,7 +214,7 @@ public class CustomerServiceHelper {
 	public RequestIdResponseDTO updateRequestIdDetails(String requestId, RequestIdDTO requestIdDTO,
 			String identifyProviderServiceUri, RestTemplate restTemplate)
 			throws ResourceAccessException, GeneralCustomException, ServiceNotAvailableException {
-		log.info("Inside updateRequestIdDetails");
+		log.info("Inside updateRequestIdDetails : {}",requestIdDTO);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
