@@ -251,10 +251,17 @@ public class CustomerServiceHelper {
 		try {
 			requestIdDTO.setPdSupported(isEmployerPdSupported);
 			requestIdDTO.setUserId(saveCustomer.getCustomerId());
-			if(saveCustomer.getVirtualAccount() != null && saveCustomer.getVirtualAccount().length() > 0)
-				requestIdDTO.setVirtualAccountNumber(saveCustomer.getVirtualAccount());
-			else 
+			
+			if(saveCustomer.getExternalAccount() != null && saveCustomer.getExternalAccount().length() > 0) 
 				requestIdDTO.setVirtualAccountNumber(saveCustomer.getExternalAccount());
+			else
+				requestIdDTO.setVirtualAccountNumber(saveCustomer.getVirtualAccount());
+			/*
+			 * if(saveCustomer.getVirtualAccount() != null &&
+			 * saveCustomer.getVirtualAccount().length() > 0)
+			 * requestIdDTO.setVirtualAccountNumber(saveCustomer.getVirtualAccount()); else
+			 * requestIdDTO.setVirtualAccountNumber(saveCustomer.getExternalAccount());
+			 */
 			
 			if(saveCustomer.getVirtualAccountId() != null && saveCustomer.getVirtualAccountId().length() > 0)
 				requestIdDTO.setVirtualAccountId(saveCustomer.getVirtualAccountId());
@@ -264,10 +271,10 @@ public class CustomerServiceHelper {
 			else
 				requestIdDTO.setDirectDepositAllocation(false);
 			
-			if(saveCustomer.getAccountABANumber() != null && saveCustomer.getAccountABANumber().length() > 0)
-				requestIdDTO.setAbaNumber(saveCustomer.getAccountABANumber());
-			else
+			if(saveCustomer.getExternalAccountABA() != null && saveCustomer.getExternalAccountABA().length() > 0)
 				requestIdDTO.setAbaNumber(saveCustomer.getExternalAccountABA());
+			else
+				requestIdDTO.setAbaNumber(saveCustomer.getAccountABANumber());
 			
 			List<FlowTypeEnum> lsFlowType = requestIdDetails.getFlowType();
 			if (lsFlowType != null && lsFlowType.size() > 0) {
