@@ -153,6 +153,9 @@ public class CustomerService {
 	@Autowired
 	CommonUtil commonUtil;
 
+	@Autowired
+	AESEncryption aesEncryption;
+
 	/**
 	 * Method fetches customer details by cellPhone
 	 * 
@@ -1293,6 +1296,13 @@ public class CustomerService {
 			if (requestIdDtls.getClientName() != null)
 				customerEntity.setLender(requestIdDtls.getClientName());
 			customerEntity.setEmployer(requestIdDtls.getEmployer());
+
+			//PWMVP3-88
+			String encAccountNumber = aesEncryption.encrypt(customerEntity.getVirtualAccount());
+			String encABANumber = aesEncryption.encrypt(customerEntity.getAccountABANumber());
+			customerEntity.setVirtualAccount(encAccountNumber);
+			customerEntity.setAccountABANumber(encABANumber);
+
 			if (!customerEntity.isExistingCustomer())
 				saveCustomer = customerRepository.save(customerEntity);
 			else if (isFineractAccountCreatedForExistingCustomer)
@@ -1440,6 +1450,16 @@ public class CustomerService {
 				customerReponse.setExistingCustomer(true);
 				customerReponse.setInstallmentAmount(customer.getInstallmentAmount());
 				customerReponse.setNumberOfInstallments(customer.getNumberOfInstallments());
+				//PWMVP3-88
+				if(!StringUtils.isBlank(customerReponse.getAccountABANumber())) {
+					String plainABANumber = aesEncryption.decrypt(customerReponse.getAccountABANumber());
+					customerReponse.setAccountABANumber(plainABANumber);
+				}
+				//PWMVP3-88
+				if(!StringUtils.isBlank(customerReponse.getVirtualAccount())) {
+					String plainAccountNumber = aesEncryption.decrypt(customerReponse.getVirtualAccount());
+					customerReponse.setVirtualAccount(plainAccountNumber);
+				}
 
 				if (StringUtils.isBlank(customerReponse.getAccountABANumber())
 						&& StringUtils.isNotBlank(customerReponse.getVirtualAccount())) {
