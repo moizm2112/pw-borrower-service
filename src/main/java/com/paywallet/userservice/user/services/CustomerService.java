@@ -1384,8 +1384,8 @@ public class CustomerService {
 //			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
 			  if((findByExternalAccountAndExternalAccountABA.get().getPersonalProfile().getCellPhone()
 					  .equals(depositAllocationRequestWrapperModel.getCellPhone())) && 
-					  (findByExternalAccountAndExternalAccountABA.get().getExternalAccount()
-							  .equals(depositAllocationRequestWrapperModel.getExternalVirtualAccount())
+					  ((findByExternalAccountAndExternalAccountABA.get().getExternalAccount()
+							  .equals(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
 					  && (findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA()
 							  .equals(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())))){				  
 				   return false;
