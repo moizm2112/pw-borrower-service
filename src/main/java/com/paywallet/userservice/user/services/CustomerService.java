@@ -1383,11 +1383,12 @@ public class CustomerService {
 			   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get().getExternalAccount()+"==="+findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA());
 //			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
 			  if((findByExternalAccountAndExternalAccountABA.get().getPersonalProfile().getCellPhone()
-					  .equals(depositAllocationRequestWrapperModel.getCellPhone())) && 
-					  ((findByExternalAccountAndExternalAccountABA.get().getExternalAccount()
+					  .equals(depositAllocationRequestWrapperModel.getCellPhone()))
+					  && 
+					  (findByExternalAccountAndExternalAccountABA.get().getExternalAccount()
 							  .equals(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
 					  && (findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA()
-							  .equals(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())))){				  
+							  .equals(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))){				  
 				   return false;
 			   }
 			  log.info("ABA and Account Number exists in DB {}",requestId );
