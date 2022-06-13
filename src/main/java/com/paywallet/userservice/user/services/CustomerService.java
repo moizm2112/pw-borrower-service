@@ -1297,14 +1297,14 @@ public class CustomerService {
 				customerEntity.setLender(requestIdDtls.getClientName());
 			customerEntity.setEmployer(requestIdDtls.getEmployer());
 
-			//PWMVP3-88
+			//PWMVP3-88 || start
 			String virtualAccountNumber = customerEntity.getVirtualAccount();
 			String abaNumber = customerEntity.getAccountABANumber();
 			String encAccountNumber = aesEncryption.encrypt(customerEntity.getVirtualAccount());
 			String encABANumber = aesEncryption.encrypt(customerEntity.getAccountABANumber());
 			customerEntity.setVirtualAccount(encAccountNumber);
 			customerEntity.setAccountABANumber(encABANumber);
-
+			//PWMVP3-88 || end
 			if (!customerEntity.isExistingCustomer())
 				saveCustomer = customerRepository.save(customerEntity);
 			else if (isFineractAccountCreatedForExistingCustomer)
@@ -1332,9 +1332,10 @@ public class CustomerService {
 			}
 			customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri,
 					restTemplate);
-			//PWMVP3-88
+			//PWMVP3-88 || start
 			saveCustomer.setVirtualAccount(virtualAccountNumber);
 			saveCustomer.setAccountABANumber(abaNumber);
+			//PWMVP3-88 || end
 			/* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 			// String notificationResponse =
 			// createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls,
