@@ -1313,6 +1313,11 @@ public class CustomerService {
 				saveCustomer = customerEntity;
 			saveCustomer.setRequestId(requestId);
 
+			//PWMVP3-88 || start
+			saveCustomer.setVirtualAccount(virtualAccountNumber);
+			saveCustomer.setAccountABANumber(abaNumber);
+			//PWMVP3-88 || end
+
 			RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer,
 					customer.getCallbackURLs(), flowType, requestIdDtls, isEmployerPdSupported);
 			/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
@@ -1332,10 +1337,6 @@ public class CustomerService {
 			}
 			customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri,
 					restTemplate);
-			//PWMVP3-88 || start
-			saveCustomer.setVirtualAccount(virtualAccountNumber);
-			saveCustomer.setAccountABANumber(abaNumber);
-			//PWMVP3-88 || end
 			/* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 			// String notificationResponse =
 			// createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls,
