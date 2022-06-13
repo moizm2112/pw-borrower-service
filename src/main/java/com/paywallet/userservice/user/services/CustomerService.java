@@ -1,5 +1,8 @@
 package com.paywallet.userservice.user.services;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import com.paywallet.userservice.user.dto.PayrollProviderDetailsDTO;
@@ -61,6 +64,10 @@ import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository
 
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 @Component
 @Service
@@ -1180,8 +1187,11 @@ public class CustomerService {
 					if (StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount())
 							&& StringUtils.isNotBlank(
 									depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
-						customerEntity.setExternalAccount(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-						customerEntity.setExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+						//PWMVP3-88
+						String encExternalAccount = aesEncryption.encrypt(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+						String endExternalABA = aesEncryption.encrypt(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+						customerEntity.setExternalAccount(encExternalAccount);
+						customerEntity.setExternalAccountABA(endExternalABA);
 					} else if (StringUtils.isBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount())
 							|| StringUtils.isBlank(
 									depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())) {
@@ -1391,10 +1401,12 @@ public class CustomerService {
 	}
 
 	private Boolean checkABAandVirtualAccountNumber(
-			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel,String requestId) {
+			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel,String requestId) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
 		log.info("validation started--------------");
-		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), 
-				depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		//PWMVP3-88
+		String encExternalAccount = aesEncryption.encrypt(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
+		String encExternalABA = aesEncryption.encrypt(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(encExternalAccount, encExternalABA);
 		log.info("validation started=========="+findByExternalAccountAndExternalAccountABA);
 		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
 			   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get().getExternalAccount()+"==="+findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA());
@@ -1402,9 +1414,9 @@ public class CustomerService {
 			  if((findByExternalAccountAndExternalAccountABA.get().getPersonalProfile().getCellPhone()
 					  .equals(depositAllocationRequestWrapperModel.getCellPhone())) && 
 					  ((findByExternalAccountAndExternalAccountABA.get().getExternalAccount()
-							  .equals(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
+							  .equals(encExternalAccount))
 					  && (findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA()
-							  .equals(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber())))){				  
+							  .equals(encExternalABA)))){
 				   return false;
 			   }
 			  log.info("ABA and Account Number exists in DB {}",requestId );
