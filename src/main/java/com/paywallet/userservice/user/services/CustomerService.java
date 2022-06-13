@@ -1298,6 +1298,8 @@ public class CustomerService {
 			customerEntity.setEmployer(requestIdDtls.getEmployer());
 
 			//PWMVP3-88
+			String virtualAccountNumber = customerEntity.getVirtualAccount();
+			String abaNumber = customerEntity.getAccountABANumber();
 			String encAccountNumber = aesEncryption.encrypt(customerEntity.getVirtualAccount());
 			String encABANumber = aesEncryption.encrypt(customerEntity.getAccountABANumber());
 			customerEntity.setVirtualAccount(encAccountNumber);
@@ -1330,6 +1332,9 @@ public class CustomerService {
 			}
 			customerServiceHelper.updateRequestIdDetails(requestId, requestIdDTO, identifyProviderServiceUri,
 					restTemplate);
+			//PWMVP3-88
+			saveCustomer.setVirtualAccount(virtualAccountNumber);
+			saveCustomer.setAccountABANumber(abaNumber);
 			/* CREATE AND SEND SMS AND EMAIL NOTIFICATION */
 			// String notificationResponse =
 			// createAndSendLinkSMSAndEmailNotification(requestId, requestIdDtls,
