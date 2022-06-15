@@ -31,7 +31,7 @@ public class AESEncryption {
 
 
     public String encrypt(String plainText) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        if(Objects.isNull(plainText)){
+        if(Objects.isNull(plainText) || plainText.isBlank()){
             return plainText;
         }
         SecretKey secretKey = getSecretKeyObject(encKey);
@@ -40,7 +40,7 @@ public class AESEncryption {
     }
 
     public String decrypt(String cipherText) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        if(Objects.isNull(cipherText)){
+        if(Objects.isNull(cipherText) || cipherText.isBlank()){
             return cipherText;
         }
         SecretKey secretKey = getSecretKeyObject(encKey);
