@@ -1183,6 +1183,7 @@ public class CustomerService {
 					directDepositAllocationInstallmentAmount = installmentAmount;
 				}
 				customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+				log.info("Customer entity : " + customerEntity);
 				if (!customerEntity.isExistingCustomer()) {
 					if (StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount())
 							&& StringUtils.isNotBlank(
@@ -1219,6 +1220,7 @@ public class CustomerService {
 						isFineractAccountCreatedForExistingCustomer = true;
 					}
 				}
+				log.info("Customer entity before break : " + customerEntity);
 				break;
 			}
 			case EMPLOYMENT_VERIFICATION: {
@@ -1314,6 +1316,7 @@ public class CustomerService {
 			String encABANumber = aesEncryption.encrypt(customerEntity.getAccountABANumber());
 			customerEntity.setVirtualAccount(encAccountNumber);
 			customerEntity.setAccountABANumber(encABANumber);
+			log.info("Customer entity before Save : " + customerEntity);
 			//PWMVP3-88 || end
 			if (!customerEntity.isExistingCustomer())
 				saveCustomer = customerRepository.save(customerEntity);
