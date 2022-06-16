@@ -1146,6 +1146,12 @@ public class CustomerService {
 				
 				//Check if the employer PD supported
 				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+
+				// temp fix, we need to remove it post pd support false impl done for AtomicFI
+				if(!isEmployerPdSupported && !("Argyle".equalsIgnoreCase(requestIdDtls.getProvider()))){
+					throw new GeneralCustomException(PDNOTSUPPORTED, "Pay distribution is not supported for the employer "
+						+ requestIdDtls.getEmployer());
+				}
 				
 				//if employer is not pd supported then we can stop the flow here
 //				if(!customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls)) {
