@@ -1196,6 +1196,8 @@ public class CustomerService {
 						customerEntity = customerServiceHelper
 								.createFineractVirtualAccount(requestIdDtls.getRequestId(), customerEntity);
 						customerEntity.setAccountABANumber(ROUTING_NUMBER);
+						customerEntity.setExternalAccount(customerEntity.getVirtualAccount());
+						customerEntity.setExternalAccountABA(ROUTING_NUMBER);
 						log.info(
 								"Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
 					}
@@ -1212,6 +1214,8 @@ public class CustomerService {
 						customerEntity = customerServiceHelper
 								.createFineractVirtualAccount(requestIdDtls.getRequestId(), customerEntity);
 						customerEntity.setAccountABANumber(ROUTING_NUMBER);
+						customerEntity.setExternalAccount(customerEntity.getVirtualAccount());
+						customerEntity.setExternalAccountABA(ROUTING_NUMBER);
 						log.info(
 								"Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
 						isFineractAccountCreatedForExistingCustomer = true;
