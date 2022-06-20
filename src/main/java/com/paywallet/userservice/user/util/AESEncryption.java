@@ -72,19 +72,4 @@ public class AESEncryption {
         return DatatypeConverter.parseHexBinary(hexFormattedIv);
     }
 
-    public String generateKey() throws NoSuchAlgorithmException {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
-        keyGenerator.init(AES_KEY_SIZE);
-        byte[] encodedKey = keyGenerator.generateKey().getEncoded();
-        String hexBinary = DatatypeConverter.printHexBinary(encodedKey);
-        return hexBinary;
-    }
-
-    public String generateIv() {
-        byte[] iv = new byte[GCM_IV_LENGTH];
-        SecureRandom random = new SecureRandom();
-        random.nextBytes(iv);
-        String hexBinary = DatatypeConverter.printHexBinary(iv);
-        return hexBinary;
-    }
 }
