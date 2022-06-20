@@ -1153,6 +1153,12 @@ public class CustomerService {
 				
 				//Check if the employer PD supported
 				isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+
+				// temp fix, we need to remove it post pd support false impl done for AtomicFI
+				if(!isEmployerPdSupported && !("Argyle".equalsIgnoreCase(requestIdDtls.getProvider()))){
+					throw new GeneralCustomException(PDNOTSUPPORTED, "Pay distribution is not supported for the employer "
+						+ requestIdDtls.getEmployer());
+				}
 				
 				//if employer is not pd supported then we can stop the flow here
 //				if(!customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls)) {
@@ -1193,6 +1199,8 @@ public class CustomerService {
 						customerEntity = customerServiceHelper
 								.createFineractVirtualAccount(requestIdDtls.getRequestId(), customerEntity);
 						customerEntity.setAccountABANumber(ROUTING_NUMBER);
+						customerEntity.setExternalAccount(customerEntity.getVirtualAccount());
+						customerEntity.setExternalAccountABA(ROUTING_NUMBER);
 						log.info(
 								"Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
 					}
@@ -1209,6 +1217,8 @@ public class CustomerService {
 						customerEntity = customerServiceHelper
 								.createFineractVirtualAccount(requestIdDtls.getRequestId(), customerEntity);
 						customerEntity.setAccountABANumber(ROUTING_NUMBER);
+						customerEntity.setExternalAccount(customerEntity.getVirtualAccount());
+						customerEntity.setExternalAccountABA(ROUTING_NUMBER);
 						log.info(
 								"Virtual fineract account created successfully for Direct deposit allocation from Wrapper API");
 						isFineractAccountCreatedForExistingCustomer = true;
