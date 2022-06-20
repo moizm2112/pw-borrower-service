@@ -2,7 +2,6 @@ package com.paywallet.userservice.user.util;
 
 import com.paywallet.userservice.user.config.KeyConfig;
 import lombok.experimental.UtilityClass;
-import org.springframework.stereotype.Component;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
@@ -12,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Objects;
 
 @UtilityClass
