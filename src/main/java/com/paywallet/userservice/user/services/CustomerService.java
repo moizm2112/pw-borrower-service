@@ -160,9 +160,6 @@ public class CustomerService {
 	@Autowired
 	CommonUtil commonUtil;
 
-	@Autowired
-	AESEncryption aesEncryption;
-
 	/**
 	 * Method fetches customer details by cellPhone
 	 * 
@@ -1306,21 +1303,7 @@ public class CustomerService {
 				customerEntity.setLender(requestIdDtls.getClientName());
 			customerEntity.setEmployer(requestIdDtls.getEmployer());
 
-			//PWMVP3-88 || start
-			String virtualAccountNumber = customerEntity.getVirtualAccount();
-			String abaNumber = customerEntity.getAccountABANumber();
-			String externalAccountNumber = customerEntity.getExternalAccount();
-			String externalAba = customerEntity.getExternalAccountABA();
-			String encAccountNumber = aesEncryption.encrypt(customerEntity.getVirtualAccount());
-			String encABANumber = aesEncryption.encrypt(customerEntity.getAccountABANumber());
-			String encExternalAccount = aesEncryption.encrypt(customerEntity.getExternalAccount());
-			String endExternalABA = aesEncryption.encrypt(customerEntity.getExternalAccountABA());
-			customerEntity.setVirtualAccount(encAccountNumber);
-			customerEntity.setAccountABANumber(encABANumber);
-			customerEntity.setExternalAccount(encExternalAccount);
-			customerEntity.setExternalAccountABA(endExternalABA);
 			log.info("Customer entity before Save : " + customerEntity);
-			//PWMVP3-88 || end
 			if (!customerEntity.isExistingCustomer())
 				saveCustomer = customerRepository.save(customerEntity);
 			else if (isFineractAccountCreatedForExistingCustomer)
@@ -1328,13 +1311,6 @@ public class CustomerService {
 			else
 				saveCustomer = customerEntity;
 			saveCustomer.setRequestId(requestId);
-
-			//PWMVP3-88 || start
-			saveCustomer.setVirtualAccount(virtualAccountNumber);
-			saveCustomer.setAccountABANumber(abaNumber);
-			saveCustomer.setExternalAccount(externalAccountNumber);
-			saveCustomer.setExternalAccountABA(externalAba);
-			//PWMVP3-88 || end
 
 			RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer,
 					customer.getCallbackURLs(), flowType, requestIdDtls, isEmployerPdSupported);
@@ -1412,8 +1388,10 @@ public class CustomerService {
 			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel,String requestId) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
 		log.info("validation started--------------");
 		//PWMVP3-88
-		String encExternalAccount = aesEncryption.encrypt(depositAllocationRequestWrapperModel.getExternalVirtualAccount());
-		String encExternalABA = aesEncryption.encrypt(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		String externalAccount = depositAllocationRequestWrapperModel.getExternalVirtualAccount();
+		String externalABA = depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber();
+		String encExternalAccount = AESEncryption.encrypt(externalAccount);
+		String encExternalABA = AESEncryption.encrypt(externalABA);
 		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(encExternalAccount, encExternalABA);
 		log.info("validation started=========="+findByExternalAccountAndExternalAccountABA);
 		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
@@ -1422,9 +1400,9 @@ public class CustomerService {
 			  if((findByExternalAccountAndExternalAccountABA.get().getPersonalProfile().getCellPhone()
 					  .equals(depositAllocationRequestWrapperModel.getCellPhone())) && 
 					  ((findByExternalAccountAndExternalAccountABA.get().getExternalAccount()
-							  .equals(encExternalAccount))
+							  .equals(externalAccount))
 					  && (findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA()
-							  .equals(encExternalABA)))){
+							  .equals(externalABA)))){
 				   return false;
 			   }
 			  log.info("ABA and Account Number exists in DB {}",requestId );
@@ -1477,24 +1455,6 @@ public class CustomerService {
 				customerReponse.setExistingCustomer(true);
 				customerReponse.setInstallmentAmount(customer.getInstallmentAmount());
 				customerReponse.setNumberOfInstallments(customer.getNumberOfInstallments());
-				//PWMVP3-88
-				if(!StringUtils.isBlank(customerReponse.getAccountABANumber())) {
-					String plainABANumber = aesEncryption.decrypt(customerReponse.getAccountABANumber());
-					customerReponse.setAccountABANumber(plainABANumber);
-				}
-				if(!StringUtils.isBlank(customerReponse.getVirtualAccount())) {
-					String plainAccountNumber = aesEncryption.decrypt(customerReponse.getVirtualAccount());
-					customerReponse.setVirtualAccount(plainAccountNumber);
-				}
-				if(!StringUtils.isBlank(customerReponse.getExternalAccount())) {
-					String plainAccountNumber = aesEncryption.decrypt(customerReponse.getExternalAccount());
-					customerReponse.setExternalAccount(plainAccountNumber);
-				}
-				if(!StringUtils.isBlank(customerReponse.getExternalAccountABA())) {
-					String plainAccountABA = aesEncryption.decrypt(customerReponse.getExternalAccountABA());
-					customerReponse.setExternalAccountABA(plainAccountABA);
-				}
-				//
 
 				if (StringUtils.isBlank(customerReponse.getAccountABANumber())
 						&& StringUtils.isNotBlank(customerReponse.getVirtualAccount())) {

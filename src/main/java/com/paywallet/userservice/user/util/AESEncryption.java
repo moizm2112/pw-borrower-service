@@ -1,10 +1,11 @@
 package com.paywallet.userservice.user.util;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.paywallet.userservice.user.config.KeyConfig;
+import lombok.experimental.UtilityClass;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.*;
-import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 import java.nio.charset.StandardCharsets;
@@ -14,28 +15,21 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Objects;
 
-@Component
+@UtilityClass
 public class AESEncryption {
 
     public static final int AES_KEY_SIZE = 256;
-    public static final int GCM_IV_LENGTH = 12;
+    public static final int GCM_IV_LENGTH = 16;
     public static final int GCM_TAG_LENGTH = 16;
     private static final String ALGORITHM = "AES";
-    private static final String AES_MODE = "AES/GCM/NoPadding";
-
-    @Value("${aes.enc.key}")
-    private String encKey;
-
-    @Value("${aes.enc.iv}")
-    private String encIv;
-
+    private static final String AES_MODE = "AES/CBC/PKCS5Padding";
 
     public String encrypt(String plainText) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         if(Objects.isNull(plainText) || plainText.isBlank()){
             return plainText;
         }
-        SecretKey secretKey = getSecretKeyObject(encKey);
-        byte[] ivBytes = getIVBytes(encIv);
+        SecretKey secretKey = getSecretKeyObject(KeyConfig.getKey());
+        byte[] ivBytes = getIVBytes(KeyConfig.getIv());
         return encrypt(plainText, secretKey, ivBytes);
     }
 
@@ -43,8 +37,8 @@ public class AESEncryption {
         if(Objects.isNull(cipherText) || cipherText.isBlank()){
             return cipherText;
         }
-        SecretKey secretKey = getSecretKeyObject(encKey);
-        byte[] ivBytes = getIVBytes(encIv);
+        SecretKey secretKey = getSecretKeyObject(KeyConfig.getKey());
+        byte[] ivBytes = getIVBytes(KeyConfig.getIv());
         return decrypt(cipherText, secretKey, ivBytes);
     }
 
@@ -64,8 +58,8 @@ public class AESEncryption {
     private Cipher generateCipher(int mode, SecretKey secretKey, byte[] iv) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException {
         Cipher cipher = Cipher.getInstance(AES_MODE);
         SecretKeySpec keySpec = new SecretKeySpec(secretKey.getEncoded(), ALGORITHM);
-        GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
-        cipher.init(mode, keySpec, gcmParameterSpec);
+        //GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
+        cipher.init(mode, keySpec, new IvParameterSpec(iv));
         return cipher;
     }
 
