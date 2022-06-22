@@ -111,6 +111,7 @@ public class CustomerDetails {
             encText = AESEncryption.encrypt(plainText);
         } catch (Exception e) {
             log.error("Error while encrypting :{}",e.getMessage(),e);
+            throw new RuntimeException("Error while encryption :"+e.getMessage());
         }
         return encText;
     }
@@ -120,6 +121,7 @@ public class CustomerDetails {
             decText = AESEncryption.decrypt(cipherText);
         } catch (Exception e) {
             log.error("Error while decrypting :{}",e.getMessage(),e);
+            throw new RuntimeException("Error while decryption :"+e.getMessage());
         }
         return decText;
     }
