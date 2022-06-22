@@ -26,13 +26,13 @@ public class RequestIdDetails {
     private String employer;
     private String employerPWId;
     private String provider;
-    private String identifyStatus;
+    private String identityStatus;
     private String depositStatus;
     private String submitPD;
     private String allocationStatus;
     private String affordability;
     private String employmentStatus;
-    private String incomeValidation;
+    private String incomeStatus;
     private String userId;
     private String clientTransactionId;
     private String taskid;

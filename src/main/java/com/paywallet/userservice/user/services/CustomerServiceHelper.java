@@ -636,13 +636,13 @@ public class CustomerServiceHelper {
 							status = StringUtils.isBlank(requestIdDetails.getAllocationStatus());
 							break;
 						case IDENTITY_VERIFICATION:
-							status = StringUtils.isBlank(requestIdDetails.getIdentifyStatus());
+							status = StringUtils.isBlank(requestIdDetails.getIdentityStatus());
 							break;
 						case EMPLOYMENT_VERIFICATION:
 							status = StringUtils.isBlank(requestIdDetails.getEmploymentStatus());
 							break;
 						case INCOME_VERIFICATION:
-							status = StringUtils.isBlank(requestIdDetails.getIncomeValidation());
+							status = StringUtils.isBlank(requestIdDetails.getIncomeStatus());
 							break;
 					}
 					return status;
