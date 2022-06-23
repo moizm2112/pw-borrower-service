@@ -1,5 +1,8 @@
 package com.paywallet.userservice.user.services;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import com.paywallet.userservice.user.dto.PayrollProviderDetailsDTO;
@@ -61,6 +64,10 @@ import com.paywallet.userservice.user.repository.CustomerRequestFieldsRepository
 
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 @Component
 @Service
@@ -1179,6 +1186,7 @@ public class CustomerService {
 					directDepositAllocationInstallmentAmount = installmentAmount;
 				}
 				customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+				log.info("Customer entity : " + customerEntity);
 				if (!customerEntity.isExistingCustomer()) {
 					if (StringUtils.isNotBlank(depositAllocationRequestWrapperModel.getExternalVirtualAccount())
 							&& StringUtils.isNotBlank(
@@ -1216,6 +1224,7 @@ public class CustomerService {
 						isFineractAccountCreatedForExistingCustomer = true;
 					}
 				}
+				log.info("Customer entity before break : " + customerEntity);
 				break;
 			}
 			case EMPLOYMENT_VERIFICATION: {
@@ -1303,6 +1312,8 @@ public class CustomerService {
 			if (requestIdDtls.getClientName() != null)
 				customerEntity.setLender(requestIdDtls.getClientName());
 			customerEntity.setEmployer(requestIdDtls.getEmployer());
+
+			log.info("Customer entity before Save : " + customerEntity);
 			if (!customerEntity.isExistingCustomer())
 				saveCustomer = customerRepository.save(customerEntity);
 			else if (isFineractAccountCreatedForExistingCustomer)
@@ -1384,21 +1395,24 @@ public class CustomerService {
 	}
 
 	private Boolean checkABAandVirtualAccountNumber(
-			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel,String requestId) {
+			DepositAllocationRequestWrapperModel depositAllocationRequestWrapperModel,String requestId) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
 		log.info("validation started--------------");
-		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(depositAllocationRequestWrapperModel.getExternalVirtualAccount(), 
-				depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber());
+		//PWMVP3-88
+		String externalAccount = depositAllocationRequestWrapperModel.getExternalVirtualAccount();
+		String externalABA = depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber();
+		String encExternalAccount = AESEncryption.encrypt(externalAccount);
+		String encExternalABA = AESEncryption.encrypt(externalABA);
+		Optional<CustomerDetails> findByExternalAccountAndExternalAccountABA = customerRepository.findByExternalAccountAndExternalAccountABA(encExternalAccount, encExternalABA);
 		log.info("validation started=========="+findByExternalAccountAndExternalAccountABA);
 		   if(findByExternalAccountAndExternalAccountABA.isPresent()) {
 			   log.info("validation started=========="+findByExternalAccountAndExternalAccountABA.get().getExternalAccount()+"==="+findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA());
 //			   throw new CreateCustomerABAException("ABA Number and virtual Account number should not be same");
 			  if((findByExternalAccountAndExternalAccountABA.get().getPersonalProfile().getCellPhone()
-					  .equals(depositAllocationRequestWrapperModel.getCellPhone()))
-					  && 
-					  (findByExternalAccountAndExternalAccountABA.get().getExternalAccount()
-							  .equals(depositAllocationRequestWrapperModel.getExternalVirtualAccount()))
+					  .equals(depositAllocationRequestWrapperModel.getCellPhone())) && 
+					  ((findByExternalAccountAndExternalAccountABA.get().getExternalAccount()
+							  .equals(externalAccount))
 					  && (findByExternalAccountAndExternalAccountABA.get().getExternalAccountABA()
-							  .equals(depositAllocationRequestWrapperModel.getExternalVirtualAccountABANumber()))){				  
+							  .equals(externalABA)))){
 				   return false;
 			   }
 			  log.info("ABA and Account Number exists in DB {}",requestId );
