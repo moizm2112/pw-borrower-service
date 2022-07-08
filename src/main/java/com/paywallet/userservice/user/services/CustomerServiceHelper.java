@@ -199,7 +199,7 @@ public class CustomerServiceHelper {
 			Sentry.captureException(ex);
 			throw new GeneralCustomException(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage());
 		}
-		return requestIdResponse;
+ 		return requestIdResponse;
 	}
 
 	/**
@@ -245,7 +245,7 @@ public class CustomerServiceHelper {
 	}
 
 	public RequestIdDTO setRequestIdDetails(CustomerDetails saveCustomer, CallbackURL callbackURL,
-			FlowTypeEnum flowType, RequestIdDetails requestIdDetails, boolean isEmployerPdSupported) {
+			FlowTypeEnum flowType, RequestIdDetails requestIdDetails, boolean isEmployerPdSupported,SdkCreateCustomerRequest sdkCreateCustomerRequest) {
 
 		RequestIdDTO requestIdDTO = new RequestIdDTO();
 		try {
@@ -285,7 +285,8 @@ public class CustomerServiceHelper {
 				lsFlowType.add(flowType);
 			}
 			requestIdDTO.setFlowType(lsFlowType);
-			requestIdDTO.setCurrentFlowType(flowType);
+			requestIdDTO.setCurrentFlowType(flowType);		
+			
 			/* SET CALLBACK URL TO THE REQUEST SERVICE - REQUESTID DETAILS TABLE */
 			if (callbackURL != null) {
 				if (callbackURL.getIdentityCallbackUrls() != null && callbackURL.getIdentityCallbackUrls().size() > 0)
@@ -320,7 +321,8 @@ public class CustomerServiceHelper {
 					requestIdDTO.setNotificationUrls(callbackURL.getNotificationUrls());
 				else
 					requestIdDTO.setNotificationUrls(requestIdDetails.getNotificationUrls());
-			}
+			}			
+			requestIdDTO.setServicesSelected(sdkCreateCustomerRequest.getServicesSelected());
 		} catch (Exception e) {
 			Sentry.captureException(e);
 			throw new GeneralCustomException("ERROR", "Exception occured while updating the request Id details");
@@ -673,4 +675,6 @@ public class CustomerServiceHelper {
 		CustomerProvidedDetails customerProvidedDetails = prepareCustomerProvidedDetails(requestId, customerId, customer);
 		return customerDetailsRepository.upsert(customerProvidedDetails);
 	}
+	
+	
 }
