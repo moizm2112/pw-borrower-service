@@ -169,7 +169,7 @@ public class CustomerService {
 	@Autowired
 	CommonUtil commonUtil;
 	@Autowired
-	private SdkCustomerService sdkCustomerService;
+	SdkCustomerServiceHelper sdkCustomerServiceHelper;
 
 	/**
 	 * Method fetches customer details by cellPhone
@@ -1121,9 +1121,9 @@ public class CustomerService {
 					
 				for (ServicesSelectedEnum flowTypeEnum : servicesSelected) {
 						if (flowTypeEnum.equals(ServicesSelectedEnum.EMPLOYMENT_VERIFICATION)) {
-							if (sdkCreateCustomerRequest.getEmploymentVerification() != null) {
-								employmentVerificationRequestWrapperModel = sdkCreateCustomerRequest
-										.getEmploymentVerification();
+							employmentVerificationRequestWrapperModel= new EmploymentVerificationRequestWrapperModel();
+							employmentVerificationRequestWrapperModel = sdkCustomerServiceHelper.setEmploymentVerification(employmentVerificationRequestWrapperModel, sdkCreateCustomerRequest);
+							if (employmentVerificationRequestWrapperModel != null) {								
 								customerWrapperAPIService.validateEmploymentVerificationRequest(
 										employmentVerificationRequestWrapperModel, requestId, requestIdDtls,
 										lenderConfigInfo);
@@ -1131,18 +1131,18 @@ public class CustomerService {
 								throw new GeneralCustomException(ERROR, EMPLOYMENT_VERIFICATION_REQUEST);
 							}
 					}else if (flowTypeEnum.equals(ServicesSelectedEnum.INCOME_VERIFICATION)){
-							if (sdkCreateCustomerRequest.getIncomeVerification() != null) {
-						incomeVerificationRequestWrapperModel = sdkCreateCustomerRequest
-								.getIncomeVerification();
+						incomeVerificationRequestWrapperModel = new IncomeVerificationRequestWrapperModel();
+						incomeVerificationRequestWrapperModel = sdkCustomerServiceHelper.setCustomerRequestForIncome(incomeVerificationRequestWrapperModel, sdkCreateCustomerRequest);						
+							if (incomeVerificationRequestWrapperModel!= null) {						
 						customerWrapperAPIService.validateIncomeVerificationRequest(
 								incomeVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
 							}else {
 								throw new GeneralCustomException(ERROR, INCOME_VERIFICATION_REQUEST);
 							}
 					} else if (flowTypeEnum.equals(ServicesSelectedEnum.DEPOSIT_ALLOCATION)) {
-							if(sdkCreateCustomerRequest.getDepositAllocation() != null) {
-						depositAllocationRequestWrapperModel = sdkCreateCustomerRequest
-								.getDepositAllocation();
+						depositAllocationRequestWrapperModel= new DepositAllocationRequestWrapperModel();
+						depositAllocationRequestWrapperModel = sdkCustomerServiceHelper.setDepositAllocationRequest(depositAllocationRequestWrapperModel, sdkCreateCustomerRequest);
+							if(depositAllocationRequestWrapperModel!= null) {						
 						customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,
 								requestId, requestIdDtls, lenderConfigInfo);
 							}else {
@@ -1151,9 +1151,9 @@ public class CustomerService {
 								
 							}
 					} else if (flowTypeEnum.equals(ServicesSelectedEnum.IDENTITY_VERIFICATION)) {
-							if( sdkCreateCustomerRequest.getIdentityVerification() != null) {
-						identityVerificationRequestWrapperModel = sdkCreateCustomerRequest
-								.getIdentityVerification();
+						identityVerificationRequestWrapperModel = new IdentityVerificationRequestWrapperModel();
+						identityVerificationRequestWrapperModel = sdkCustomerServiceHelper.setCustomerRequestForIdentity(identityVerificationRequestWrapperModel, sdkCreateCustomerRequest);
+							if( identityVerificationRequestWrapperModel != null) {						
 						customerWrapperAPIService.validateIdentityVerificationRequest(
 								identityVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
 					}

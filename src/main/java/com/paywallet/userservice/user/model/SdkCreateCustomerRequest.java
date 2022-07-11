@@ -2,13 +2,8 @@ package com.paywallet.userservice.user.model;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.paywallet.userservice.user.enums.SdkContextEnum;
 import com.paywallet.userservice.user.enums.ServicesSelectedEnum;
-import com.paywallet.userservice.user.model.wrapperAPI.DepositAllocationRequestWrapperModel;
-import com.paywallet.userservice.user.model.wrapperAPI.EmploymentVerificationRequestWrapperModel;
-import com.paywallet.userservice.user.model.wrapperAPI.IdentityVerificationRequestWrapperModel;
-import com.paywallet.userservice.user.model.wrapperAPI.IncomeVerificationRequestWrapperModel;
-
 import lombok.Data;
 
 @Data
@@ -49,17 +44,23 @@ public class SdkCreateCustomerRequest {
 	private Integer installmentAmount;
 
 	private Boolean checkOutExperience;
-	@JsonIgnore
-	private SdkContext sdkContext;
+
+	private SdkContextEnum sdkContext;
 
 	private List<ServicesSelectedEnum> servicesSelected;
-	@JsonIgnore
-	private boolean existingCustomer;
-	@JsonIgnore
-	private String requestId;
-	private EmploymentVerificationRequestWrapperModel employmentVerification;
-	private IncomeVerificationRequestWrapperModel incomeVerification;
-	private IdentityVerificationRequestWrapperModel identityVerification;
-	private DepositAllocationRequestWrapperModel depositAllocation;
 
+	private boolean existingCustomer;
+
+	private String requestId;
+	private String employerId;
+	private String lender;
+	private String numberOfMonthsRequested;
+
+	private Integer loanAmount;
+
+	private String achPullRequest;
+	private String accountVerificationOverride;
+
+	private String externalVirtualAccount;
+	private String externalVirtualAccountABANumber;
 }

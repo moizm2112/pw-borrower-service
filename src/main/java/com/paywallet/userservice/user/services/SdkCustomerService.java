@@ -54,8 +54,7 @@ public class SdkCustomerService {
 	@Value("${identifyProviderService.eureka.uri}")
 	private String identifyProviderServiceUri;
 	
-	@Autowired
-	private CommonUtil commonUtil;
+	
 
 	public <T> CustomerDetails sdkCreateCustomer(SdkCreateCustomerRequest sdkCustomer, String requestId, T obj,
 			FlowTypeEnum flowType) throws CreateCustomerException, GeneralCustomException, ServiceNotAvailableException,
