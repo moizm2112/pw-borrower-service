@@ -91,10 +91,7 @@ public class CustomerService {
 	private static final String INCOME_VERIFICATION = "INCOME_VERIFICATION";
 	private static final String IDENTITY_VERIFICATION = "IDENTITY_VERIFICATION";
 	private static final String PDNOTSUPPORTED = "pd Not supported";
-	private static final String EMPLOYMENT_VERIFICATION_REQUEST = "EMPLOYMENT VERIFICATION REQUEST IS MISSING";
-	private static final String INCOME_VERIFICATION_REQUEST = "INCOME VERIFICATION REQUEST IS MISSING";
-	private static final String DEPOSIT_VERIFICATION_REQUEST = "DEPOSIT ALLOCATION VERIFICATION REQUEST IS MISSING";
-	private static final String IDENTITY_VERIFICATION_REQUEST = "IDENTITY VERIFICATION REQUEST IS MISSING";
+
 
 
 	@Autowired
@@ -1115,59 +1112,10 @@ public class CustomerService {
 				validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
 			//Check if the employer PD supported
 			isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
-				List<ServicesSelectedEnum> servicesSelected = sdkCreateCustomerRequest.getServicesSelected();
-						
-				try {
-					
-				for (ServicesSelectedEnum flowTypeEnum : servicesSelected) {
-						if (flowTypeEnum.equals(ServicesSelectedEnum.EMPLOYMENT_VERIFICATION)) {
-							employmentVerificationRequestWrapperModel= new EmploymentVerificationRequestWrapperModel();
-							employmentVerificationRequestWrapperModel = sdkCustomerServiceHelper.setEmploymentVerification(employmentVerificationRequestWrapperModel, sdkCreateCustomerRequest);
-							if (employmentVerificationRequestWrapperModel != null) {								
-								customerWrapperAPIService.validateEmploymentVerificationRequest(
-										employmentVerificationRequestWrapperModel, requestId, requestIdDtls,
-										lenderConfigInfo);
-							} else {
-								throw new GeneralCustomException(ERROR, EMPLOYMENT_VERIFICATION_REQUEST);
-							}
-					}else if (flowTypeEnum.equals(ServicesSelectedEnum.INCOME_VERIFICATION)){
-						incomeVerificationRequestWrapperModel = new IncomeVerificationRequestWrapperModel();
-						incomeVerificationRequestWrapperModel = sdkCustomerServiceHelper.setCustomerRequestForIncome(incomeVerificationRequestWrapperModel, sdkCreateCustomerRequest);						
-							if (incomeVerificationRequestWrapperModel!= null) {						
-						customerWrapperAPIService.validateIncomeVerificationRequest(
-								incomeVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
-							}else {
-								throw new GeneralCustomException(ERROR, INCOME_VERIFICATION_REQUEST);
-							}
-					} else if (flowTypeEnum.equals(ServicesSelectedEnum.DEPOSIT_ALLOCATION)) {
-						depositAllocationRequestWrapperModel= new DepositAllocationRequestWrapperModel();
-						depositAllocationRequestWrapperModel = sdkCustomerServiceHelper.setDepositAllocationRequest(depositAllocationRequestWrapperModel, sdkCreateCustomerRequest);
-							if(depositAllocationRequestWrapperModel!= null) {						
-						customerWrapperAPIService.validateDepositAllocationRequest(depositAllocationRequestWrapperModel,
-								requestId, requestIdDtls, lenderConfigInfo);
-							}else {
-								
-									throw new GeneralCustomException(ERROR, DEPOSIT_VERIFICATION_REQUEST);
-								
-							}
-					} else if (flowTypeEnum.equals(ServicesSelectedEnum.IDENTITY_VERIFICATION)) {
-						identityVerificationRequestWrapperModel = new IdentityVerificationRequestWrapperModel();
-						identityVerificationRequestWrapperModel = sdkCustomerServiceHelper.setCustomerRequestForIdentity(identityVerificationRequestWrapperModel, sdkCreateCustomerRequest);
-							if( identityVerificationRequestWrapperModel != null) {						
-						customerWrapperAPIService.validateIdentityVerificationRequest(
-								identityVerificationRequestWrapperModel, requestId, requestIdDtls, lenderConfigInfo);
-					}
-					}else {
-						throw new GeneralCustomException(ERROR, IDENTITY_VERIFICATION_REQUEST);
-					}
-
-				}
-				}catch (Exception e) {
-					Sentry.captureException(e);
-					throw new GeneralCustomException(ERROR, e.getMessage());
-				}
+				
 				
 			customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+			sdkCustomerServiceHelper.validateCustomerRequest(sdkCreateCustomerRequest, requestId, lenderConfigInfo, requestIdDtls);
 			if (!customerEntity.isExistingCustomer()) {
 				if ("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
 					customerEntity = customerServiceHelper

@@ -6,6 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
+import com.paywallet.userservice.user.enums.SdkContextEnum;
 import com.paywallet.userservice.user.enums.ServicesSelectedEnum;
 
 import lombok.AllArgsConstructor;
@@ -52,5 +53,6 @@ public class RequestIdDetails {
     private String loginSdkStatus;
     private boolean isPdSupported;
     private List<ServicesSelectedEnum> servicesSelected;
+    private List<SdkContextEnum> sdkContextEnums;
 
 }

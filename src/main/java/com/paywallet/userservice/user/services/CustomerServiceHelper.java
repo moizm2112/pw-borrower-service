@@ -323,6 +323,7 @@ public class CustomerServiceHelper {
 					requestIdDTO.setNotificationUrls(requestIdDetails.getNotificationUrls());
 			}			
 			requestIdDTO.setServicesSelected(sdkCreateCustomerRequest.getServicesSelected());
+			requestIdDTO.setSdkContext(sdkCreateCustomerRequest.getSdkContext());
 		} catch (Exception e) {
 			Sentry.captureException(e);
 			throw new GeneralCustomException("ERROR", "Exception occured while updating the request Id details");

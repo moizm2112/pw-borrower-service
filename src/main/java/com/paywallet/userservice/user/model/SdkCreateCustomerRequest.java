@@ -45,7 +45,7 @@ public class SdkCreateCustomerRequest {
 
 	private Boolean checkOutExperience;
 
-	private SdkContextEnum sdkContext;
+	private List<SdkContextEnum> sdkContext;
 
 	private List<ServicesSelectedEnum> servicesSelected;
 
