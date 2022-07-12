@@ -321,9 +321,12 @@ public class CustomerServiceHelper {
 					requestIdDTO.setNotificationUrls(callbackURL.getNotificationUrls());
 				else
 					requestIdDTO.setNotificationUrls(requestIdDetails.getNotificationUrls());
-			}			
-			requestIdDTO.setServicesSelected(sdkCreateCustomerRequest.getServicesSelected());
-			requestIdDTO.setSdkContext(sdkCreateCustomerRequest.getSdkContext());
+			}		
+			if(sdkCreateCustomerRequest != null && sdkCreateCustomerRequest.getServicesSelected() != null &&  sdkCreateCustomerRequest.getSdkContext() != null) {
+				requestIdDTO.setServicesSelected(sdkCreateCustomerRequest.getServicesSelected());
+				requestIdDTO.setSdkContext(sdkCreateCustomerRequest.getSdkContext());
+			}
+			
 		} catch (Exception e) {
 			Sentry.captureException(e);
 			throw new GeneralCustomException("ERROR", "Exception occured while updating the request Id details");
