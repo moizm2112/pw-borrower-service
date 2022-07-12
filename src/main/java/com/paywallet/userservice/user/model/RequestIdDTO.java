@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
+import com.paywallet.userservice.user.enums.SdkContextEnum;
+import com.paywallet.userservice.user.enums.ServicesSelectedEnum;
 
 @Component
 @Data
@@ -53,4 +55,6 @@ public class RequestIdDTO {
     private String numberOfMonthsRequested;
     private FlowTypeEnum currentFlowType;
     private boolean isPdSupported;
+    private List<ServicesSelectedEnum> servicesSelected;
+    private List<SdkContextEnum> sdkContext;
 }

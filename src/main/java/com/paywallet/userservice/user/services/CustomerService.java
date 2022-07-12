@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paywallet.userservice.user.constant.AppConstants;
 import com.paywallet.userservice.user.enums.FlowTypeEnum;
 import com.paywallet.userservice.user.enums.ProviderTypeEnum;
+import com.paywallet.userservice.user.enums.ServicesSelectedEnum;
 import com.paywallet.userservice.user.enums.StateStatus;
 import com.paywallet.userservice.user.enums.VerificationStatusEnum;
 import com.paywallet.userservice.user.exception.CreateCustomerABAException;
@@ -49,6 +50,7 @@ import com.paywallet.userservice.user.model.LyonsAPIRequestDTO;
 import com.paywallet.userservice.user.model.RequestIdDTO;
 import com.paywallet.userservice.user.model.RequestIdDetails;
 import com.paywallet.userservice.user.model.RequestIdResponseDTO;
+import com.paywallet.userservice.user.model.SdkCreateCustomerRequest;
 import com.paywallet.userservice.user.model.StateControllerInfo;
 import com.paywallet.userservice.user.model.UpdateCustomerDetailsResponseDTO;
 import com.paywallet.userservice.user.model.UpdateCustomerEmailIdDTO;
@@ -84,10 +86,12 @@ public class CustomerService {
 	private static final String ACCEPT = "Accept";
 	private static final String DEPOSIT_ALLOCATION = "DEPOSIT_ALLOCATION";
 	private static final String GENERAL = "GENERAL";
+	private static final String SDK = "SDK";
 	private static final String EMPLOYMENT_VERIFICATION = "EMPLOYMENT_VERIFICATION";
 	private static final String INCOME_VERIFICATION = "INCOME_VERIFICATION";
 	private static final String IDENTITY_VERIFICATION = "IDENTITY_VERIFICATION";
 	private static final String PDNOTSUPPORTED = "pd Not supported";
+
 
 
 	@Autowired
@@ -129,6 +133,8 @@ public class CustomerService {
 	@Value("${lyons.api.returnDetails}")
 	private int returnDetails;
 
+	@Autowired
+	private CustomerWrapperAPIService customerwrapperApi;
 	/**
 	 * This attribute holds the URI path of the Identity service provider
 	 * Microservice
@@ -159,6 +165,8 @@ public class CustomerService {
 
 	@Autowired
 	CommonUtil commonUtil;
+	@Autowired
+	SdkCustomerServiceHelper sdkCustomerServiceHelper;
 
 	/**
 	 * Method fetches customer details by cellPhone
@@ -1065,6 +1073,7 @@ public class CustomerService {
 		double directDepositAllocationInstallmentAmount = 0;
 		boolean isFineractAccountCreatedForExistingCustomer = false;
 		boolean isEmployerPdSupported = true;
+		SdkCreateCustomerRequest sdkCreateCustomerRequest= null;
 
 		if (!flowType.name().equals(FlowTypeEnum.GENERAL.name())) {
 			if (obj.getClass().getSimpleName().equals((DepositAllocationRequestWrapperModel.class).getSimpleName()))
@@ -1078,6 +1087,9 @@ public class CustomerService {
 			else if (obj.getClass().getSimpleName()
 					.equals((IdentityVerificationRequestWrapperModel.class).getSimpleName()))
 				identityVerificationRequestWrapperModel = (IdentityVerificationRequestWrapperModel) obj;
+			else if (obj.getClass().getSimpleName()
+					.equals((SdkCreateCustomerRequest.class).getSimpleName()))
+				sdkCreateCustomerRequest = (SdkCreateCustomerRequest) obj;
 		}
 		generalCustomerRequestConfig(customer);
 		try {
@@ -1095,8 +1107,41 @@ public class CustomerService {
 				log.warn("Request {} in progress for the requestId Please complete the request and re-try again",flowTypeEnum);
 				throw new GeneralCustomException("ERROR",new StringBuilder("Request [").append(flowTypeEnum).append("] in progress for the requestId Please complete the request and re-try again").toString());
 			}
+			switch (flowType.name() ) {
+			case SDK:{
+				validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
+			//Check if the employer PD supported
+			isEmployerPdSupported = customerServiceHelper.checkIfEmployerPdSuported(requestIdDtls);
+				
+				
+			customerEntity = checkAndReturnIfCustomerAlreadyExist(customer, lenderConfigInfo, requestId);
+			sdkCustomerServiceHelper.validateCustomerRequest(sdkCreateCustomerRequest, requestId, lenderConfigInfo, requestIdDtls);
+			if (!customerEntity.isExistingCustomer()) {
+				if ("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+					customerEntity = customerServiceHelper
+							.createFineractVirtualAccount(requestIdDtls.getRequestId(), customerEntity);
+					customerEntity.setAccountABANumber(ROUTING_NUMBER);
+					log.info("Virtual fineract account created successfully ");
+				}
+			} else {
+				if (StringUtils.isBlank(customerEntity.getAccountABANumber())
+						&& StringUtils.isNotBlank(customerEntity.getVirtualAccount())) {
+					customerEntity.setAccountABANumber(ROUTING_NUMBER);
+				}
 
-			switch (flowType.name()) {
+				if (StringUtils.isBlank(customerEntity.getVirtualAccount())
+						&& StringUtils.isBlank(customerEntity.getAccountABANumber())) {
+					if ("YES".equalsIgnoreCase(lenderConfigInfo.getInvokeAndPublishDepositAllocation().name())) {
+						customerEntity = customerServiceHelper
+								.createFineractVirtualAccount(requestIdDtls.getRequestId(), customerEntity);
+						customerEntity.setAccountABANumber(ROUTING_NUMBER);
+						log.info("Virtual fineract account created successfully");
+						isFineractAccountCreatedForExistingCustomer = true;
+					}
+				}
+			}
+			break;
+		}
 			case GENERAL: {
 				validateCreateCustomerRequest(customer, requestId, requestIdDtls.getClientName());
 				//Check if the employer PD supported
@@ -1303,6 +1348,7 @@ public class CustomerService {
 			default: {
 			}
 			}
+			
 
 			if (requestIdDtls.getClientName() != null)
 				customerEntity.setLender(requestIdDtls.getClientName());
@@ -1316,9 +1362,9 @@ public class CustomerService {
 			else
 				saveCustomer = customerEntity;
 			saveCustomer.setRequestId(requestId);
-
+//servicesSelected
 			RequestIdDTO requestIdDTO = customerServiceHelper.setRequestIdDetails(saveCustomer,
-					customer.getCallbackURLs(), flowType, requestIdDtls, isEmployerPdSupported);
+					customer.getCallbackURLs(), flowType, requestIdDtls, isEmployerPdSupported,sdkCreateCustomerRequest);
 			/* UPDATE REQUEST TABLE WITH CUSTOMERID AND VIRTUAL ACCOUNT NUMBER */
 
 			//PWMVP2-503 || saving customer provided details
